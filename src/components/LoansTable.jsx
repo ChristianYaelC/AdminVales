@@ -165,11 +165,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       {/* Botón de Eliminar */}
       {onDeleteLoan && (
         <button
-          onClick={() => {
-            if (confirm(`¿Estás seguro que deseas eliminar el préstamo "${loan.name}"?`)) {
-              onDeleteLoan()
-            }
-          }}
+          onClick={() => onDeleteLoan()}
           className="mt-6 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
         >
           <Trash2 size={18} />

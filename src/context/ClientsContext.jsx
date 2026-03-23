@@ -3,33 +3,22 @@ import { createContext, useState, useContext } from 'react'
 const ClientsContext = createContext()
 
 export function ClientsProvider({ children }) {
-  const [clients, setClients] = useState([
-    {
-      id: 1,
-      name: 'Juan García López',
-      sources: {
-        captavale: true,
-        salevale: false,
-        dportenis: true,
-        valefectivo: false
-      },
-      loans: []
-    },
-    {
-      id: 2,
-      name: 'María Rodríguez',
-      sources: {
-        captavale: false,
-        salevale: true,
-        dportenis: false,
-        valefectivo: true
-      },
-      loans: []
-    }
-  ])
+  // Clientes del apartado VALES (con múltiples fuentes)
+  const [valesClients, setValesClients] = useState([])
+
+  // Clientes del apartado BANCO (préstamos simples con registro por quincena)
+  const [bancoClients, setBancoClients] = useState([])
 
   return (
-    <ClientsContext.Provider value={{ clients, setClients }}>
+    <ClientsContext.Provider value={{ 
+      valesClients, 
+      setValesClients,
+      bancoClients,
+      setBancoClients,
+      // Para compatibilidad con código existente
+      clients: valesClients,
+      setClients: setValesClients
+    }}>
       {children}
     </ClientsContext.Provider>
   )

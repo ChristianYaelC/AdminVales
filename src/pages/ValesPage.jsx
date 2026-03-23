@@ -7,7 +7,7 @@ import LoansTable from '../components/LoansTable'
 import ConfirmModal from '../components/ConfirmModal'
 
 function ValesPage() {
-  const { clients, setClients } = useClients()
+  const { valesClients, setValesClients } = useClients()
   const [showAddForm, setShowAddForm] = useState(false)
   const [showLoanForm, setShowLoanForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -27,21 +27,21 @@ function ValesPage() {
   }
 
   // Filtrar clientes por búsqueda
-  const filteredClients = clients.filter(client =>
+  const filteredClients = valesClients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   // Obtener cliente seleccionado
-  const selectedClient = clients.find(c => c.id === selectedClientId)
+  const selectedClient = valesClients.find(c => c.id === selectedClientId)
 
   // Agregar nuevo cliente
   const handleAddClient = (clientData) => {
     const newClient = {
-      id: Math.max(...clients.map(c => c.id), 0) + 1,
+      id: Math.max(...valesClients.map(c => c.id), 0) + 1,
       ...clientData,
       loans: []
     }
-    setClients([...clients, newClient])
+    setValesClients([...valesClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
     setSelectedSources({})
@@ -52,7 +52,7 @@ function ValesPage() {
     if (!selectedClientId) return
 
     const newLoan = {
-      id: Math.max(...clients.flatMap(c => c.loans).map(l => l.id), 0) + 1,
+      id: Math.max(...valesClients.flatMap(c => c.loans).map(l => l.id), 0) + 1,
       name: loanData.name,
       source: loanData.source,
       amount: loanData.amount,
@@ -66,7 +66,7 @@ function ValesPage() {
       status: 'active' // 'active', 'completed'
     }
 
-    const updatedClients = clients.map(client => {
+    const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
         return {
           ...client,
@@ -76,13 +76,13 @@ function ValesPage() {
       return client
     })
 
-    setClients(updatedClients)
+    setValesClients(updatedClients)
     setShowLoanForm(false)
   }
 
   // Actualizar cliente
   const handleUpdateClient = (id, updatedClient) => {
-    setClients(clients.map(c => c.id === id ? { ...c, ...updatedClient } : c))
+    setValesClients(valesClients.map(c => c.id === id ? { ...c, ...updatedClient } : c))
   }
 
   // Eliminar cliente
@@ -100,7 +100,7 @@ function ValesPage() {
   const handleRegisterPayment = (loanId, paymentAmount) => {
     if (!selectedClient) return
 
-    const updatedClients = clients.map(client => {
+    const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
         const updatedLoans = client.loans.map(loan => {
           if (loan.id === loanId) {
@@ -129,14 +129,29 @@ function ValesPage() {
       return client
     })
 
-    setClients(updatedClients)
+    setValesClients(updatedClients)
   }
 
   // Eliminar préstamo
   const handleDeleteLoan = (loanId) => {
+    if (!selectedClientId || !selectedLoanId) return
+
+    const loan = selectedClient?.loans.find(l => l.id === loanId)
+    if (!loan) return
+
+    setPendingPayment({
+      type: 'deleteLoan',
+      loanId: loanId,
+      title: 'Eliminar Préstamo',
+      message: `¿Estás seguro que deseas eliminar el préstamo "${loan.name}"? No se puede deshacer.`
+    })
+    setIsConfirmModalOpen(true)
+  }
+
+  const performDeleteLoan = (loanId) => {
     if (!selectedClientId) return
 
-    const updatedClients = clients.map(client => {
+    const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
         return {
           ...client,
@@ -146,7 +161,7 @@ function ValesPage() {
       return client
     })
 
-    setClients(updatedClients)
+    setValesClients(updatedClients)
     setSelectedLoanId(null)
   }
 
@@ -175,7 +190,7 @@ function ValesPage() {
   const handlePaySourceQuincena = (source, quincena) => {
     if (!selectedClient) return
 
-    const updatedClients = clients.map(client => {
+    const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
         const updatedLoans = client.loans.map(loan => {
           if (loan.source === source && loan.currentPayment === quincena && loan.status === 'active') {
@@ -203,14 +218,14 @@ function ValesPage() {
       return client
     })
 
-    setClients(updatedClients)
+    setValesClients(updatedClients)
   }
 
   // Pagar todas las fuentes en sus respectivas quincenas
   const handlePayAllSources = () => {
     if (!selectedClient) return
 
-    const updatedClients = clients.map(client => {
+    const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
         const updatedLoans = client.loans.map(loan => {
           if (loan.status === 'active') {
@@ -238,7 +253,7 @@ function ValesPage() {
       return client
     })
 
-    setClients(updatedClients)
+    setValesClients(updatedClients)
   }
 
   const getTotalActivePayments = (clientLoans) => {
@@ -269,11 +284,13 @@ function ValesPage() {
     if (!pendingPayment) return
 
     if (pendingPayment.type === 'deleteClient') {
-      setClients(clients.filter(c => c.id !== pendingPayment.clientId))
+      setValesClients(valesClients.filter(c => c.id !== pendingPayment.clientId))
       if (selectedClientId === pendingPayment.clientId) {
         setSelectedClientId(null)
         setSelectedLoanId(null)
       }
+    } else if (pendingPayment.type === 'deleteLoan') {
+      performDeleteLoan(pendingPayment.loanId)
     } else if (pendingPayment.type === 'paySourceQuincena') {
       handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
     } else if (pendingPayment.type === 'payAllSources') {
@@ -671,6 +688,7 @@ function ValesPage() {
         title={pendingPayment?.title || ''}
         message={pendingPayment?.message || ''}
         amount={pendingPayment?.amount}
+        type={pendingPayment?.type}
         onConfirm={handleConfirmPayment}
         onCancel={handleCancelPayment}
       />

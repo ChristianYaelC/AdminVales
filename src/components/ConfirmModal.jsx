@@ -1,7 +1,26 @@
 import { X, AlertCircle } from 'lucide-react'
 
-function ConfirmModal({ isOpen, title, message, amount, onConfirm, onCancel, isLoading = false }) {
+function ConfirmModal({ isOpen, title, message, amount, type, onConfirm, onCancel, isLoading = false }) {
   if (!isOpen) return null
+
+  // Determinar el color y texto del botón según el tipo
+  const getButtonConfig = () => {
+    switch(type) {
+      case 'deleteClient':
+      case 'deleteLoan':
+        return {
+          color: 'bg-red-600 hover:bg-red-700',
+          text: 'Eliminar'
+        }
+      default:
+        return {
+          color: 'bg-green-600 hover:bg-green-700',
+          text: 'Confirmar Pago'
+        }
+    }
+  }
+
+  const buttonConfig = getButtonConfig()
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -9,7 +28,7 @@ function ConfirmModal({ isOpen, title, message, amount, onConfirm, onCancel, isL
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <AlertCircle size={24} className="text-orange-600" />
+            <AlertCircle size={24} className={type?.includes('delete') ? 'text-red-600' : 'text-orange-600'} />
             <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           </div>
           <button
@@ -47,9 +66,9 @@ function ConfirmModal({ isOpen, title, message, amount, onConfirm, onCancel, isL
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
+            className={`flex-1 px-4 py-2 ${buttonConfig.color} text-white rounded-lg transition-colors font-medium disabled:opacity-50`}
           >
-            {isLoading ? 'Procesando...' : 'Confirmar Pago'}
+            {isLoading ? 'Procesando...' : buttonConfig.text}
           </button>
         </div>
       </div>
