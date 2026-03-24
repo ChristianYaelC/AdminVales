@@ -6,7 +6,6 @@ import { useClients } from '../context/ClientsContext'
 function LoanForm({ onSubmit, onCancel }) {
   const { isFolioUnique } = useClients()
   const [formData, setFormData] = useState({
-    name: '',
     folio: '',
     amount: '',
     term: '',
@@ -21,11 +20,6 @@ function LoanForm({ onSubmit, onCancel }) {
     salevale: 'SaleVale',
     dportenis: 'dportenis',
     valefectivo: 'valefectivo'
-  }
-
-  const handleNameChange = (e) => {
-    setFormData({ ...formData, name: e.target.value })
-    if (errors.name) setErrors({ ...errors, name: '' })
   }
 
   const handleFolioChange = (e) => {
@@ -87,10 +81,6 @@ function LoanForm({ onSubmit, onCancel }) {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'El nombre del préstamo es requerido'
-    }
-
     if (!formData.folio.trim()) {
       newErrors.folio = 'El folio del préstamo es requerido'
     } else if (!isFolioUnique(formData.folio)) {
@@ -138,7 +128,6 @@ function LoanForm({ onSubmit, onCancel }) {
       const finalPayment = calculateFinalPayment(basePayment, insurance, term, sourceData.insuranceType)
 
       onSubmit({
-        name: formData.name,
         folio: formData.folio,
         amount: amount,
         term: term,
@@ -170,23 +159,6 @@ function LoanForm({ onSubmit, onCancel }) {
 
         {/* Contenido */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Nombre del Préstamo */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre del Préstamo
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={handleNameChange}
-              placeholder="Ej: Emergencia"
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-          </div>
-
           {/* Folio del Préstamo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

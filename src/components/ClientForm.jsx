@@ -3,7 +3,9 @@ import { X, Plus } from 'lucide-react'
 
 function ClientForm({ onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    name: ''
+    name: '',
+    phone: '',
+    address: ''
   })
 
   const [errors, setErrors] = useState({})
@@ -16,10 +18,32 @@ function ClientForm({ onSubmit, onCancel }) {
     if (errors.name) setErrors({ ...errors, name: '' })
   }
 
+  const handlePhoneChange = (e) => {
+    setFormData({
+      ...formData,
+      phone: e.target.value
+    })
+    if (errors.phone) setErrors({ ...errors, phone: '' })
+  }
+
+  const handleAddressChange = (e) => {
+    setFormData({
+      ...formData,
+      address: e.target.value
+    })
+    if (errors.address) setErrors({ ...errors, address: '' })
+  }
+
   const validateForm = () => {
     const newErrors = {}
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es requerido'
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'El teléfono es requerido'
+    }
+    if (!formData.address.trim()) {
+      newErrors.address = 'El domicilio es requerido'
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -63,6 +87,40 @@ function ClientForm({ onSubmit, onCancel }) {
               }`}
             />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          </div>
+
+          {/* Campo Teléfono */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Número de Teléfono
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              placeholder="Ej: 555-1234567"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.phone ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
+
+          {/* Campo Domicilio */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Domicilio
+            </label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={handleAddressChange}
+              placeholder="Ej: Calle Principal 123, Apt 4B"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.address ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
           </div>
 
           {/* Botones */}

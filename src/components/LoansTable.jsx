@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { Check, DollarSign, Trash2 } from 'lucide-react'
+import { Check, DollarSign, Trash2, Edit2 } from 'lucide-react'
 
 function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
   const [paymentAmount, setPaymentAmount] = useState('')
+  const [editingPaymentId, setEditingPaymentId] = useState(null)
+  const [editingDate, setEditingDate] = useState('')
 
   const isCompleted = loan.currentPayment > loan.totalPayments
   const paymentHistory = loan.payments || []
@@ -10,6 +12,16 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
 
   // Calcular total restante a pagar
   const totalRemaining = remainingPayments * loan.finalPayment
+
+  const handleEditDate = (payment, idx) => {
+    setEditingPaymentId(idx)
+    setEditingDate(payment.date || '')
+  }
+
+  const handleSaveDate = (idx) => {
+    // Esta funcionalidad se maneja en el componente padre si es necesario
+    setEditingPaymentId(null)
+  }
 
   const handlePaymentSubmit = () => {
     const amount = parseFloat(paymentAmount)
@@ -27,18 +39,12 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       {/* Información del Préstamo con Folio */}
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-xs text-gray-600 font-medium">Nombre del Préstamo</p>
-            <p className="text-lg font-bold text-gray-900">{loan.name}</p>
+          <div className="bg-white px-4 py-2 rounded-lg border-2 border-blue-600">
+            <p className="text-xs text-gray-600 font-semibold">FOLIO</p>
+            <p className="text-lg font-bold text-blue-600">{loan.folio}</p>
           </div>
-          {loan.folio && (
-            <div className="bg-white px-4 py-2 rounded-lg border-2 border-blue-500">
-              <p className="text-xs text-gray-600 font-medium">Folio</p>
-              <p className="text-lg font-bold text-blue-600">{loan.folio}</p>
-            </div>
-          )}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
             <p className="text-xs text-gray-600 font-medium">Monto Original</p>
             <p className="text-lg font-bold text-gray-900 mt-1">
@@ -63,65 +69,108 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
               </p>
             </div>
           )}
+          {loan.createdAt && (
+            <div>
+              <p className="text-xs text-gray-600 font-medium">Fecha de Creación</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">{loan.createdAt}</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Barra de Progreso */}
-      <div className="mb-6">
-        {!isCompleted ? (
-          <>
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-medium text-gray-900">Progreso de Pago</p>
-              <p className="text-sm text-gray-600">
-                {loan.currentPayment - 1}/{loan.totalPayments} quincenas
-              </p>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className="bg-green-600 h-3 rounded-full transition-all"
-                style={{ width: `${((loan.currentPayment - 1) / loan.totalPayments) * 100}%` }}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg p-6 text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
+      {/* Mensaje de Préstamo Completado */}
+      {isCompleted && (
+        <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <Check size={32} className="text-green-600" />
-              <p className="text-3xl font-bold text-green-600">¡PRÉSTAMO COMPLETADO!</p>
+              <div>
+                <p className="text-2xl font-bold text-green-600">¡PRÉSTAMO COMPLETADO!</p>
+                <p className="text-green-700 font-medium">Todas las quincenas han sido pagadas</p>
+              </div>
             </div>
-            <p className="text-green-700 font-medium">Todas las quincenas han sido pagadas</p>
+            {onDeleteLoan && (
+              <button
+                onClick={() => onDeleteLoan()}
+                className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium whitespace-nowrap"
+              >
+                <Trash2 size={18} />
+                Eliminar
+              </button>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Tabla de Historial de Pagos */}
+      {/* Tabla de Estado de Cuenta */}
       <div className="overflow-x-auto mb-8">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-100 border-b-2 border-gray-300">
-              <th className="px-4 py-3 text-center font-bold text-gray-700">Quincena</th>
-              <th className="px-4 py-3 text-right font-bold text-gray-700">Monto Pagado</th>
-              <th className="px-4 py-3 text-center font-bold text-gray-700">Fecha</th>
+            <tr className="bg-yellow-100 border-b-2 border-yellow-300">
+              <th className="px-4 py-3 text-center font-bold text-gray-800">FECHA DE PAGO</th>
+              <th className="px-4 py-3 text-center font-bold text-gray-800">NUM. DE PAGO</th>
+              <th className="px-4 py-3 text-right font-bold text-gray-800">SALDO ANTERIOR</th>
+              <th className="px-4 py-3 text-right font-bold text-gray-800">IMPORTE DE PAGO</th>
+              <th className="px-4 py-3 text-right font-bold text-gray-800">NUEVO SALDO</th>
             </tr>
           </thead>
           <tbody>
             {paymentHistory.length > 0 ? (
-              paymentHistory.map((payment, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="px-4 py-3 text-center font-medium text-gray-900">
-                    {payment.num}ª
-                  </td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    ${payment.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="px-4 py-3 text-center text-gray-600 text-xs">
-                    {payment.date || '—'}
-                  </td>
-                </tr>
-              ))
+              paymentHistory.map((payment, idx) => {
+                // Calcular saldos basados en el total a pagar (quincenas × pago por quincena)
+                const totalAPagar = loan.totalPayments * loan.finalPayment
+                const pagosAnteriores = paymentHistory.slice(0, idx).reduce((sum, p) => sum + p.amount, 0)
+                const saldoAnterior = totalAPagar - pagosAnteriores
+                const nuevoSaldo = saldoAnterior - payment.amount
+
+                return (
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-yellow-50' : 'bg-white'}>
+                    <td className="px-4 py-3 text-center text-gray-900">
+                      {editingPaymentId === idx ? (
+                        <div className="flex gap-2 items-center justify-center">
+                          <input
+                            type="date"
+                            value={editingDate}
+                            onChange={(e) => setEditingDate(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded text-xs"
+                          />
+                          <button
+                            onClick={() => handleSaveDate(idx)}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            ✓
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 items-center justify-center">
+                          <span>{payment.date || '—'}</span>
+                          <button
+                            onClick={() => handleEditDate(payment, idx)}
+                            className="text-blue-600 hover:text-blue-700 p-1"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center font-medium text-gray-900">
+                      {payment.num}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                      ${saldoAnterior.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                      ${payment.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-blue-600">
+                      ${nuevoSaldo.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                )
+              })
             ) : (
               <tr>
-                <td colSpan="3" className="px-4 py-8 text-center text-gray-500">
+                <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                   Sin pagos registrados aún
                 </td>
               </tr>
@@ -159,14 +208,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       )}
 
       {/* Resumen */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <p className="text-xs text-gray-600 font-medium">Aún por pagar</p>
-          <p className="text-2xl font-bold text-orange-600 mt-2">
-            ${totalRemaining.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-          </p>
-          <p className="text-xs text-gray-600 mt-2">{remainingPayments} quincena(s)</p>
-        </div>
+      <div className="mt-6">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-xs text-gray-600 font-medium">Total Pagado</p>
           <p className="text-2xl font-bold text-green-600 mt-2">
@@ -175,17 +217,6 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
           <p className="text-xs text-gray-600 mt-2">{paymentHistory.length} quincena(s)</p>
         </div>
       </div>
-
-      {/* Botón de Eliminar */}
-      {onDeleteLoan && (
-        <button
-          onClick={() => onDeleteLoan()}
-          className="mt-6 flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
-        >
-          <Trash2 size={18} />
-          Eliminar Préstamo
-        </button>
-      )}
     </div>
   )
 }

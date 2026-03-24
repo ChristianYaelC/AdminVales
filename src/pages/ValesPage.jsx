@@ -54,7 +54,6 @@ function ValesPage() {
 
     const newLoan = {
       id: Math.max(...valesClients.flatMap(c => c.loans).map(l => l.id), 0) + 1,
-      name: loanData.name,
       folio: loanData.folio,
       source: loanData.source,
       amount: loanData.amount,
@@ -65,7 +64,8 @@ function ValesPage() {
       currentPayment: 1,
       totalPayments: loanData.term,
       payments: [],
-      status: 'active' // 'active', 'completed'
+      status: 'active', // 'active', 'completed'
+      createdAt: new Date().toLocaleDateString('es-MX')
     }
 
     const updatedClients = valesClients.map(client => {
@@ -145,7 +145,7 @@ function ValesPage() {
       type: 'deleteLoan',
       loanId: loanId,
       title: 'Eliminar Préstamo',
-      message: `¿Estás seguro que deseas eliminar el préstamo "${loan.name}"? No se puede deshacer.`
+      message: `¿Estás seguro que deseas eliminar el préstamo con folio "${loan.folio}"? No se puede deshacer.`
     })
     setIsConfirmModalOpen(true)
   }
@@ -408,8 +408,22 @@ function ValesPage() {
               <div className="bg-white rounded-lg shadow">
                 {/* Header del cliente */}
                 <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
+                      <div className="mt-2 space-y-1">
+                        {selectedClient.phone && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Teléfono:</span> {selectedClient.phone}
+                          </p>
+                        )}
+                        {selectedClient.address && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Domicilio:</span> {selectedClient.address}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                     <button
                       onClick={() => {
                         setShowLoanForm(true)
@@ -667,7 +681,12 @@ function ValesPage() {
                                     onClick={() => setSelectedLoanId(loan.id)}
                                     className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
                                   >
-                                    <p className="font-bold text-gray-900">{loan.name}</p>
+                                    <div className="flex items-start justify-between mb-2">
+                                      <p className="font-bold text-blue-600 text-sm">Folio: {loan.folio}</p>
+                                      {loan.createdAt && (
+                                        <p className="text-xs text-gray-500 text-right">{loan.createdAt}</p>
+                                      )}
+                                    </div>
                                     <p className="text-sm text-gray-600 mt-1">
                                       Monto: ${loan.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                     </p>
