@@ -24,32 +24,46 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
 
   return (
     <div className="mb-8">
-      {/* Información del Préstamo */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div>
-          <p className="text-xs text-gray-600 font-medium">Monto Original</p>
-          <p className="text-lg font-bold text-gray-900 mt-1">
-            ${loan.amount.toLocaleString('es-MX')}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 font-medium">Plazo</p>
-          <p className="text-lg font-bold text-gray-900 mt-1">{loan.term} quincenas</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 font-medium">Pago por Quincena</p>
-          <p className="text-lg font-bold text-blue-600 mt-1">
-            ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-          </p>
-        </div>
-        {loan.insurance > 0 && (
+      {/* Información del Préstamo con Folio */}
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs text-gray-600 font-medium">Seguro</p>
+            <p className="text-xs text-gray-600 font-medium">Nombre del Préstamo</p>
+            <p className="text-lg font-bold text-gray-900">{loan.name}</p>
+          </div>
+          {loan.folio && (
+            <div className="bg-white px-4 py-2 rounded-lg border-2 border-blue-500">
+              <p className="text-xs text-gray-600 font-medium">Folio</p>
+              <p className="text-lg font-bold text-blue-600">{loan.folio}</p>
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <p className="text-xs text-gray-600 font-medium">Monto Original</p>
             <p className="text-lg font-bold text-gray-900 mt-1">
-              ${loan.insurance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+              ${loan.amount.toLocaleString('es-MX')}
             </p>
           </div>
-        )}
+          <div>
+            <p className="text-xs text-gray-600 font-medium">Plazo</p>
+            <p className="text-lg font-bold text-gray-900 mt-1">{loan.term} quincenas</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-600 font-medium">Pago por Quincena</p>
+            <p className="text-lg font-bold text-blue-600 mt-1">
+              ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+          {loan.insurance > 0 && (
+            <div>
+              <p className="text-xs text-gray-600 font-medium">Seguro</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">
+                ${loan.insurance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Barra de Progreso */}

@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
 import { LOAN_TABLES, getAvailableAmounts, getAvailableTerms, getPaymentFromTable, calculateFinalPayment } from '../constants/tablesData'
+import { useClients } from '../context/ClientsContext'
 
 function LoanForm({ onSubmit, onCancel }) {
+  const { isFolioUnique } = useClients()
   const [formData, setFormData] = useState({
     name: '',
+    folio: '',
     amount: '',
     term: '',
     source: '',
@@ -23,6 +26,11 @@ function LoanForm({ onSubmit, onCancel }) {
   const handleNameChange = (e) => {
     setFormData({ ...formData, name: e.target.value })
     if (errors.name) setErrors({ ...errors, name: '' })
+  }
+
+  const handleFolioChange = (e) => {
+    setFormData({ ...formData, folio: e.target.value })
+    if (errors.folio) setErrors({ ...errors, folio: '' })
   }
 
   const handleSourceChange = (e) => {
@@ -83,6 +91,12 @@ function LoanForm({ onSubmit, onCancel }) {
       newErrors.name = 'El nombre del préstamo es requerido'
     }
 
+    if (!formData.folio.trim()) {
+      newErrors.folio = 'El folio del préstamo es requerido'
+    } else if (!isFolioUnique(formData.folio)) {
+      newErrors.folio = 'Este folio ya existe. Por favor ingresa un folio único'
+    }
+
     if (!formData.source) {
       newErrors.source = 'Selecciona una fuente de cobro'
     }
@@ -125,6 +139,7 @@ function LoanForm({ onSubmit, onCancel }) {
 
       onSubmit({
         name: formData.name,
+        folio: formData.folio,
         amount: amount,
         term: term,
         source: formData.source,
@@ -170,6 +185,23 @@ function LoanForm({ onSubmit, onCancel }) {
               }`}
             />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+          </div>
+
+          {/* Folio del Préstamo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Folio
+            </label>
+            <input
+              type="text"
+              value={formData.folio}
+              onChange={handleFolioChange}
+              placeholder="Ej: FOLIO-001"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                errors.folio ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.folio && <p className="text-red-500 text-xs mt-1">{errors.folio}</p>}
           </div>
 
           {/* Fuente de Cobro */}

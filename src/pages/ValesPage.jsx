@@ -11,6 +11,7 @@ function ValesPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [showLoanForm, setShowLoanForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchFolioTerm, setSearchFolioTerm] = useState('')
   const [selectedClientId, setSelectedClientId] = useState(null)
   const [selectedSource, setSelectedSource] = useState(null)
   const [selectedLoanId, setSelectedLoanId] = useState(null)
@@ -26,7 +27,7 @@ function ValesPage() {
     valefectivo: 'valefectivo'
   }
 
-  // Filtrar clientes por búsqueda
+  // Filtrar clientes por nombre
   const filteredClients = valesClients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -54,6 +55,7 @@ function ValesPage() {
     const newLoan = {
       id: Math.max(...valesClients.flatMap(c => c.loans).map(l => l.id), 0) + 1,
       name: loanData.name,
+      folio: loanData.folio,
       source: loanData.source,
       amount: loanData.amount,
       term: loanData.term,
@@ -377,6 +379,7 @@ function ValesPage() {
                           setSelectedClientId(client.id)
                           setSelectedSource('captavale')
                           setSelectedLoanId(null)
+                          setSearchFolioTerm('')
                         }}
                         className="w-full text-left px-4 py-3"
                       >
@@ -430,6 +433,7 @@ function ValesPage() {
                         setShowSourceSummary(true)
                         setSelectedSource(null)
                         setSelectedLoanId(null)
+                        setSearchFolioTerm('')
                       }}
                       className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
                         showSourceSummary
@@ -450,6 +454,7 @@ function ValesPage() {
                             setShowSourceSummary(false)
                             setSelectedSource(key)
                             setSelectedLoanId(null)
+                            setSearchFolioTerm('')
                           }}
                           className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
                             !showSourceSummary && selectedSource === key
@@ -635,11 +640,28 @@ function ValesPage() {
                                 </div>
                               )}
 
-                              <p className="text-sm font-medium text-gray-700">
+                              <p className="text-sm font-medium text-gray-700 mb-3">
                                 Préstamos de {sourcesList[selectedSource]}:
                               </p>
+                              
+                              {/* Búsqueda por folio */}
+                              <div className="mb-4 relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                  type="text"
+                                  placeholder="Buscar por folio..."
+                                  value={searchFolioTerm}
+                                  onChange={(e) => setSearchFolioTerm(e.target.value)}
+                                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                />
+                              </div>
+
                               <div className="grid grid-cols-1 gap-3">
-                                {loansInSource.map(loan => (
+                                {loansInSource
+                                  .filter(loan => 
+                                    loan.folio?.toLowerCase().includes(searchFolioTerm.toLowerCase())
+                                  )
+                                  .map(loan => (
                                   <button
                                     key={loan.id}
                                     onClick={() => setSelectedLoanId(loan.id)}
