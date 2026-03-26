@@ -1,37 +1,76 @@
 import { useState } from 'react'
-import { Check, DollarSign, Trash2, Edit2 } from 'lucide-react'
+import { Check, Trash2, Edit2 } from 'lucide-react'
 
 function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
-  const [paymentAmount, setPaymentAmount] = useState('')
   const [editingPaymentId, setEditingPaymentId] = useState(null)
   const [editingDate, setEditingDate] = useState('')
+  const [isEditingCreatedAt, setIsEditingCreatedAt] = useState(false)
+  const [createdAtInput, setCreatedAtInput] = useState('')
 
-  const isCompleted = loan.currentPayment > loan.totalPayments
+  const isCompleted = loan.currentPayment >= loan.totalPayments
   const paymentHistory = loan.payments || []
   const remainingPayments = Math.max(0, loan.totalPayments - loan.currentPayment + 1)
 
   // Calcular total restante a pagar
   const totalRemaining = remainingPayments * loan.finalPayment
 
+  const formatDateForInput = (dateValue) => {
+    if (!dateValue) return ''
+    if (dateValue.includes('-')) return dateValue
+    const [day, month, year] = dateValue.split('/')
+    if (!day || !month || !year) return ''
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  }
+
+  const formatDateForDisplay = (dateValue) => {
+    if (!dateValue) return ''
+    if (dateValue.includes('/')) return dateValue
+    const [year, month, day] = dateValue.split('-')
+    if (!day || !month || !year) return dateValue
+    return `${Number(day)}/${Number(month)}/${year}`
+  }
+
   const handleEditDate = (payment, idx) => {
     setEditingPaymentId(idx)
-    setEditingDate(payment.date || '')
+    setEditingDate(formatDateForInput(payment.date || ''))
   }
 
   const handleSaveDate = (idx) => {
-    // Esta funcionalidad se maneja en el componente padre si es necesario
+    if (!editingDate) return
+    const updatedPayments = [...paymentHistory]
+    updatedPayments[idx] = {
+      ...updatedPayments[idx],
+      date: formatDateForDisplay(editingDate)
+    }
+    onUpdateClient({
+      ...loan,
+      payments: updatedPayments
+    })
     setEditingPaymentId(null)
+    setEditingDate('')
   }
 
   const handlePaymentSubmit = () => {
-    const amount = parseFloat(paymentAmount)
-    if (!amount || amount <= 0) {
-      alert('Por favor ingresa un monto válido')
+    if (loan.currentPayment >= loan.totalPayments) {
+      alert('Este prestamo ya esta completado')
       return
     }
 
-    onPaymentRegister(amount)
-    setPaymentAmount('')
+    onPaymentRegister()
+  }
+
+  const handleStartEditCreatedAt = () => {
+    setCreatedAtInput(formatDateForInput(loan.createdAt || ''))
+    setIsEditingCreatedAt(true)
+  }
+
+  const handleSaveCreatedAt = () => {
+    if (!createdAtInput) return
+    onUpdateClient({
+      ...loan,
+      createdAt: formatDateForDisplay(createdAtInput)
+    })
+    setIsEditingCreatedAt(false)
   }
 
   return (
@@ -72,7 +111,32 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
           {loan.createdAt && (
             <div>
               <p className="text-xs text-gray-600 font-medium">Fecha de Creación</p>
-              <p className="text-lg font-bold text-gray-900 mt-1">{loan.createdAt}</p>
+              {isEditingCreatedAt ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={createdAtInput}
+                    onChange={(e) => setCreatedAtInput(e.target.value)}
+                    className="px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                  <button
+                    onClick={handleSaveCreatedAt}
+                    className="text-green-600 hover:text-green-700"
+                  >
+                    ✓
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-1 flex items-center gap-2">
+                  <p className="text-lg font-bold text-gray-900">{loan.createdAt}</p>
+                  <button
+                    onClick={handleStartEditCreatedAt}
+                    className="text-blue-600 hover:text-blue-700 p-1"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -184,26 +248,15 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h4 className="font-bold text-gray-900 mb-2">Registrar Pago - Quincena {loan.currentPayment}</h4>
           <p className="text-sm text-gray-600 mb-4">
-            Cantidad pendiente a pagar: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            Monto fijo por quincena: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
           </p>
-          <div className="flex gap-3">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
-              placeholder={`Ej: ${loan.finalPayment.toFixed(2)}`}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handlePaymentSubmit}
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
-            >
-              <Check size={18} />
-              Registrar
-            </button>
-          </div>
+          <button
+            onClick={handlePaymentSubmit}
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+          >
+            <Check size={18} />
+            Registrar
+          </button>
         </div>
       )}
 

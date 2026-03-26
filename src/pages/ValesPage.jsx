@@ -61,7 +61,7 @@ function ValesPage() {
       insurance: loanData.insurance || 0,
       basePayment: loanData.basePayment,
       finalPayment: loanData.finalPayment,
-      currentPayment: 1,
+      currentPayment: 0,
       totalPayments: loanData.term,
       payments: [],
       status: 'active', // 'active', 'completed'
@@ -99,23 +99,27 @@ function ValesPage() {
   }
 
   // Registrar pago
-  const handleRegisterPayment = (loanId, paymentAmount) => {
+  const handleRegisterPayment = (loanId) => {
     if (!selectedClient) return
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
         const updatedLoans = client.loans.map(loan => {
           if (loan.id === loanId) {
-            // Agregar pago al historial
+            if (loan.currentPayment >= loan.totalPayments) {
+              return loan
+            }
+
+            // Agregar pago al historial en orden secuencial
             const payments = [...(loan.payments || [])]
             payments.push({
-              num: loan.currentPayment,
-              amount: paymentAmount,
+              num: loan.currentPayment + 1,
+              amount: loan.finalPayment,
               date: new Date().toLocaleDateString('es-MX')
             })
 
             const newPayment = loan.currentPayment + 1
-            const status = newPayment > loan.totalPayments ? 'completed' : 'active'
+            const status = newPayment >= loan.totalPayments ? 'completed' : 'active'
 
             return {
               ...loan,
@@ -132,6 +136,24 @@ function ValesPage() {
     })
 
     setValesClients(updatedClients)
+  }
+
+  const handleRequestRegisterPayment = (loanId) => {
+    if (!selectedClient) return
+
+    const loan = selectedClient.loans.find(l => l.id === loanId)
+    if (!loan || loan.currentPayment >= loan.totalPayments) return
+
+    const nextQuincena = loan.currentPayment + 1
+
+    setPendingPayment({
+      type: 'registerLoanPayment',
+      loanId,
+      title: 'Registrar Pago',
+      message: `¿Deseas registrar la quincena ${nextQuincena} del folio "${loan.folio}"?`,
+      amount: loan.finalPayment
+    })
+    setIsConfirmModalOpen(true)
   }
 
   // Eliminar préstamo
@@ -293,6 +315,8 @@ function ValesPage() {
       }
     } else if (pendingPayment.type === 'deleteLoan') {
       performDeleteLoan(pendingPayment.loanId)
+    } else if (pendingPayment.type === 'registerLoanPayment') {
+      handleRegisterPayment(pendingPayment.loanId)
     } else if (pendingPayment.type === 'paySourceQuincena') {
       handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
     } else if (pendingPayment.type === 'payAllSources') {
@@ -538,7 +562,7 @@ function ValesPage() {
                                 </p>
                               </div>
 
-                              {viewMode === 'current' && currentQuincena && total > 0 && (
+                              {viewMode === 'current' && currentQuincena !== null && total > 0 && (
                                 <button
                                   onClick={() => {
                                     const amount = getSourcePaymentTotal(sourceKey, currentQuincena, selectedClient.loans)
@@ -613,7 +637,7 @@ function ValesPage() {
                               </button>
                               <LoansTable
                                 loan={selectedClient.loans.find(l => l.id === selectedLoanId)}
-                                onPaymentRegister={(paymentAmount) => handleRegisterPayment(selectedLoanId, paymentAmount)}
+                                onPaymentRegister={() => handleRequestRegisterPayment(selectedLoanId)}
                                 onUpdateClient={(updatedLoan) => {
                                   const updatedLoans = selectedClient.loans.map(l =>
                                     l.id === selectedLoanId ? updatedLoan : l
@@ -627,7 +651,7 @@ function ValesPage() {
                             // Mostrar lista de préstamos de la fuente con subtotal
                             <div className="space-y-4">
                               {/* Subtotal por Quincena */}
-                              {currentQuincena && sourceTotal > 0 && (
+                              {currentQuincena !== null && sourceTotal > 0 && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                   <div className="flex items-center justify-between mb-3">
                                     <p className="text-sm text-gray-600 font-medium">Total Quincena {currentQuincena}</p>
@@ -694,7 +718,7 @@ function ValesPage() {
                                       Plazo: {loan.term} quincenas | Pago: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                     </p>
                                     <p className="text-sm text-blue-600 mt-2 font-medium">
-                                      Progreso: {loan.currentPayment}/{loan.totalPayments}
+                                      Progreso: {Math.min((loan.payments || []).length, loan.totalPayments)}/{loan.totalPayments}
                                     </p>
                                     {loan.insurance > 0 && (
                                       <p className="text-xs text-orange-600 mt-1">
