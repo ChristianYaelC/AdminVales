@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, AlertCircle } from 'lucide-react'
+import { formatPhoneInput, parsePhoneInput, validateName, validatePhone, validateAddress } from '../utils/validators'
 
 export default function BancoClientForm({ valesClients = [], onSubmit, onCancel }) {
   const [clientMode, setClientMode] = useState('new')
@@ -13,17 +14,47 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
 
   const [errors, setErrors] = useState({})
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
+  const handleNameChange = (e) => {
+    const { value } = e.target
+    // Solo permite letras, espacios y algunos caracteres especiales
+    const filtered = value.replace(/[0-9]/g, '')
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      name: filtered
     }))
-    // Limpiar error cuando el usuario empieza a escribir
-    if (errors[name]) {
+    if (errors.name) {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        name: ''
+      }))
+    }
+  }
+
+  const handlePhoneChange = (e) => {
+    const { value } = e.target
+    const formatted = formatPhoneInput(value)
+    setFormData(prev => ({
+      ...prev,
+      phone: formatted
+    }))
+    if (errors.phone) {
+      setErrors(prev => ({
+        ...prev,
+        phone: ''
+      }))
+    }
+  }
+
+  const handleAddressChange = (e) => {
+    const { value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      address: value
+    }))
+    if (errors.address) {
+      setErrors(prev => ({
+        ...prev,
+        address: ''
       }))
     }
   }
@@ -33,18 +64,21 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
 
     if (clientMode === 'existing' && !selectedExistingClientId) {
       newErrors.existingClient = 'Selecciona un cliente existente o cambia a cliente nuevo'
-    }
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'El nombre es requerido'
-    }
-    
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'El teléfono es requerido'
-    }
+    } else if (clientMode === 'new') {
+      const nameValidation = validateName(formData.name)
+      if (!nameValidation.valid) {
+        newErrors.name = nameValidation.error
+      }
 
-    if (!formData.address.trim()) {
-      newErrors.address = 'El domicilio es requerido'
+      const phoneValidation = validatePhone(formData.phone)
+      if (!phoneValidation.valid) {
+        newErrors.phone = phoneValidation.error
+      }
+
+      const addressValidation = validateAddress(formData.address)
+      if (!addressValidation.valid) {
+        newErrors.address = addressValidation.error
+      }
     }
     
     setErrors(newErrors)
@@ -57,7 +91,7 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
     if (validateForm()) {
       onSubmit({
         name: formData.name.trim(),
-        phone: formData.phone.trim(),
+        phone: parsePhoneInput(formData.phone),
         address: formData.address.trim(),
         valesClientId: selectedExistingClientId,
         loans: []
@@ -82,7 +116,7 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
     setExistingClientSearch(client.name)
     setFormData({
       name: client.name || '',
-      phone: client.phone || '',
+      phone: formatPhoneInput(client.phone || ''),
       address: client.address || ''
     })
 
@@ -198,17 +232,19 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
             </label>
             <input
               type="text"
-              name="name"
               value={formData.name}
-              onChange={handleChange}
+              onChange={handleNameChange}
               readOnly={clientMode === 'existing'}
               placeholder="Juan García López"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
             {errors.name && (
-              <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                {errors.name}
+              </div>
             )}
           </div>
 
@@ -219,17 +255,19 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
             </label>
             <input
               type="text"
-              name="phone"
               value={formData.phone}
-              onChange={handleChange}
+              onChange={handlePhoneChange}
               readOnly={clientMode === 'existing'}
-              placeholder="4421234567"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.phone ? 'border-red-500' : 'border-gray-300'
+              placeholder="(442) 123-4567"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
             {errors.phone && (
-              <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                {errors.phone}
+              </div>
             )}
           </div>
 
@@ -239,18 +277,20 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
               Domicilio *
             </label>
             <textarea
-              name="address"
               value={formData.address}
-              onChange={handleChange}
+              onChange={handleAddressChange}
               readOnly={clientMode === 'existing'}
               placeholder="Calle, número, colonia, ciudad"
               rows={3}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                errors.address ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors resize-none ${
+                errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
             {errors.address && (
-              <p className="text-red-600 text-sm mt-1">{errors.address}</p>
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                {errors.address}
+              </div>
             )}
           </div>
 

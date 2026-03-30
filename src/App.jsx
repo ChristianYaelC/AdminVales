@@ -4,6 +4,7 @@ import { ClientsProvider } from './context/ClientsContext'
 import Sidebar from './components/Sidebar'
 import ValesPage from './pages/ValesPage'
 import BancoPage from './pages/BancoPage'
+import PersonalPage from './pages/PersonalPage'
 import ConfiguracionPage from './pages/ConfiguracionPage'
 
 function App() {
@@ -16,6 +17,8 @@ function App() {
         return <ValesPage />
       case 'banco':
         return <BancoPage />
+      case 'personal':
+        return <PersonalPage />
       case 'configuracion':
         return <ConfiguracionPage />
       default:

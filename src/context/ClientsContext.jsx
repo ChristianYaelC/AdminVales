@@ -6,8 +6,11 @@ export function ClientsProvider({ children }) {
   // Clientes del apartado VALES (con múltiples fuentes)
   const [valesClients, setValesClients] = useState([])
 
-  // Clientes del apartado BANCO (préstamos simples con registro por quincena)
+  // Clientes del apartado BANCO (seguros y préstamos)
   const [bancoClients, setBancoClients] = useState([])
+
+  // Servicios personales (luz, internet, etc.)
+  const [personalServices, setPersonalServices] = useState([])
 
   // Función para validar que un folio sea único globalmente
   const isFolioUnique = (folio) => {
@@ -38,6 +41,8 @@ export function ClientsProvider({ children }) {
       setValesClients,
       bancoClients,
       setBancoClients,
+      personalServices,
+      setPersonalServices,
       // Para compatibilidad con código existente
       clients: valesClients,
       setClients: setValesClients,
