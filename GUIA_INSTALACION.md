@@ -1,24 +1,24 @@
-# 📋 GUÍA DE INSTALACIÓN - Sistema de Vales y Préstamos
+# GUIA DE INSTALACION - Sistema de Vales y Prestamos
 
-## Paso 1: Instalar Node.js (IMPORTANTE)
+## Paso 1: Instalar Node.js
 
 El proyecto requiere Node.js para funcionar. Si aún no lo tienes, sigue estos pasos:
 
-### ✅ Windows
+### Windows
 
 1. Abre tu navegador y ve a: https://nodejs.org/
-2. Descarga la versión **LTS** (Recommended For Most Users)
+2. Descarga la version LTS (Recommended For Most Users)
 3. Abre el instalador descargado
 4. Sigue los pasos del instalador con las opciones por defecto
 5. **Reinicia tu computadora** después de instalar
-6. Abre **Windows PowerShell** (puedes buscar PowerShell en el menú de inicio) o **CMD** y verifica:
+6. Abre Windows PowerShell o CMD y verifica:
    ```bash
    node --version
    npm --version
    ```
    Deberías ver números de versión en ambos comandos.
 
-## Paso 2: Preparar el Proyecto
+## Paso 2: Preparar el proyecto
 
 1. Abre **PowerShell** o **CMD** en tu computadora
 2. Navega a la carpeta del proyecto:
@@ -29,9 +29,9 @@ El proyecto requiere Node.js para funcionar. Si aún no lo tienes, sigue estos p
    ```bash
    dir
    ```
-   Deberías ver: `package.json`, `vite.config.js`, `src`, etc.
+  Deberias ver: `package.json`, `vite.config.js`, `src`, etc.
 
-## Paso 3: Instalar Dependencias
+## Paso 3: Instalar dependencias
 
 Ejecuta este comando en la terminal:
 
@@ -50,7 +50,7 @@ Espera hasta que veas algo como:
 added 150 packages in 2m
 ```
 
-## Paso 4: Ejecutar la Aplicación
+## Paso 4: Ejecutar la aplicacion
 
 Una vez terminada la instalación, ejecuta:
 
@@ -75,9 +75,13 @@ npm run dev
 ¡Perfecto! Ya tienes la aplicación ejecutándose. Puedes:
 
 - **Buscar clientes**: Usa el campo de búsqueda en la sección "Vales"
-- **Agregar cliente**: Haz clic en "Agregar Cliente" (completa nombre + fuentes)
+- **Agregar cliente**: Haz clic en "Agregar Cliente" (completa nombre, telefono y domicilio)
 - **Ver préstamos**: Selecciona un cliente de la lista
-- **Registrar pagos**: Ingresa el monto y haz clic en "Registrar Pago"
+- **Registrar pagos**: Haz clic en "Registrar Pago" y confirma en la ventana de confirmacion
+- **Banco (nuevo flujo)**:
+  - Alta de cliente nuevo por defecto o usar cliente existente de Vales.
+  - Crear prestamo por nombre, monto y plazo en meses.
+  - Registrar pagos mensuales manuales por prestamo.
 
 ## Paso 6: Detener la Aplicación
 
@@ -90,19 +94,19 @@ Esto detendrá el servidor de desarrollo.
 
 ## Solución de Problemas
 
-### ❌ "npm: El término 'npm' no se reconoce"
+### "npm: El termino 'npm' no se reconoce"
 - **Solución**: Node.js no está instalado correctamente o la computadora no fue reiniciada
 - Reinstala Node.js y asegúrate de reiniciar
 - Usa una nueva ventana de PowerShell/CMD después de instalar
 
-### ❌ "node_modules not found" al ejecutar npm run dev
+### "node_modules not found" al ejecutar npm run dev
 - **Solución**: No completaste el paso `npm install`
 - Ejecuta nuevamente: `npm install`
 
-### ❌ El navegador no se abre automáticamente
+### El navegador no se abre automaticamente
 - **Solución**: Abre manualmente: `http://localhost:5173/` en tu navegador
 
-### ❌ Errores de puerto (Puerto 5173 en uso)
+### Errores de puerto (Puerto 5173 en uso)
 - **Solución**: Otro programa está usando ese puerto
 - Cambia el puerto en `vite.config.js`:
   ```javascript
@@ -112,7 +116,7 @@ Esto detendrá el servidor de desarrollo.
   }
   ```
 
-### ❌ El proyecto se ve lento o con errores
+### El proyecto se ve lento o con errores
 - **Solución**: Limpia el cache de npm
   ```bash
   npm cache clean --force
@@ -126,7 +130,7 @@ Esto detendrá el servidor de desarrollo.
   npm install
   ```
 
-## 📦 Dependencias Instaladas
+## Dependencias instaladas
 
 El proyecto utiliza estas librerías (se instalan automáticamente):
 
@@ -139,7 +143,7 @@ El proyecto utiliza estas librerías (se instalan automáticamente):
 | **lucide-react** | Iconos vectoriales |
 | **postcss** | Procesador de CSS |
 
-## 💡 Comandos Útiles
+## Comandos utiles
 
 ```bash
 # Inicia el servidor (ya sabes esto)
@@ -155,7 +159,7 @@ npm run preview
 npm cache clean --force
 ```
 
-## ✅ Checklist de Verificación
+## Checklist de verificacion
 
 - [ ] Node.js instalado (`node --version` funciona)
 - [ ] npm instalado (`npm --version` funciona)
@@ -166,13 +170,20 @@ npm cache clean --force
 
 ---
 
-## 🎯 Siguiente Paso
+## Siguiente paso
 
-Una vez que tengas la aplicación ejecutándose:
+Una vez que tengas la aplicacion ejecutandose:
 
-1. Prueba buscar clientes
-2. Añade un nuevo cliente
-3. Selecciona un cliente para ver sus préstamos
-4. Intenta registrar un pago
+1. Agrega un cliente (nombre, telefono y domicilio).
+2. Crea un prestamo con folio y fuente.
+3. Registra pago desde el boton Registrar (con confirmacion).
+4. Verifica estado de cuenta y edicion de fechas.
+5. En Banco, prueba cliente existente de Vales + prestamo mensual por nombre.
 
-¡Disfruta! 🚀
+Nota: la persistencia a base de datos se agregara despues de estabilizar cambios de frontend.
+
+## Documentacion complementaria
+
+1. Especificacion funcional y arquitectura: `docs/especificacion-proyecto.md`.
+2. Plan de migracion y esquema SQL: `docs/base-datos-supabase.md`.
+3. Para cambiar tabulaciones en Supabase (sin afectar prestamos existentes), revisa en `docs/base-datos-supabase.md` la seccion "Cambios de tabulacion en Supabase (produccion)".

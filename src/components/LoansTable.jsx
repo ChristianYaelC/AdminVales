@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { Check, Trash2, Edit2 } from 'lucide-react'
+import {
+  isLoanCompleted,
+  getRemainingPayments,
+  getRemainingAmount,
+  buildStatementRows
+} from '../domain/vales/loanCalculations'
 
 function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
   const [editingPaymentId, setEditingPaymentId] = useState(null)
@@ -7,12 +13,14 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
   const [isEditingCreatedAt, setIsEditingCreatedAt] = useState(false)
   const [createdAtInput, setCreatedAtInput] = useState('')
 
-  const isCompleted = loan.currentPayment >= loan.totalPayments
+  const isCompleted = isLoanCompleted(loan)
   const paymentHistory = loan.payments || []
-  const remainingPayments = Math.max(0, loan.totalPayments - loan.currentPayment + 1)
+  const remainingPayments = getRemainingPayments(loan)
+  const displayQuincena = loan.currentPayment + 1
 
   // Calcular total restante a pagar
-  const totalRemaining = remainingPayments * loan.finalPayment
+  const totalRemaining = getRemainingAmount(loan)
+  const statementRows = buildStatementRows(loan, paymentHistory)
 
   const formatDateForInput = (dateValue) => {
     if (!dateValue) return ''
@@ -180,13 +188,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
           </thead>
           <tbody>
             {paymentHistory.length > 0 ? (
-              paymentHistory.map((payment, idx) => {
-                // Calcular saldos basados en el total a pagar (quincenas × pago por quincena)
-                const totalAPagar = loan.totalPayments * loan.finalPayment
-                const pagosAnteriores = paymentHistory.slice(0, idx).reduce((sum, p) => sum + p.amount, 0)
-                const saldoAnterior = totalAPagar - pagosAnteriores
-                const nuevoSaldo = saldoAnterior - payment.amount
-
+              statementRows.map((payment, idx) => {
                 return (
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-yellow-50' : 'bg-white'}>
                     <td className="px-4 py-3 text-center text-gray-900">
@@ -221,13 +223,13 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
                       {payment.num}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      ${saldoAnterior.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      ${payment.previousBalance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
                       ${payment.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-blue-600">
-                      ${nuevoSaldo.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                      ${payment.newBalance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
                 )
@@ -246,7 +248,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       {/* Formulario para registrar nuevo pago */}
       {!isCompleted && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h4 className="font-bold text-gray-900 mb-2">Registrar Pago - Quincena {loan.currentPayment}</h4>
+          <h4 className="font-bold text-gray-900 mb-2">Registrar Pago - Quincena {displayQuincena}</h4>
           <p className="text-sm text-gray-600 mb-4">
             Monto fijo por quincena: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
           </p>

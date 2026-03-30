@@ -8,7 +8,7 @@ Sistema administrativo para:
 - Gestion de prestamos por fuente de cobro (VALES).
 - Registro de pagos por quincena con control de saldo.
 - Vista de resumen por fuente y total general.
-- Modulo adicional BANCO con registro por quincena.
+- Modulo adicional BANCO con prestamos por nombre y pagos mensuales manuales.
 
 ## 2) Stack actual
 
@@ -27,29 +27,28 @@ Sistema administrativo para:
 
 ### BANCO
 
-- Cliente banco (`name`, `totalLoanAmount`).
-- Pagos por quincena (actualmente en estructura key/value).
+- Cliente banco (`name`, `phone`, `address`, `valesClientId?`).
+- Prestamo banco (`name`, `amount`, `termMonths`, `status`, `currentPayment`, `createdAt`).
+- Pagos banco (`num`, `amount`, `date`) con estado de cuenta por prestamo.
 
 ## 4) Reglas de negocio detectadas
 
 1. Un folio debe ser unico en VALES.
-2. Cada fuente define montos/plazos validos por tabulador.
-3. Seguro:
-   - `global`: se divide entre quincenas.
-   - `perQuincena`: se suma directo al pago.
-4. Registro de pago individual: monto fijo por quincena.
-5. Estado de cuenta:
-   - `saldo_anterior` = total_a_pagar - suma_pagos_previos.
-   - `nuevo_saldo` = saldo_anterior - importe_pago.
-6. Al llegar al total de pagos, estado `completed`.
+1. Cada fuente define montos/plazos validos por tabulador.
+1. Seguro: `global` se divide entre quincenas y `perQuincena` se suma directo al pago.
+1. Registro de pago individual en VALES: monto fijo por quincena con confirmacion previa.
+1. Estado de cuenta: `saldo_anterior = total_a_pagar - suma_pagos_previos` y `nuevo_saldo = saldo_anterior - importe_pago`.
+1. Al llegar al total de pagos, estado `completed`.
+1. Regla de quincena unificada en VALES: `currentPayment` representa pagos ya registrados; la proxima quincena es `currentPayment + 1`; se completa cuando `currentPayment >= totalPayments`.
+1. Regla Banco mensual: el prestamo se identifica por nombre (no folio), el pago mensual se captura manualmente (fecha + importe) y `currentPayment` representa meses pagados.
 
-## 5) Problemas actuales a resolver en migracion
+## 5) Riesgos a vigilar antes de migracion
 
-1. Off-by-one historico en contador de quincena.
+1. Evitar reintroducir desfases de quincena al tocar flujos masivos.
 2. Fechas almacenadas como texto local.
 3. Dependencia de calculo en memoria (riesgo de incoherencia).
 4. IDs locales no aptos para concurrencia multiusuario.
-5. BANCO no tiene estructura relacional en pagos.
+5. BANCO ya usa estructura por prestamo y pagos, pero sigue en estado local (sin persistencia transaccional).
 
 ## 6) Modelo de datos objetivo
 
@@ -59,6 +58,82 @@ Sistema administrativo para:
 - `loan_source_settings`
 - `loan_rate_tables`
 
+### Decision de arquitectura para Vales y Banco
+
+Se mantiene un solo catalogo de clientes compartido para ambos apartados.
+
+- `clients` guarda datos generales de persona.
+- `loans` separa cada flujo con `area` (`vales` o `banco`).
+- `loan_payments` siempre cuelga de `loans`.
+
+Beneficios:
+
+1. Evita duplicar clientes entre modulos.
+2. Permite historial unificado por cliente.
+3. Simplifica busquedas y reportes.
+4. Mantiene separacion funcional por tipo de prestamo.
+
+### Diagrama conceptual (recomendado)
+
+```mermaid
+erDiagram
+  CLIENTS ||--o{ LOANS : has
+  LOANS ||--o{ LOAN_PAYMENTS : has
+  LOAN_SOURCE_SETTINGS ||--o{ LOAN_RATE_TABLES : defines
+
+  CLIENTS {
+    uuid id PK
+    uuid owner_id
+    enum area
+    text name
+    text phone
+    text address
+    timestamptz created_at
+  }
+
+  LOANS {
+    uuid id PK
+    uuid client_id FK
+    uuid owner_id
+    enum area
+    text folio
+     text loan_name
+    enum source_code
+    numeric principal_amount
+    int total_payments
+    int current_payment_index
+    numeric final_payment_amount
+     text payment_periodicity
+    enum status
+    timestamptz loan_created_at
+  }
+
+  LOAN_PAYMENTS {
+    uuid id PK
+    uuid loan_id FK
+    int payment_number
+    timestamptz payment_date
+    numeric previous_balance
+    numeric amount_paid
+    numeric new_balance
+  }
+
+  LOAN_SOURCE_SETTINGS {
+    enum source_code PK
+    text display_name
+    bool has_insurance
+    enum insurance_mode
+  }
+
+  LOAN_RATE_TABLES {
+    bigint id PK
+    enum source_code FK
+    numeric amount
+    int term_quincenas
+    numeric base_payment
+  }
+```
+
 Detalle tecnico en:
 
 - `supabase/schema.sql`
@@ -66,20 +141,26 @@ Detalle tecnico en:
 
 ## 7) Flujos recomendados de migracion
 
-### Fase 1 (sin romper UI)
+### Fase 1 (actual, sin romper UI)
+
+1. Mantener logica estable en frontend.
+2. Ajustar cambios funcionales pendientes.
+3. Validar reglas de negocio y UX.
+
+### Fase 2 (migracion tecnica)
 
 1. Crear esquema SQL + RLS en Supabase.
-2. Agregar `supabaseClient.js`.
-3. Introducir servicios de datos (`valesSupabaseService.js`).
+2. Activar `supabaseClient.js`.
+3. Conectar servicios de datos (`valesSupabaseService.js`).
 4. Cambiar operaciones de crear cliente, crear prestamo y registrar pago.
 
-### Fase 2 (consistencia fuerte)
+### Fase 3 (consistencia fuerte)
 
 1. Mover calculo de registro de pago a RPC transaccional.
 2. Migrar fecha de pago/creacion totalmente a `timestamptz`.
-3. Migrar BANCO a tablas relacionales (`banco_loans`, `banco_payments`) o reusar `loans`/`loan_payments` con `area='banco'`.
+3. Mantener BANCO en `loans`/`loan_payments` con `area='banco'`, `loan_name` y periodicidad mensual.
 
-### Fase 3 (operacion)
+### Fase 4 (operacion)
 
 1. Agregar auditoria (`created_by`, `updated_by`, logs).
 2. Agregar reportes SQL (saldo por cliente, cartera vencida, pagos por fuente).
@@ -105,8 +186,11 @@ Detalle tecnico en:
 {
   "id": "uuid",
   "client_id": "uuid",
+  "area": "vales|banco",
   "folio": "string|null",
+  "loan_name": "string|null",
   "source_code": "captavale|salevale|dportenis|valefectivo|null",
+  "payment_periodicity": "quincenal|mensual",
   "principal_amount": "numeric",
   "term_quincenas": "int|null",
   "total_payments": "int|null",

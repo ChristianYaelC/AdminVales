@@ -1,30 +1,57 @@
 # Migracion a Supabase - Vales y Prestamos
 
-## Inconsistencias detectadas entre frontend y modelo de datos
+## Estado actual
 
-1. En `ValesPage.jsx` se mezcla semantica de `currentPayment` en diferentes flujos (registro individual vs pago por fuente), lo que provoca errores de desfase (off-by-one).
+La migracion a Supabase esta preparada pero no activada en runtime.
+La recomendacion vigente es:
+
+1. Seguir iterando frontend y reglas de negocio.
+2. Congelar comportamiento funcional.
+3. Ejecutar migracion SQL y conectar servicios.
+
+## Inconsistencias detectadas originalmente
+
+1. Se detecto mezcla de semantica de `currentPayment` en diferentes flujos. Esto ya se ajusto a una regla unificada.
 2. Algunas fechas se guardan como string local `dd/mm/yyyy`, lo que dificulta ordenamiento, filtros y conversion en backend.
 3. El estado de cuenta en tabla calcula saldos desde el frontend en cada render; si no se guardan snapshots de saldo en cada pago, el historico se puede romper al cambiar reglas de calculo.
 4. Los IDs locales (`Math.max + 1`) no son seguros para concurrencia real ni multiples usuarios.
-5. En BANCO, `paymentsByQuincena` como objeto en memoria no es consultable de forma relacional.
+5. En BANCO, ahora hay prestamos por nombre con pagos mensuales manuales en estado local; falta persistencia relacional y transaccional.
 
 ## Estructura propuesta
 
 - Tabla `clients`: clientes de area `vales` o `banco`.
-- Tabla `loans`: prestamos ligados a cliente; soporta folio, fuente, pagos quincenales y estado.
+- Tabla `loans`: prestamos ligados a cliente; soporta folio/fuente (Vales) y nombre de prestamo/pago mensual (Banco).
 - Tabla `loan_payments`: historial con snapshot monetario (`previous_balance`, `amount_paid`, `new_balance`).
 - Tabla `loan_source_settings`: configuracion por fuente.
 - Tabla `loan_rate_tables`: tabulador por fuente/monto/plazo.
 
+Campos clave agregados en `loans` para alinear UI actual:
+
+1. `loan_name` (identificador de prestamo en Banco).
+2. `payment_periodicity` (`quincenal` o `mensual`).
+3. Constraint `loans_area_consistency` para validar coherencia por `area`.
+4. En `banco`: `folio` y `source_code` deben ir `null`; en `vales`: `folio` y `source_code` son obligatorios.
+
+## Criterio Vales + Banco
+
+Para este proyecto se recomienda modelo compartido:
+
+1. Un solo catalogo de clientes (`clients`) para ambos apartados.
+2. Separacion por tipo en `loans.area` (`vales` o `banco`).
+3. `loan_payments` ligado a `loans` sin duplicar tablas por modulo.
+4. Para Banco, usar `loan_name` y periodicidad mensual; no depende de folio.
+
+Con esto puedes operar cada apartado por separado en UI, pero sin duplicar personas ni perder trazabilidad completa.
+
 ## Script SQL (DDL + RLS)
 
-Ejecuta completo este archivo en Supabase SQL Editor:
+Ejecuta este archivo en Supabase SQL Editor cuando se autorice la fase de migracion:
 
 - `supabase/schema.sql`
 
 ## Configuracion de cliente Supabase
 
-Archivo ya generado:
+Archivo generado:
 
 - `src/lib/supabaseClient.js`
 
@@ -43,7 +70,7 @@ npm install
 
 ## Refactorizacion de funciones (de estado local a Supabase)
 
-Archivo de servicio ya generado:
+Archivo de servicio generado:
 
 - `src/services/valesSupabaseService.js`
 
@@ -110,4 +137,78 @@ El script incluye:
 
 ## Recomendacion operativa
 
-Para evitar carreras de concurrencia (dos dispositivos registrando pago al mismo tiempo), en una segunda etapa conviene mover `registerNextQuincenaPayment` a una funcion `RPC` transaccional en PostgreSQL.
+Para evitar carreras de concurrencia (dos dispositivos registrando pago al mismo tiempo), en la etapa final conviene mover `registerNextQuincenaPayment` a una funcion `RPC` transaccional en PostgreSQL.
+
+## Cambios de tabulacion en Supabase (produccion)
+
+Si ya tienes el proyecto en Supabase, puedes cambiar pagos por quincena sin romper prestamos ya creados.
+
+Regla clave:
+
+1. Los prestamos existentes conservan su `base_payment_amount` guardado al momento de crearse.
+2. La tabulacion nueva aplica para prestamos nuevos.
+
+### Paso 0: aplicar funciones nuevas
+
+Ejecuta el archivo `supabase/schema.sql` actualizado en SQL Editor para asegurar que existan:
+
+1. `public.update_rate_for_new_loans(...)`
+2. `public.get_loan_rate_change_history(...)`
+3. `public.verify_rate_change_effect(...)`
+
+### Paso 1: ejecutar cambio de tabulacion
+
+```sql
+select public.update_rate_for_new_loans(
+  'valefectivo',
+  2000,
+  14,
+  250,
+  'Ajuste abril 2026'
+);
+```
+
+### Paso 2: revisar historial de cambios
+
+```sql
+select *
+from public.get_loan_rate_change_history('valefectivo', 2000, 14, 50);
+```
+
+### Paso 3: verificar efecto real del cambio
+
+```sql
+select *
+from public.verify_rate_change_effect('valefectivo', 2000, 14);
+```
+
+Lectura esperada:
+
+1. `current_table_base_payment` debe mostrar el nuevo valor.
+2. `loans_created_before_last_change_with_old_payment` debe mantenerse con el pago anterior.
+3. `loans_created_after_last_change_with_new_payment` debe crecer conforme se creen prestamos nuevos.
+
+### Consulta directa de auditoria (opcional)
+
+```sql
+select
+  source_code,
+  amount,
+  term_quincenas,
+  old_base_payment,
+  new_base_payment,
+  affected_active_loans,
+  reason,
+  changed_at
+from public.loan_rate_change_log
+where changed_by = auth.uid()
+order by changed_at desc;
+```
+
+## Checklist antes de ejecutar migracion
+
+1. Confirmar que no habra cambios mayores en la logica de quincenas.
+2. Confirmar estructura final de cliente, prestamo y pago (incluyendo Banco mensual manual).
+3. Validar UI para registro, edicion de fechas y estado completed.
+4. Ejecutar `supabase/schema.sql` en proyecto de prueba.
+5. Probar flujo completo end-to-end y luego mover a produccion.

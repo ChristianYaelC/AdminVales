@@ -5,6 +5,16 @@ import ClientForm from '../components/ClientForm'
 import LoanForm from '../components/LoanForm'
 import LoansTable from '../components/LoansTable'
 import ConfirmModal from '../components/ConfirmModal'
+import {
+  getSourcePaymentTotal as calculateSourcePaymentTotal,
+  getSourceCurrentQuincena,
+  getSourceTotalRemaining,
+  getAllSourcesCurrentTotal,
+  getAllSourcesRemainingTotal,
+  registerPaymentForLoanId,
+  registerPaymentForSourceQuincena,
+  registerPaymentsForAllActiveLoans
+} from '../domain/vales/loanCalculations'
 
 function ValesPage() {
   const { valesClients, setValesClients } = useClients()
@@ -17,6 +27,7 @@ function ValesPage() {
   const [selectedLoanId, setSelectedLoanId] = useState(null)
   const [showSourceSummary, setShowSourceSummary] = useState(false)
   const [viewMode, setViewMode] = useState('current') // 'current' o 'total'
+  const [loanStatusFilter, setLoanStatusFilter] = useState('all')
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingPayment, setPendingPayment] = useState(null)
 
@@ -45,7 +56,6 @@ function ValesPage() {
     setValesClients([...valesClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
-    setSelectedSources({})
   }
 
   // Agregar nuevo préstamo (usando tabuladores)
@@ -104,32 +114,7 @@ function ValesPage() {
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        const updatedLoans = client.loans.map(loan => {
-          if (loan.id === loanId) {
-            if (loan.currentPayment >= loan.totalPayments) {
-              return loan
-            }
-
-            // Agregar pago al historial en orden secuencial
-            const payments = [...(loan.payments || [])]
-            payments.push({
-              num: loan.currentPayment + 1,
-              amount: loan.finalPayment,
-              date: new Date().toLocaleDateString('es-MX')
-            })
-
-            const newPayment = loan.currentPayment + 1
-            const status = newPayment >= loan.totalPayments ? 'completed' : 'active'
-
-            return {
-              ...loan,
-              currentPayment: newPayment,
-              payments: payments,
-              status: status
-            }
-          }
-          return loan
-        })
+        const updatedLoans = registerPaymentForLoanId(client.loans, loanId)
         return { ...client, loans: updatedLoans }
       }
       return client
@@ -144,13 +129,13 @@ function ValesPage() {
     const loan = selectedClient.loans.find(l => l.id === loanId)
     if (!loan || loan.currentPayment >= loan.totalPayments) return
 
-    const nextQuincena = loan.currentPayment + 1
+    const displayQuincena = loan.currentPayment + 1
 
     setPendingPayment({
       type: 'registerLoanPayment',
       loanId,
       title: 'Registrar Pago',
-      message: `¿Deseas registrar la quincena ${nextQuincena} del folio "${loan.folio}"?`,
+      message: `¿Deseas registrar la quincena ${displayQuincena} del folio "${loan.folio}"?`,
       amount: loan.finalPayment
     })
     setIsConfirmModalOpen(true)
@@ -191,24 +176,15 @@ function ValesPage() {
 
   // Funciones de cálculo para consolidación de pagos
   const getSourcePaymentTotal = (source, quincena, clientLoans) => {
-    return clientLoans
-      .filter(l => l.source === source && l.currentPayment === quincena && l.status === 'active')
-      .reduce((sum, l) => sum + l.finalPayment, 0)
+    return calculateSourcePaymentTotal(clientLoans, source, quincena)
   }
 
   const getCurrentQuincenaForSource = (source, clientLoans) => {
-    const loansInSource = clientLoans.filter(l => l.source === source && l.status === 'active')
-    if (loansInSource.length === 0) return null
-    return Math.min(...loansInSource.map(l => l.currentPayment))
+    return getSourceCurrentQuincena(clientLoans, source)
   }
 
   const getSourceTotalAllQuincenas = (source, clientLoans) => {
-    return clientLoans
-      .filter(l => l.source === source && l.status === 'active')
-      .reduce((sum, l) => {
-        const remainingQuincenas = Math.max(0, l.totalPayments - l.currentPayment + 1)
-        return sum + (remainingQuincenas * l.finalPayment)
-      }, 0)
+    return getSourceTotalRemaining(clientLoans, source)
   }
 
   const handlePaySourceQuincena = (source, quincena) => {
@@ -216,27 +192,7 @@ function ValesPage() {
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        const updatedLoans = client.loans.map(loan => {
-          if (loan.source === source && loan.currentPayment === quincena && loan.status === 'active') {
-            const payments = [...(loan.payments || [])]
-            payments.push({
-              num: loan.currentPayment,
-              amount: loan.finalPayment,
-              date: new Date().toLocaleDateString('es-MX')
-            })
-
-            const newPayment = loan.currentPayment + 1
-            const status = newPayment > loan.totalPayments ? 'completed' : 'active'
-
-            return {
-              ...loan,
-              currentPayment: newPayment,
-              payments: payments,
-              status: status
-            }
-          }
-          return loan
-        })
+        const updatedLoans = registerPaymentForSourceQuincena(client.loans, source, quincena)
         return { ...client, loans: updatedLoans }
       }
       return client
@@ -251,27 +207,7 @@ function ValesPage() {
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        const updatedLoans = client.loans.map(loan => {
-          if (loan.status === 'active') {
-            const payments = [...(loan.payments || [])]
-            payments.push({
-              num: loan.currentPayment,
-              amount: loan.finalPayment,
-              date: new Date().toLocaleDateString('es-MX')
-            })
-
-            const newPayment = loan.currentPayment + 1
-            const status = newPayment > loan.totalPayments ? 'completed' : 'active'
-
-            return {
-              ...loan,
-              currentPayment: newPayment,
-              payments: payments,
-              status: status
-            }
-          }
-          return loan
-        })
+        const updatedLoans = registerPaymentsForAllActiveLoans(client.loans)
         return { ...client, loans: updatedLoans }
       }
       return client
@@ -281,26 +217,11 @@ function ValesPage() {
   }
 
   const getTotalActivePayments = (clientLoans) => {
-    const sourceKeys = Object.keys(sourcesList)
-    let total = 0
-    
-    sourceKeys.forEach(source => {
-      const currentQuincena = getCurrentQuincenaForSource(source, clientLoans)
-      if (currentQuincena !== null) {
-        total += getSourcePaymentTotal(source, currentQuincena, clientLoans)
-      }
-    })
-    
-    return total
+    return getAllSourcesCurrentTotal(clientLoans, Object.keys(sourcesList))
   }
 
   const getTotalAllPayments = (clientLoans) => {
-    return clientLoans
-      .filter(l => l.status === 'active')
-      .reduce((sum, l) => {
-        const remainingQuincenas = Math.max(0, l.totalPayments - l.currentPayment + 1)
-        return sum + (remainingQuincenas * l.finalPayment)
-      }, 0)
+    return getAllSourcesRemainingTotal(clientLoans)
   }
 
   // Manejar confirmación del modal
@@ -446,6 +367,17 @@ function ValesPage() {
                             <span className="font-medium">Domicilio:</span> {selectedClient.address}
                           </p>
                         )}
+                          <div className="pt-2 flex flex-wrap gap-2">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                              Total prestamos: {selectedClient.loans.length}
+                            </span>
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                              Activos: {selectedClient.loans.filter((loan) => loan.status === 'active').length}
+                            </span>
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                              Completados: {selectedClient.loans.filter((loan) => loan.status === 'completed').length}
+                            </span>
+                          </div>
                       </div>
                     </div>
                     <button
@@ -493,6 +425,7 @@ function ValesPage() {
                             setSelectedSource(key)
                             setSelectedLoanId(null)
                             setSearchFolioTerm('')
+                            setLoanStatusFilter('all')
                           }}
                           className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
                             !showSourceSummary && selectedSource === key
@@ -694,12 +627,40 @@ function ValesPage() {
                                 />
                               </div>
 
+                              {/* Filtros de estado */}
+                              <div className="mb-4 flex flex-wrap gap-2">
+                                {[
+                                  { key: 'all', label: 'Todos' },
+                                  { key: 'active', label: 'Activos' },
+                                  { key: 'completed', label: 'Completados' }
+                                ].map((filter) => {
+                                  const count = filter.key === 'all'
+                                    ? loansInSource.length
+                                    : loansInSource.filter((loan) => loan.status === filter.key).length
+
+                                  const isActive = loanStatusFilter === filter.key
+
+                                  return (
+                                    <button
+                                      key={filter.key}
+                                      onClick={() => setLoanStatusFilter(filter.key)}
+                                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                                        isActive
+                                          ? 'bg-blue-600 text-white border-blue-600'
+                                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                                      }`}
+                                    >
+                                      {filter.label} ({count})
+                                    </button>
+                                  )
+                                })}
+                              </div>
+
                               <div className="grid grid-cols-1 gap-3">
                                 {loansInSource
-                                  .filter(loan => 
-                                    loan.folio?.toLowerCase().includes(searchFolioTerm.toLowerCase())
-                                  )
-                                  .map(loan => (
+                                  .filter((loan) => loan.folio?.toLowerCase().includes(searchFolioTerm.toLowerCase()))
+                                  .filter((loan) => loanStatusFilter === 'all' || loan.status === loanStatusFilter)
+                                  .map((loan) => (
                                   <button
                                     key={loan.id}
                                     onClick={() => setSelectedLoanId(loan.id)}
@@ -720,6 +681,9 @@ function ValesPage() {
                                     <p className="text-sm text-blue-600 mt-2 font-medium">
                                       Progreso: {Math.min((loan.payments || []).length, loan.totalPayments)}/{loan.totalPayments}
                                     </p>
+                                    <p className={`text-xs mt-1 font-medium ${loan.status === 'completed' ? 'text-green-600' : 'text-blue-600'}`}>
+                                      Estado: {loan.status === 'completed' ? 'Completado' : 'Activo'}
+                                    </p>
                                     {loan.insurance > 0 && (
                                       <p className="text-xs text-orange-600 mt-1">
                                         Seguro: ${loan.insurance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
@@ -728,6 +692,24 @@ function ValesPage() {
                                   </button>
                                 ))}
                               </div>
+
+                              {loansInSource
+                                .filter((loan) => loan.folio?.toLowerCase().includes(searchFolioTerm.toLowerCase()))
+                                .filter((loan) => loanStatusFilter === 'all' || loan.status === loanStatusFilter)
+                                .length === 0 && (
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                                  <p className="text-sm text-gray-700 font-medium">No hay prestamos que coincidan con los filtros</p>
+                                  <button
+                                    onClick={() => {
+                                      setSearchFolioTerm('')
+                                      setLoanStatusFilter('all')
+                                    }}
+                                    className="mt-3 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+                                  >
+                                    Limpiar filtros
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )
                         })()

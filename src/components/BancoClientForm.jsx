@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 
-export default function BancoClientForm({ onSubmit, onCancel }) {
+export default function BancoClientForm({ valesClients = [], onSubmit, onCancel }) {
+  const [clientMode, setClientMode] = useState('new')
+  const [existingClientSearch, setExistingClientSearch] = useState('')
+  const [selectedExistingClientId, setSelectedExistingClientId] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
-    loanAmount: ''
+    phone: '',
+    address: ''
   })
 
   const [errors, setErrors] = useState({})
@@ -26,14 +30,21 @@ export default function BancoClientForm({ onSubmit, onCancel }) {
 
   const validateForm = () => {
     const newErrors = {}
+
+    if (clientMode === 'existing' && !selectedExistingClientId) {
+      newErrors.existingClient = 'Selecciona un cliente existente o cambia a cliente nuevo'
+    }
     
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es requerido'
     }
     
-    const loanAmount = parseFloat(formData.loanAmount)
-    if (!formData.loanAmount || isNaN(loanAmount) || loanAmount <= 0) {
-      newErrors.loanAmount = 'Ingresa un monto válido mayor a 0'
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'El teléfono es requerido'
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = 'El domicilio es requerido'
     }
     
     setErrors(newErrors)
@@ -46,10 +57,49 @@ export default function BancoClientForm({ onSubmit, onCancel }) {
     if (validateForm()) {
       onSubmit({
         name: formData.name.trim(),
-        totalLoanAmount: parseFloat(formData.loanAmount),
-        paymentsByQuincena: {}
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        valesClientId: selectedExistingClientId,
+        loans: []
       })
-      setFormData({ name: '', loanAmount: '' })
+      setFormData({ name: '', phone: '', address: '' })
+      setExistingClientSearch('')
+      setSelectedExistingClientId(null)
+    }
+  }
+
+  const filteredExistingClients = valesClients.filter((client) => {
+    const term = existingClientSearch.toLowerCase().trim()
+    if (!term) return true
+
+    const inName = client.name?.toLowerCase().includes(term)
+    const inPhone = client.phone?.toLowerCase().includes(term)
+    return inName || inPhone
+  })
+
+  const handleSelectExistingClient = (client) => {
+    setSelectedExistingClientId(client.id)
+    setExistingClientSearch(client.name)
+    setFormData({
+      name: client.name || '',
+      phone: client.phone || '',
+      address: client.address || ''
+    })
+
+    if (errors.existingClient) {
+      setErrors((prev) => ({ ...prev, existingClient: '' }))
+    }
+  }
+
+  const switchToMode = (mode) => {
+    setClientMode(mode)
+    if (mode === 'new') {
+      setSelectedExistingClientId(null)
+      setExistingClientSearch('')
+      setFormData({ name: '', phone: '', address: '' })
+    }
+    if (errors.existingClient) {
+      setErrors((prev) => ({ ...prev, existingClient: '' }))
     }
   }
 
@@ -69,6 +119,78 @@ export default function BancoClientForm({ onSubmit, onCancel }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => switchToMode('new')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                clientMode === 'new'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-transparent text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Crear Cliente Nuevo
+            </button>
+            <button
+              type="button"
+              onClick={() => switchToMode('existing')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                clientMode === 'existing'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-transparent text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Usar Cliente Existente
+            </button>
+          </div>
+
+          {clientMode === 'existing' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Buscar cliente de Vales
+                </label>
+                <input
+                  type="text"
+                  value={existingClientSearch}
+                  onChange={(e) => {
+                    setExistingClientSearch(e.target.value)
+                    setSelectedExistingClientId(null)
+                  }}
+                  placeholder="Escribe nombre o teléfono..."
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.existingClient ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.existingClient && (
+                  <p className="text-red-600 text-sm mt-1">{errors.existingClient}</p>
+                )}
+              </div>
+
+              <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                {filteredExistingClients.length > 0 ? (
+                  filteredExistingClients.slice(0, 8).map((client) => (
+                    <button
+                      key={client.id}
+                      type="button"
+                      onClick={() => handleSelectExistingClient(client)}
+                      className={`w-full text-left px-3 py-2 border-b border-gray-100 last:border-b-0 hover:bg-blue-50 ${
+                        selectedExistingClientId === client.id ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <p className="text-sm font-medium text-gray-900">{client.name}</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Tel: {client.phone || '—'}
+                      </p>
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-3 py-3 text-sm text-gray-500">No hay coincidencias en clientes de Vales</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -79,6 +201,7 @@ export default function BancoClientForm({ onSubmit, onCancel }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              readOnly={clientMode === 'existing'}
               placeholder="Juan García López"
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
@@ -89,32 +212,54 @@ export default function BancoClientForm({ onSubmit, onCancel }) {
             )}
           </div>
 
-          {/* Monto a Prestar */}
+          {/* Teléfono */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Monto a Prestar ($) *
+              Teléfono *
             </label>
             <input
-              type="number"
-              name="loanAmount"
-              value={formData.loanAmount}
+              type="text"
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
-              placeholder="5000.00"
-              step="0.01"
-              min="0"
+              readOnly={clientMode === 'existing'}
+              placeholder="4421234567"
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.loanAmount ? 'border-red-500' : 'border-gray-300'
+                errors.phone ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {errors.loanAmount && (
-              <p className="text-red-600 text-sm mt-1">{errors.loanAmount}</p>
+            {errors.phone && (
+              <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+            )}
+          </div>
+
+          {/* Domicilio */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Domicilio *
+            </label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              readOnly={clientMode === 'existing'}
+              placeholder="Calle, número, colonia, ciudad"
+              rows={3}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                errors.address ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.address && (
+              <p className="text-red-600 text-sm mt-1">{errors.address}</p>
             )}
           </div>
 
           {/* Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-gray-600">
-              El cliente debe registrar sus pagos quincenales hasta completar el monto total.
+              {clientMode === 'existing'
+                ? 'Selecciona un cliente de Vales para autocompletar sus datos y trabajar también en Banco.'
+                : 'Crea un cliente nuevo en Banco con datos manuales para registrar sus préstamos mensuales.'}
             </p>
           </div>
 

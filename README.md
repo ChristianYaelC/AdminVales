@@ -1,184 +1,170 @@
-# 📊 Sistema Administrativo de Vales y Préstamos
+# Sistema Administrativo de Vales y Prestamos
 
-Aplicación web moderna para gestionar vales, préstamos y operaciones bancarias. Construida con React, Vite y Tailwind CSS.
+Aplicacion web para gestionar clientes, prestamos y pagos en dos modulos: Vales (quincenal) y Banco (mensual).
+Construida con React + Vite + Tailwind CSS.
 
-## ✨ Características
+## Caracteristicas actuales
 
-- **Gestión de Clientes**: Busca rápidamente entre clientes registrados
-- **Agregar Clientes**: Crear nuevos clientes con sus fuentes de cobro
-- **Tabla de Préstamos**: Visualiza préstamos activos con sus detalles
-- **Cálculo Automático**: El sistema calcula automáticamente el nuevo saldo
-- **Registro de Pagos**: Registra pagos y avanza en las quincenas del préstamo
-- **Plazos Flexibles**: Soporta préstamos de 6, 8, 10, 12 o 14 quincenas
-- **Interfaz Responsiva**: Diseño mobile-first que se adapta a cualquier dispositivo
-- **Estilos Modernos**: Tabla con líneas alternas (zebra striping) y diseño profesional
+- Gestion de clientes en modulo Vales (nombre, telefono y domicilio).
+- Alta de prestamos por fuente con folio unico.
+- Tabuladores por fuente y calculo de pago por quincena.
+- Registro de pago individual con monto fijo por quincena (boton Registrar).
+- Confirmacion modal antes de registrar cada pago.
+- Edicion de fecha de pago y fecha de creacion del prestamo.
+- Estado de cuenta con columnas:
+  - Fecha de pago
+  - Num. de pago
+  - Saldo anterior
+  - Importe de pago
+  - Nuevo saldo
+- Resumen por fuente y total general.
+- Modulo Banco con:
+  - Cliente nuevo por defecto o seleccion de cliente existente de Vales.
+  - Prestamos identificados por nombre (sin folio).
+  - Registro de pagos mensuales manuales por prestamo.
+  - Estado de cuenta por prestamo con fecha, num. de pago, saldo anterior, importe y nuevo saldo.
 
-## 🚀 Instalación Rápida
+## Regla de quincena usada (Vales)
 
-### Requisitos Previos
+El proyecto usa una regla unica:
 
-- **Node.js** (versión 16.0.0 o superior)
-- **npm** o **yarn**
+- `currentPayment` = cantidad de pagos ya registrados.
+- Proxima quincena a pagar = `currentPayment + 1`.
+- Prestamo completado cuando `currentPayment >= totalPayments`.
 
-Para verificar si tienes Node.js instalado, abre tu terminal y ejecuta:
+## Instalacion
+
+### Requisitos
+
+- Node.js 16+
+- npm
+
+### Pasos
+
+1. Entrar al proyecto:
 
 ```bash
-node --version
-npm --version
+cd h:\vales
 ```
 
-Si no lo tienes, descárgalo desde: https://nodejs.org/
+1. Instalar dependencias:
 
-### Pasos de Instalación
-
-1. **Navega a la carpeta del proyecto**:
-   ```bash
-   cd h:\vales
-   ```
-
-2. **Instala todas las dependencias**:
-   ```bash
-   npm install
-   ```
-
-   *Este comando descargará e instalará:*
-   - React y React DOM
-   - Vite (herramienta de compilación)
-   - Tailwind CSS (framework de estilos)
-   - Lucide React (iconos)
-   - PostCSS y Autoprefixer
-
-3. **Inicia el servidor de desarrollo**:
-   ```bash
-   npm run dev
-   ```
-
-   La aplicación se abrirá automáticamente en: `http://localhost:5173`
-
-## 📦 Estructura de Carpetas
-
+```bash
+npm install
 ```
+
+1. Ejecutar en desarrollo:
+
+```bash
+npm run dev
+```
+
+Abrir en `http://localhost:5173/`.
+
+## Comandos
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run test
+npm run test:watch
+```
+
+## Estructura principal
+
+```text
 vales/
 ├── src/
 │   ├── components/
-│   │   ├── Sidebar.jsx          # Barra lateral de navegación
-│   │   ├── LoansTable.jsx       # Tabla de préstamos con cálculos
-│   │   └── ClientForm.jsx       # Formulario para agregar clientes
+│   ├── constants/
+│   ├── context/
+│   ├── domain/
 │   ├── pages/
-│   │   ├── ValesPage.jsx        # Página principal de vales
-│   │   ├── BancoPage.jsx        # Página de operaciones bancarias
-│   │   └── ConfiguracionPage.jsx # Página de configuración
-│   ├── App.jsx                  # Componente principal
-│   ├── main.jsx                 # Punto de entrada
-│   └── index.css                # Estilos globales
-├── index.html                   # HTML principal
-├── package.json                 # Dependencias del proyecto
-├── vite.config.js              # Configuración de Vite
-├── tailwind.config.js          # Configuración de Tailwind CSS
-└── postcss.config.js           # Configuración de PostCSS
+│   ├── services/
+│   └── lib/
+├── docs/
+├── supabase/
+└── README.md
 ```
 
-## 🎯 Cómo Usar
+Notas de estructura:
 
-### 1. **Visualizar Clientes**
-   - En la sección "Vales", verás una lista de clientes en el panel izquierdo
-   - Usa el buscador para filtrar clientes por nombre
+1. `src/domain/vales` centraliza calculos y reglas de negocio de prestamos.
+2. `src/services/vales` y `src/services/banco` separan integraciones por modulo.
 
-### 2. **Agregar un Nuevo Cliente**
-   - Haz clic en el botón "Agregar Cliente"
-   - Completa el nombre del cliente
-   - Selecciona sus fuentes de cobro (mínimo una)
-   - Haz clic en "Crear Cliente"
+## Estado de datos
 
-### 3. **Ver Préstamos**
-   - Selecciona un cliente de la lista
-   - Verás sus préstamos activos en el panel derecho
-   - Se muestra:
-     - **Folio**: Identificador único del préstamo
-     - **Número de Pago**: Ej. "11 de 12" (pago actual / total)
-     - **Saldo Anterior**: Monto pendiente de cobrar
-     - **Importe de Pago**: Campo donde ingresas manualmente el monto a cobrar
-     - **Nuevo Saldo**: Se calcula automáticamente (Saldo Anterior - Importe de Pago)
+- Actualmente el proyecto sigue trabajando con estado local.
+- Los cambios se pierden al recargar.
+- Ya existe preparacion para migracion a Supabase (documentada), pero no esta activa en runtime.
 
-### 4. **Registrar un Pago**
-   - Ingresa el monto en el campo "Importe de Pago"
-   - El "Nuevo Saldo" se calcula automáticamente
-   - Haz clic en "Registrar Pago"
-   - El sistema:
-     - Actualiza el saldo
-     - Avanza al siguiente número de pago
-     - Limpia el campo de entrada
+## Flujo actual Banco
 
-### 5. **Totales**
-   - La fila "TOTALES" suma automáticamente:
-     - Saldo Anterior
-     - Importe de Pago
-     - Nuevo Saldo
-   - Se actualiza en tiempo real mientras escribes
+1. Alta de cliente: modo principal crear cliente nuevo.
+1. Alta de cliente (alterno): usar cliente existente de Vales con autocompletado de nombre, telefono y domicilio.
+1. Alta de prestamo: nombre del prestamo, monto y plazo en meses.
+1. Registro de pago: captura manual de fecha e importe por cada mes.
+1. Busqueda de prestamos: por nombre del prestamo.
 
-## 🛠️ Comandos Disponibles
+## Modelo recomendado (Vales + Banco)
 
-```bash
-# Inicia el servidor de desarrollo
-npm run dev
+Se usa un modelo compartido:
 
-# Construye la aplicación para producción
-npm run build
+1. Un solo catalogo de clientes.
+2. Prestamos separados por tipo de modulo (`vales` o `banco`).
+3. Pagos siempre ligados a su prestamo.
 
-# Vista previa de la compilación de producción
-npm run preview
+```mermaid
+erDiagram
+  CLIENTS ||--o{ LOANS : has
+  LOANS ||--o{ LOAN_PAYMENTS : has
+
+  CLIENTS {
+    uuid id PK
+    text name
+    text phone
+    text address
+  }
+
+  LOANS {
+    uuid id PK
+    uuid client_id FK
+    enum area
+    text folio
+    text loan_name
+    numeric final_payment_amount
+    int current_payment_index
+    int total_payments
+    text periodicity
+  }
+
+  LOAN_PAYMENTS {
+    uuid id PK
+    uuid loan_id FK
+    int payment_number
+    timestamptz payment_date
+    numeric amount_paid
+  }
 ```
 
-## 🎨 Personalización
+Documentos relacionados:
 
-### Cambiar Colores
-Edita `tailwind.config.js`:
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: '#1f2937',
-      secondary: '#3b82f6',
-      // Añade tus colores aquí
-    }
-  },
-}
-```
+- `docs/base-datos-supabase.md`
+- `docs/especificacion-proyecto.md`
 
-### Agregar Nuevas Secciones
-Cada sección es un componente en `src/pages/`. Para crear una nueva:
+Cambios de tabulacion en Supabase:
 
-1. Crea un archivo en `src/pages/NuevaPage.jsx`
-2. Añade el elemento en el menú dentro de `src/components/Sidebar.jsx`
-3. Importa y añade el caso en `src/App.jsx`
+1. El proceso para cambiar pagos por quincena y verificar impacto (sin alterar prestamos existentes) esta en `docs/base-datos-supabase.md`, seccion "Cambios de tabulacion en Supabase (produccion)".
 
-## 📝 Mock Data
+## Soporte rapido
 
-El proyecto incluye datos de ejemplo con:
-- 2 clientes: Juan García López y María Rodríguez
-- 1 préstamo de ejemplo por cliente
-- Plazos de 10 y 12 quincenas
+Si algo falla:
 
-Puedes modificar estos datos en `src/pages/ValesPage.jsx` en el estado inicial.
+1. Elimina `node_modules`.
+2. Ejecuta `npm install`.
+3. Ejecuta `npm run dev`.
 
-## 🔒 Notas Importantes
+## Licencia
 
-- El proyecto actualmente usa estado local (React Hooks)
-- No hay persistencia a base de datos (los datos se pierden al recargar)
-- Para producción, conecta una API backend
-
-## 🤝 Soporte
-
-Si tienes dudas o problemas:
-1. Verifica que Node.js esté instalado correctamente
-2. Elimina `node_modules` y ejecuta `npm install` nuevamente
-3. Limpia el cache: `npm cache clean --force`
-
-## 📄 Licencia
-
-Este proyecto es de uso privado.
-
----
-
-**Versión**: 1.0.0  
-**Última actualización**: 2024
+Uso privado.

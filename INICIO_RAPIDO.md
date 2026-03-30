@@ -1,69 +1,65 @@
-# ⚡ INICIO RÁPIDO - 3 Pasos
+# INICIO RAPIDO - 3 PASOS
 
-## Paso 1️⃣: Instalar Node.js
-1. Ve a https://nodejs.org/
-2. Descarga la versión **LTS**
+## Paso 1: Instalar Node.js
+
+1. Ve a <https://nodejs.org/>
+2. Descarga la version LTS
 3. Instala con los valores por defecto
-4. **⚠️ Reinicia tu computadora**
-5. Abre PowerShell/CMD y verifica:
-   ```bash
-   node --version
-   npm --version
-   ```
+4. Reinicia la computadora
+5. Verifica en PowerShell/CMD:
 
-## Paso 2️⃣: Instalar Dependencias
-Abre PowerShell/CMD en la carpeta `h:\vales` y execute:
+```bash
+node --version
+npm --version
+```
+
+## Paso 2: Instalar dependencias
+
+En `h:\vales` ejecuta:
+
 ```bash
 npm install
 ```
-Espera a que termine (su una vez dirá "added X packages").
 
-## Paso 3️⃣: Ejecutar la Aplicación
+## Paso 3: Ejecutar la aplicacion
+
 ```bash
 npm run dev
 ```
 
-✅ **¡Listo!** El navegador se abrirá automáticamente en `http://localhost:5173/`
+Abre `http://localhost:5173/`.
 
 ---
 
-## Tabla de Características Implementadas
+## Lo mas importante que ya incluye
 
-| Característica | Estado | Detalles |
-|---|---|---|
-| Navegación con Sidebar | ✅ Completo | 3 secciones: Vales, Banco, Configuración |
-| Búsqueda de Clientes | ✅ Completo | Búsqueda en tiempo real |
-| Agregar Clientes | ✅ Completo | Formulario con 4 fuentes de cobro |
-| Visualizar Préstamos | ✅ Completo | Tabla con detalles del préstamo |
-| Tabla Zebra-Striped | ✅ Completo | Líneas alternas para mejor legibilidad |
-| Cálculo Automático | ✅ Completo | Nuevo Saldo = Saldo Anterior - Monto |
-| Totales en Tiempo Real | ✅ Completo | Se calculan mientras escribes |
-| Registro de Pagos | ✅ Completo | Avanza al siguiente pago automáticamente |
-| Plazos de Préstamos | ✅ Completo | Soporta 6, 8, 10, 12, 14 quincenas |
-| Mock Data | ✅ Completo | 2 clientes con préstamos de ejemplo |
-| Estilos Tailwind CSS | ✅ Completo | Diseño profesional y responsivo |
-| Iconos Lucide | ✅ Completo | Todos los iconos integrados |
+- Modulo Vales con clientes y prestamos por fuente.
+- Registro de pago por boton (monto fijo por quincena).
+- Confirmacion antes de registrar pago.
+- Estado de cuenta con saldo anterior / nuevo saldo.
+- Edicion de fecha de pago y fecha de creacion.
+- Modulo Banco con prestamos por nombre y pagos mensuales manuales.
+- Alta de cliente en Banco con opcion de usar cliente existente de Vales.
 
 ---
 
-## 📱 Responsive Design
-- ✅ Desktop (1280px+)
-- ✅ Tablet (768px - 1279px)
-- ✅ Mobile (< 768px)
+## Tecnologias
+
+- React 18
+- Vite 5
+- Tailwind CSS 3
+- Lucide React
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
-- **React 18.2** - Librería de componentes
-- **Vite 5.0** - Compilador rápido
-- **Tailwind CSS 3.3** - Estilos
-- **Lucide React 0.308** - Iconos
-- **PostCSS + Autoprefixer** - Procesamiento de CSS
+## Si algo falla
 
----
+1. Reinstala dependencias con `npm install`.
+2. Vuelve a correr `npm run dev`.
+3. Consulta `GUIA_INSTALACION.md`.
 
-## 📞 Con Dudas
+## Documentacion recomendada
 
-Lee el archivo `GUIA_INSTALACION.md` para solución de problemas detallada.
-
-¡Espero que disfrutes usando el sistema! 🎉
+1. Arquitectura y reglas: `docs/especificacion-proyecto.md`.
+2. Base de datos y migracion: `docs/base-datos-supabase.md`.
+3. Cambio de tabulacion en Supabase y verificacion post-cambio: ver seccion "Cambios de tabulacion en Supabase (produccion)" en `docs/base-datos-supabase.md`.
