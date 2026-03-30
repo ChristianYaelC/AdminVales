@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Edit2, Trash2, Check } from 'lucide-react'
 import ConfirmModal from './ConfirmModal'
 
-function BancoInsuranceTable({ insurance, onRegisterPayment, onUpdatePayment, onDeleteInsurance, onEditInsurance }) {
+function BancoInsuranceTable({ insurance, onRegisterPayment, onUpdatePayment, onDeleteInsurance, onEditInsurance, deleteLabel = 'Eliminar Seguro', deleteTitle = 'Eliminar Seguro' }) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState(null)
   const [editingPaymentId, setEditingPaymentId] = useState(null)
@@ -11,7 +11,7 @@ function BancoInsuranceTable({ insurance, onRegisterPayment, onUpdatePayment, on
     onRegisterPayment(insurance.id, {
       num: monthNumber,
       amount: insurance.monthlyPayment,
-      date: new Date().toLocaleDateString('es-MX')
+      date: new Date().toISOString().split('T')[0]
     })
   }
 
@@ -90,7 +90,9 @@ function BancoInsuranceTable({ insurance, onRegisterPayment, onUpdatePayment, on
                     ${insurance.monthlyPayment.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">
-                    {month.payment?.date || '—'}
+                    {month.payment?.date
+                      ? new Date(`${month.payment.date}T00:00:00`).toLocaleDateString('es-MX')
+                      : '—'}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {month.paid ? (
@@ -129,15 +131,15 @@ function BancoInsuranceTable({ insurance, onRegisterPayment, onUpdatePayment, on
           onClick={() => {
             setPendingAction({
               type: 'deleteInsurance',
-              title: 'Eliminar Seguro',
-              message: `¿Deseas eliminar el seguro "${insurance.name}"? No se puede deshacer.`
+              title: deleteTitle,
+              message: `¿Deseas eliminar "${insurance.name}"? No se puede deshacer.`
             })
             setIsConfirmModalOpen(true)
           }}
           className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium flex items-center justify-center gap-2"
         >
           <Trash2 size={18} />
-          Eliminar Seguro
+          {deleteLabel}
         </button>
       </div>
 

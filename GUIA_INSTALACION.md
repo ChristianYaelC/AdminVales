@@ -80,8 +80,13 @@ npm run dev
 - **Registrar pagos**: Haz clic en "Registrar Pago" y confirma en la ventana de confirmacion
 - **Banco (nuevo flujo)**:
   - Alta de cliente nuevo por defecto o usar cliente existente de Vales.
-  - Crear prestamo por nombre, monto y plazo en meses.
-  - Registrar pagos mensuales manuales por prestamo.
+  - Crear prestamo sin folio/fuente (monto y plazo en meses).
+  - Crear seguro por monto total y plazo en meses.
+  - Registrar pagos desde tabla mensual (Mes 1..N).
+- **Gestion Personal**:
+  - Crear servicios con periodicidad configurable.
+  - Registrar pago por fecha y editar monto cuando varia el recibo.
+  - Revisar estado visual de proximo pago (al corriente/proximo/vencido).
 
 ## Paso 6: Detener la Aplicación
 
@@ -175,10 +180,10 @@ npm cache clean --force
 Una vez que tengas la aplicacion ejecutandose:
 
 1. Agrega un cliente (nombre, telefono y domicilio).
-2. Crea un prestamo con folio y fuente.
-3. Registra pago desde el boton Registrar (con confirmacion).
-4. Verifica estado de cuenta y edicion de fechas.
-5. En Banco, prueba cliente existente de Vales + prestamo mensual por nombre.
+2. Crea un prestamo en Banco sin folio y sin fuente.
+3. Registra pago desde la tabla mensual (con boton Registrar).
+4. Verifica estado de cuenta y actualizacion de pagado/restante.
+5. En Gestion Personal, registra pago y confirma que Proxima Fecha avance al siguiente ciclo.
 
 Nota: la persistencia a base de datos se agregara despues de estabilizar cambios de frontend.
 

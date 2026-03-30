@@ -31,6 +31,10 @@ begin
   if not exists (select 1 from pg_type where typname = 'payment_periodicity') then
     create type public.payment_periodicity as enum ('quincenal', 'mensual');
   end if;
+
+  if not exists (select 1 from pg_type where typname = 'loan_product_type') then
+    create type public.loan_product_type as enum ('loan', 'insurance');
+  end if;
 end $$;
 
 -- =====================================================
@@ -109,15 +113,18 @@ create table if not exists public.loans (
   folio text,
   loan_name text,
   source_code public.loan_source_code,
+  product_type public.loan_product_type,
   payment_periodicity public.payment_periodicity not null default 'quincenal',
 
   -- Monto base y parametros
   principal_amount numeric(14,2) not null,
   term_quincenas integer,
+  term_months integer,
   total_payments integer,
 
   -- Montos para calculo de pagos
   base_payment_amount numeric(14,2),
+  monthly_payment_amount numeric(14,2),
   insurance_amount numeric(14,2) not null default 0,
   insurance_mode public.insurance_mode not null default 'none',
   final_payment_amount numeric(14,2),
@@ -135,15 +142,17 @@ create table if not exists public.loans (
   constraint loans_insurance_non_negative check (insurance_amount >= 0),
   constraint loans_current_payment_non_negative check (current_payment_index >= 0),
   constraint loans_term_positive check (term_quincenas is null or term_quincenas > 0),
+  constraint loans_term_months_positive check (term_months is null or term_months > 0),
   constraint loans_total_payments_positive check (total_payments is null or total_payments > 0),
   constraint loans_amounts_non_negative check (
     (base_payment_amount is null or base_payment_amount >= 0) and
+    (monthly_payment_amount is null or monthly_payment_amount >= 0) and
     (final_payment_amount is null or final_payment_amount >= 0)
   ),
 
   -- Reglas de consistencia por area:
   -- VALES: requiere folio + fuente y usa periodicidad quincenal.
-  -- BANCO: requiere nombre de prestamo y usa periodicidad mensual.
+  -- BANCO: no usa folio/fuente, usa periodicidad mensual y puede ser prestamo o seguro.
   constraint loans_area_consistency check (
     (
       area = 'vales' and
@@ -155,11 +164,13 @@ create table if not exists public.loans (
     or
     (
       area = 'banco' and
-      loan_name is not null and
-      char_length(trim(loan_name)) > 0 and
       folio is null and
       source_code is null and
-      payment_periodicity = 'mensual'
+      payment_periodicity = 'mensual' and
+      term_months is not null and
+      term_months > 0 and
+      monthly_payment_amount is not null and
+      monthly_payment_amount > 0
     )
   )
 );

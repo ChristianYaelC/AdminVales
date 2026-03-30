@@ -15,7 +15,8 @@ La recomendacion vigente es:
 2. Algunas fechas se guardan como string local `dd/mm/yyyy`, lo que dificulta ordenamiento, filtros y conversion en backend.
 3. El estado de cuenta en tabla calcula saldos desde el frontend en cada render; si no se guardan snapshots de saldo en cada pago, el historico se puede romper al cambiar reglas de calculo.
 4. Los IDs locales (`Math.max + 1`) no son seguros para concurrencia real ni multiples usuarios.
-5. En BANCO, ahora hay prestamos por nombre con pagos mensuales manuales en estado local; falta persistencia relacional y transaccional.
+5. En BANCO, ahora hay productos mensuales (prestamo/seguro) sin folio ni fuente, con pagos por mes en estado local; falta persistencia relacional y transaccional.
+6. En Gestion Personal, se requiere guardar fechas en formato ISO (`YYYY-MM-DD`) para evitar desfases por zona horaria en UI.
 
 ## Estructura propuesta
 
@@ -27,10 +28,11 @@ La recomendacion vigente es:
 
 Campos clave agregados en `loans` para alinear UI actual:
 
-1. `loan_name` (identificador de prestamo en Banco).
+1. `product_type` (`loan|insurance`) para distinguir productos de Banco.
 2. `payment_periodicity` (`quincenal` o `mensual`).
-3. Constraint `loans_area_consistency` para validar coherencia por `area`.
-4. En `banco`: `folio` y `source_code` deben ir `null`; en `vales`: `folio` y `source_code` son obligatorios.
+3. `term_months` y `monthly_payment_amount` para calendario mensual.
+4. Constraint `loans_area_consistency` para validar coherencia por `area`.
+5. En `banco`: `folio` y `source_code` deben ir `null`; en `vales`: `folio` y `source_code` son obligatorios.
 
 ## Criterio Vales + Banco
 
@@ -39,7 +41,7 @@ Para este proyecto se recomienda modelo compartido:
 1. Un solo catalogo de clientes (`clients`) para ambos apartados.
 2. Separacion por tipo en `loans.area` (`vales` o `banco`).
 3. `loan_payments` ligado a `loans` sin duplicar tablas por modulo.
-4. Para Banco, usar `loan_name` y periodicidad mensual; no depende de folio.
+4. Para Banco, usar `product_type`, `term_months`, `monthly_payment_amount` y periodicidad mensual; no depende de folio/fuente.
 
 Con esto puedes operar cada apartado por separado en UI, pero sin duplicar personas ni perder trazabilidad completa.
 
@@ -208,7 +210,7 @@ order by changed_at desc;
 ## Checklist antes de ejecutar migracion
 
 1. Confirmar que no habra cambios mayores en la logica de quincenas.
-2. Confirmar estructura final de cliente, prestamo y pago (incluyendo Banco mensual manual).
+2. Confirmar estructura final de cliente, prestamo y pago (incluyendo Banco mensual por tabla y Gestion Personal con fecha ISO).
 3. Validar UI para registro, edicion de fechas y estado completed.
 4. Ejecutar `supabase/schema.sql` en proyecto de prueba.
 5. Probar flujo completo end-to-end y luego mover a produccion.

@@ -24,8 +24,7 @@ function PersonalPage() {
       if (service.id === serviceId) {
         return {
           ...service,
-          amount: newAmount,
-          lastPaymentDate: new Date().toLocaleDateString('es-MX')
+          amount: newAmount
         }
       }
       return service

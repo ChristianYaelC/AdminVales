@@ -38,7 +38,9 @@ Abre `http://localhost:5173/`.
 - Confirmacion antes de registrar pago.
 - Estado de cuenta con saldo anterior / nuevo saldo.
 - Edicion de fecha de pago y fecha de creacion.
-- Modulo Banco con prestamos por nombre y pagos mensuales manuales.
+- Modulo Banco con seguros y prestamos mensuales (sin folio/fuente para prestamos).
+- Tabla mensual de pagos por producto en Banco.
+- Modulo Gestion Personal con registro de pago, edicion de monto y estado visual de proximo pago.
 - Alta de cliente en Banco con opcion de usar cliente existente de Vales.
 
 ---

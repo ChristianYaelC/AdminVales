@@ -16,25 +16,50 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
 
   const calculateNextPaymentDate = (service) => {
     const today = new Date()
+    const dueDay = Number(service.dueDay)
+    const intervalMonths = {
+      monthly: 1,
+      bimonthly: 2,
+      quarterly: 3
+    }
+
+    // Si ya hay pago registrado, el próximo ciclo se calcula desde esa fecha.
+    if (service.lastPaymentDate) {
+      const lastPayment = parseLocalDate(service.lastPaymentDate)
+
+      if (lastPayment && !Number.isNaN(lastPayment.getTime())) {
+        if (service.frequency === 'custom') {
+          const nextDate = new Date(lastPayment)
+          nextDate.setDate(nextDate.getDate() + Number(service.frequencyDays || 0))
+          return nextDate
+        }
+
+        const monthsToAdd = intervalMonths[service.frequency] || 1
+        const targetYear = lastPayment.getFullYear()
+        const targetMonth = lastPayment.getMonth() + monthsToAdd
+        const maxDayInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate()
+        const targetDay = Math.min(dueDay, maxDayInTargetMonth)
+
+        return new Date(targetYear, targetMonth, targetDay)
+      }
+    }
+
+    // Sin pagos registrados: calcular la próxima fecha a partir de hoy.
     const currentMonth = today.getMonth()
     const currentYear = today.getFullYear()
-    const dueDay = service.dueDay
-
-    // Próxima fecha de pago en el mes actual
     let nextDate = new Date(currentYear, currentMonth, dueDay)
 
-    // Si ya pasó el día en este mes, ir al próximo ciclo
     if (nextDate <= today) {
-      if (service.frequency === 'monthly') {
-        nextDate = new Date(currentYear, currentMonth + 1, dueDay)
-      } else if (service.frequency === 'bimonthly') {
-        nextDate = new Date(currentYear, currentMonth + 2, dueDay)
-      } else if (service.frequency === 'quarterly') {
-        nextDate = new Date(currentYear, currentMonth + 3, dueDay)
-      } else if (service.frequency === 'custom') {
-        const futureDate = new Date(today)
-        futureDate.setDate(futureDate.getDate() + service.frequencyDays)
-        nextDate = new Date(futureDate.getFullYear(), futureDate.getMonth(), dueDay)
+      if (service.frequency === 'custom') {
+        nextDate = new Date(today)
+        nextDate.setDate(nextDate.getDate() + Number(service.frequencyDays || 0))
+      } else {
+        const monthsToAdd = intervalMonths[service.frequency] || 1
+        const targetYear = currentYear
+        const targetMonth = currentMonth + monthsToAdd
+        const maxDayInTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate()
+        const targetDay = Math.min(dueDay, maxDayInTargetMonth)
+        nextDate = new Date(targetYear, targetMonth, targetDay)
       }
     }
 
@@ -116,10 +141,66 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
     setPendingAction(null)
   }
 
+  const parseLocalDate = (dateString) => {
+    if (!dateString) return null
+    const parts = dateString.split('-')
+    if (parts.length !== 3) return null
+
+    const year = Number(parts[0])
+    const month = Number(parts[1]) - 1
+    const day = Number(parts[2])
+
+    if (!year || month < 0 || day < 1) return null
+    return new Date(year, month, day)
+  }
+
   const formatDate = (dateString) => {
-    if (!dateString) return '—'
-    const date = new Date(dateString)
+    const date = parseLocalDate(dateString)
+    if (!date || Number.isNaN(date.getTime())) return null
     return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
+  const getDueStatus = (service, nextPaymentDate) => {
+    const today = new Date()
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const nextStart = new Date(
+      nextPaymentDate.getFullYear(),
+      nextPaymentDate.getMonth(),
+      nextPaymentDate.getDate()
+    )
+    const msPerDay = 1000 * 60 * 60 * 24
+    const daysDiff = Math.ceil((nextStart - todayStart) / msPerDay)
+    const hasPayment = Boolean(formatDate(service.lastPaymentDate))
+
+    if (daysDiff < 0) {
+      return {
+        label: 'Vencido',
+        dateClass: 'text-red-700',
+        badgeClass: 'bg-red-100 text-red-700'
+      }
+    }
+
+    if (daysDiff <= 3) {
+      return {
+        label: 'Próximo',
+        dateClass: 'text-amber-700',
+        badgeClass: 'bg-amber-100 text-amber-700'
+      }
+    }
+
+    if (hasPayment) {
+      return {
+        label: 'Al corriente',
+        dateClass: 'text-green-700',
+        badgeClass: 'bg-green-100 text-green-700'
+      }
+    }
+
+    return {
+      label: 'Pendiente',
+      dateClass: 'text-gray-700',
+      badgeClass: 'bg-gray-100 text-gray-700'
+    }
   }
 
   return (
@@ -163,6 +244,9 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
                 services.map((service) => {
                   const nextPaymentDate = calculateNextPaymentDate(service)
                   const isDue = isPaymentDue(service)
+                  const formattedLastPayment = formatDate(service.lastPaymentDate)
+                  const hasPayment = Boolean(formattedLastPayment)
+                  const dueStatus = getDueStatus(service, nextPaymentDate)
 
                   return (
                     <tr key={service.id} className={`hover:bg-gray-50 transition-colors ${isDue ? 'bg-yellow-50' : ''}`}>
@@ -181,14 +265,26 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
                       <td className="px-6 py-4 text-sm text-gray-700">
                         Día {service.dueDay}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {formatDate(service.lastPaymentDate)}
+                      <td className="px-6 py-4 text-sm">
+                        {hasPayment ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            Pagado: {formattedLastPayment}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            Falta por pagar
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <span className={`font-medium ${isDue ? 'text-red-600' : 'text-gray-700'}`}>
-                          {nextPaymentDate.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
-                          {isDue && ' ⚠️'}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`font-medium ${dueStatus.dateClass}`}>
+                            {nextPaymentDate.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                          </span>
+                          <span className={`inline-flex w-fit px-2 py-1 rounded-full text-xs font-medium ${dueStatus.badgeClass}`}>
+                            {dueStatus.label}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-center">
                         <div className="flex items-center justify-center gap-2">

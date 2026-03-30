@@ -5,7 +5,7 @@ import { formatCurrencyInput, validateAmount, validateTerm } from '../utils/vali
 function BancoLoanForm({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     amount: '',
-    term: ''
+    termMonths: ''
   })
 
   const [errors, setErrors] = useState({})
@@ -25,10 +25,10 @@ function BancoLoanForm({ onClose, onSubmit }) {
     const value = e.target.value.replace(/\D/g, '')
     setFormData(prev => ({
       ...prev,
-      term: value
+      termMonths: value
     }))
-    if (errors.term) {
-      setErrors(prev => ({ ...prev, term: '' }))
+    if (errors.termMonths) {
+      setErrors(prev => ({ ...prev, termMonths: '' }))
     }
   }
 
@@ -41,9 +41,9 @@ function BancoLoanForm({ onClose, onSubmit }) {
       newErrors.amount = amountValidation.error
     }
 
-    const termValidation = validateTerm(formData.term, 'plazo (quincenas)')
+    const termValidation = validateTerm(formData.termMonths, 'plazo (meses)')
     if (!termValidation.valid) {
-      newErrors.term = termValidation.error
+      newErrors.termMonths = termValidation.error
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -52,11 +52,13 @@ function BancoLoanForm({ onClose, onSubmit }) {
     }
 
     const amount = parseFloat(formData.amount)
-    const term = parseInt(formData.term, 10)
+    const termMonths = parseInt(formData.termMonths, 10)
+    const monthlyPayment = amount / termMonths
 
     onSubmit({
       amount,
-      term
+      termMonths,
+      monthlyPayment: parseFloat(monthlyPayment.toFixed(2))
     })
   }
 
@@ -97,24 +99,32 @@ function BancoLoanForm({ onClose, onSubmit }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Plazo (quincenas) *
+              Plazo (meses) *
             </label>
             <input
               type="text"
               placeholder="6"
-              value={formData.term}
+              value={formData.termMonths}
               onChange={handleTermChange}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                errors.term ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                errors.termMonths ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
-            {errors.term && (
+            {errors.termMonths && (
               <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
                 <AlertCircle size={16} />
-                {errors.term}
+                {errors.termMonths}
               </div>
             )}
           </div>
+
+          {formData.amount && formData.termMonths && !errors.amount && !errors.termMonths && (
+            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+              <p className="text-sm text-gray-700">
+                Pago mensual: <span className="font-bold text-blue-700">${(parseFloat(formData.amount) / parseInt(formData.termMonths, 10)).toFixed(2)}</span>
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-3 mt-6">
             <button

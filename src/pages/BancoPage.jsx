@@ -132,7 +132,8 @@ function BancoPage() {
         if (loan.id === loanId && loan.status !== 'completed') {
           const payments = [...(loan.payments || []), paymentData]
           const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0)
-          const status = totalPaid >= loan.amount || payments.length >= loan.term ? 'completed' : 'active'
+          const totalMonths = loan.termMonths || loan.term || 1
+          const status = totalPaid >= loan.amount || payments.length >= totalMonths ? 'completed' : 'active'
 
           return {
             ...loan,
@@ -311,6 +312,8 @@ function BancoPage() {
                   {(selectedClient.loans || []).map(loan => {
                     const totalPaid = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0)
                     const remaining = Math.max(0, loan.amount - totalPaid)
+                    const totalMonths = loan.termMonths || loan.term || 1
+                    const monthlyPayment = loan.monthlyPayment || (loan.amount / totalMonths)
 
                     return (
                       <button
@@ -323,8 +326,9 @@ function BancoPage() {
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-bold text-blue-700">Fuente: {loan.source}</p>
-                            <p className="text-sm text-gray-600">Monto: ${loan.amount.toFixed(2)} | Plazo: {loan.term} quincenas</p>
+                            <p className="font-bold text-blue-700">Préstamo Mensual</p>
+                            <p className="text-sm text-gray-600">Monto: ${loan.amount.toFixed(2)} | Plazo: {totalMonths} meses</p>
+                            <p className="text-sm text-gray-600">Pago mensual: ${monthlyPayment.toFixed(2)}</p>
                             <p className="text-sm text-gray-600">Pagado: ${totalPaid.toFixed(2)} | Restante: ${remaining.toFixed(2)}</p>
                           </div>
                           <span className={`text-xs font-semibold px-2 py-1 rounded-full ${loan.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -383,6 +387,12 @@ function BancoPage() {
 
       const totalPaid = (loan.payments || []).reduce((sum, p) => sum + p.amount, 0)
       const remaining = Math.max(0, loan.amount - totalPaid)
+      const totalMonths = loan.termMonths || loan.term || 1
+      const normalizedLoan = {
+        ...loan,
+        termMonths: totalMonths,
+        monthlyPayment: loan.monthlyPayment || parseFloat((loan.amount / totalMonths).toFixed(2))
+      }
 
       return (
         <div className="bg-white rounded-lg shadow">
@@ -396,33 +406,18 @@ function BancoPage() {
             >
               ← Volver a productos
             </button>
-            <h2 className="text-2xl font-bold text-gray-900">Préstamo - {loan.source}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Préstamo</h2>
             <p className="text-sm text-gray-600 mt-2">Creado: {loan.createdAt}</p>
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <p className="text-sm text-blue-600 font-medium">Monto Total</p>
-                <p className="text-2xl font-bold text-blue-900">${loan.amount.toFixed(2)}</p>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <p className="text-sm text-green-600 font-medium">Pagado</p>
-                <p className="text-2xl font-bold text-green-900">${totalPaid.toFixed(2)}</p>
-              </div>
-              <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                <p className="text-sm text-red-600 font-medium">Restante</p>
-                <p className="text-2xl font-bold text-red-900">${remaining.toFixed(2)}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleDeleteLoan(selectedProductId)}
-              className="w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium flex items-center justify-center gap-2 mt-4"
-            >
-              <Trash2 size={18} />
-              Eliminar Préstamo
-            </button>
+            <BancoInsuranceTable
+              insurance={normalizedLoan}
+              onRegisterPayment={(id, paymentData) => handleRegisterLoanPayment(id, paymentData)}
+              onDeleteInsurance={handleDeleteLoan}
+              deleteLabel="Eliminar Préstamo"
+              deleteTitle="Eliminar Préstamo"
+            />
           </div>
         </div>
       )

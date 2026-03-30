@@ -20,9 +20,14 @@ Construida con React + Vite + Tailwind CSS.
 - Resumen por fuente y total general.
 - Modulo Banco con:
   - Cliente nuevo por defecto o seleccion de cliente existente de Vales.
-  - Prestamos identificados por nombre (sin folio).
-  - Registro de pagos mensuales manuales por prestamo.
-  - Estado de cuenta por prestamo con fecha, num. de pago, saldo anterior, importe y nuevo saldo.
+  - Seguros y Prestamos como productos mensuales independientes de Vales.
+  - Prestamos sin folio ni fuente, con monto total + plazo en meses.
+  - Calculo automatico de pago mensual (`monto / meses`) y tabla de pagos por mes.
+  - Registro de pago por mes con boton Registrar y estado pendiente/pagado.
+- Modulo Gestion Personal con:
+  - Servicios por periodicidad (mensual, bimestral, trimestral o personalizada).
+  - Registro de pago por fecha y edicion de monto cuando el recibo varia.
+  - Estado visual en Proxima Fecha: `Al corriente`, `Proximo`, `Vencido`.
 
 ## Regla de quincena usada (Vales)
 
@@ -103,9 +108,20 @@ Notas de estructura:
 
 1. Alta de cliente: modo principal crear cliente nuevo.
 1. Alta de cliente (alterno): usar cliente existente de Vales con autocompletado de nombre, telefono y domicilio.
-1. Alta de prestamo: nombre del prestamo, monto y plazo en meses.
-1. Registro de pago: captura manual de fecha e importe por cada mes.
-1. Busqueda de prestamos: por nombre del prestamo.
+1. Alta de prestamo: monto y plazo en meses (sin folio y sin fuente).
+1. Alta de seguro: monto total y plazo en meses.
+1. Registro de pago mensual por tabla (Mes 1..N) con boton Registrar.
+1. Actualizacion automatica de pagado/restante y estado del producto.
+
+## Flujo actual Gestion Personal
+
+1. Alta de servicio con periodicidad y dia de pago.
+1. Registro de pago con fecha exacta (sin desfase de dia por zona horaria).
+1. Edicion de monto para servicios variables (ej. luz/internet).
+1. Proxima Fecha se recalcula desde el ultimo pago y muestra estado visual:
+  - `Al corriente` (verde)
+  - `Proximo` (amarillo)
+  - `Vencido` (rojo)
 
 ## Modelo recomendado (Vales + Banco)
 

@@ -8,7 +8,8 @@ Sistema administrativo para:
 - Gestion de prestamos por fuente de cobro (VALES).
 - Registro de pagos por quincena con control de saldo.
 - Vista de resumen por fuente y total general.
-- Modulo adicional BANCO con prestamos por nombre y pagos mensuales manuales.
+- Modulo adicional BANCO con productos mensuales (seguros y prestamos) y tabla de pagos por mes.
+- Modulo GESTION PERSONAL para servicios con periodicidad configurable.
 
 ## 2) Stack actual
 
@@ -28,8 +29,15 @@ Sistema administrativo para:
 ### BANCO
 
 - Cliente banco (`name`, `phone`, `address`, `valesClientId?`).
-- Prestamo banco (`name`, `amount`, `termMonths`, `status`, `currentPayment`, `createdAt`).
-- Pagos banco (`num`, `amount`, `date`) con estado de cuenta por prestamo.
+- Producto banco (`productType=loan|insurance`, `amount`, `termMonths`, `monthlyPayment`, `status`, `createdAt`).
+- Pagos banco (`num`, `amount`, `date`) con tabla mensual por producto.
+
+### GESTION PERSONAL
+
+- Servicio (`name`, `amount`, `frequency`, `frequencyDays`, `dueDay`, `lastPaymentDate`).
+- Registro de pago por fecha.
+- Edicion de monto por variacion del recibo.
+- Estado de proximo pago (`Al corriente`, `Proximo`, `Vencido`).
 
 ## 4) Reglas de negocio detectadas
 
@@ -40,7 +48,8 @@ Sistema administrativo para:
 1. Estado de cuenta: `saldo_anterior = total_a_pagar - suma_pagos_previos` y `nuevo_saldo = saldo_anterior - importe_pago`.
 1. Al llegar al total de pagos, estado `completed`.
 1. Regla de quincena unificada en VALES: `currentPayment` representa pagos ya registrados; la proxima quincena es `currentPayment + 1`; se completa cuando `currentPayment >= totalPayments`.
-1. Regla Banco mensual: el prestamo se identifica por nombre (no folio), el pago mensual se captura manualmente (fecha + importe) y `currentPayment` representa meses pagados.
+1. Regla Banco mensual: no usa folio ni fuente; el pago mensual se calcula como `monto / termMonths` y la tabla mensual controla pagos por mes.
+1. Regla Gestion Personal: la proxima fecha se calcula desde `lastPaymentDate` cuando existe pago registrado; sin pago, se calcula desde el ciclo actual.
 
 ## 5) Riesgos a vigilar antes de migracion
 
@@ -48,7 +57,8 @@ Sistema administrativo para:
 2. Fechas almacenadas como texto local.
 3. Dependencia de calculo en memoria (riesgo de incoherencia).
 4. IDs locales no aptos para concurrencia multiusuario.
-5. BANCO ya usa estructura por prestamo y pagos, pero sigue en estado local (sin persistencia transaccional).
+5. BANCO ya usa estructura mensual por producto y pagos, pero sigue en estado local (sin persistencia transaccional).
+6. Gestion Personal requiere persistencia de fechas ISO para evitar desfases por zona horaria.
 
 ## 6) Modelo de datos objetivo
 
