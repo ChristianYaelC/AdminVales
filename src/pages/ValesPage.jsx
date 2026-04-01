@@ -364,7 +364,12 @@ function ValesPage() {
                         )}
                         {selectedClient.address && (
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium">Domicilio:</span> {selectedClient.address}
+                            <span className="font-medium">Domicilio Casa:</span> {selectedClient.address}
+                          </p>
+                        )}
+                        {selectedClient.workAddress && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Domicilio Trabajo:</span> {selectedClient.workAddress}
                           </p>
                         )}
                           <div className="pt-2 flex flex-wrap gap-2">
@@ -520,11 +525,11 @@ function ValesPage() {
                       </div>
 
                       {/* Total General */}
-                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-6">
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
                         <p className="text-sm text-gray-600 mb-4">
                           {viewMode === 'current' ? 'TOTAL A PAGAR ESTA QUINCENA' : 'TOTAL GENERAL'}
                         </p>
-                        <p className="text-4xl font-bold text-purple-600 mb-6">
+                        <p className="text-4xl font-bold text-blue-600 mb-6">
                           ${(viewMode === 'current' 
                             ? getTotalActivePayments(selectedClient.loans)
                             : getTotalAllPayments(selectedClient.loans)

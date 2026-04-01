@@ -23,8 +23,10 @@ La recomendacion vigente es:
 - Tabla `clients`: clientes de area `vales` o `banco`.
 - Tabla `loans`: prestamos ligados a cliente; soporta folio/fuente (Vales) y nombre de prestamo/pago mensual (Banco).
 - Tabla `loan_payments`: historial con snapshot monetario (`previous_balance`, `amount_paid`, `new_balance`).
+- Tabla `personal_services`: servicios personales con periodicidad y fecha de ultimo pago.
 - Tabla `loan_source_settings`: configuracion por fuente.
 - Tabla `loan_rate_tables`: tabulador por fuente/monto/plazo.
+- Tabla `app_user_settings`: configuracion operativa del usuario para recordatorios.
 
 Campos clave agregados en `loans` para alinear UI actual:
 
@@ -33,6 +35,24 @@ Campos clave agregados en `loans` para alinear UI actual:
 3. `term_months` y `monthly_payment_amount` para calendario mensual.
 4. Constraint `loans_area_consistency` para validar coherencia por `area`.
 5. En `banco`: `folio` y `source_code` deben ir `null`; en `vales`: `folio` y `source_code` son obligatorios.
+
+Campos clave en `clients` para alinear UI actual:
+
+1. `address`: domicilio de casa.
+2. `work_address`: domicilio de trabajo (opcional).
+
+Campos clave en `app_user_settings`:
+
+1. `upcoming_window_days`.
+2. `grace_days`.
+
+Campos clave en `personal_services`:
+
+1. `name`, `amount`.
+2. `frequency` (`monthly|bimonthly|quarterly|custom`).
+3. `frequency_days` (obligatorio si `frequency='custom'`).
+4. `due_day` (1..31).
+5. `last_payment_date` (tipo `date`, formato ISO).
 
 ## Criterio Vales + Banco
 
@@ -136,6 +156,7 @@ El script incluye:
 2. Politicas por `owner_id = auth.uid()` para `clients`, `loans`, `loan_payments`.
 3. Triggers para propagar owner y evitar cruces entre usuarios.
 4. Politicas de solo lectura autenticada para tabuladores.
+5. Politicas por `owner_id = auth.uid()` para `app_user_settings` y `personal_services`.
 
 ## Recomendacion operativa
 
@@ -210,7 +231,7 @@ order by changed_at desc;
 ## Checklist antes de ejecutar migracion
 
 1. Confirmar que no habra cambios mayores en la logica de quincenas.
-2. Confirmar estructura final de cliente, prestamo y pago (incluyendo Banco mensual por tabla y Gestion Personal con fecha ISO).
+2. Confirmar estructura final de cliente, prestamo y pago (incluyendo Banco mensual por tabla, Gestion Personal con fecha ISO y `work_address` en cliente).
 3. Validar UI para registro, edicion de fechas y estado completed.
 4. Ejecutar `supabase/schema.sql` en proyecto de prueba.
 5. Probar flujo completo end-to-end y luego mover a produccion.

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Trash2, Edit2 } from 'lucide-react'
+import { Check, Trash2, Edit2, AlertCircle, X } from 'lucide-react'
 import {
   isLoanCompleted,
   getRemainingPayments,
@@ -12,6 +12,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
   const [editingDate, setEditingDate] = useState('')
   const [isEditingCreatedAt, setIsEditingCreatedAt] = useState(false)
   const [createdAtInput, setCreatedAtInput] = useState('')
+  const [completionMessage, setCompletionMessage] = useState('')
 
   const isCompleted = isLoanCompleted(loan)
   const paymentHistory = loan.payments || []
@@ -60,7 +61,8 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
 
   const handlePaymentSubmit = () => {
     if (loan.currentPayment >= loan.totalPayments) {
-      alert('Este prestamo ya esta completado')
+      setCompletionMessage('Este préstamo ya está completado')
+      setTimeout(() => setCompletionMessage(''), 4000)
       return
     }
 
@@ -83,6 +85,21 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
 
   return (
     <div className="mb-8">
+      {/* Notificación de préstamo completado */}
+      {completionMessage && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="text-yellow-600" size={20} />
+            <p className="text-yellow-800 font-medium">{completionMessage}</p>
+          </div>
+          <button
+            onClick={() => setCompletionMessage('')}
+            className="p-1 hover:bg-yellow-100 rounded transition-colors"
+          >
+            <X size={18} className="text-yellow-600" />
+          </button>
+        </div>
+      )}
       {/* Información del Préstamo con Folio */}
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <div className="flex items-center justify-between mb-4">
@@ -178,7 +195,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       <div className="overflow-x-auto mb-8">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-yellow-100 border-b-2 border-yellow-300">
+            <tr className="bg-gray-100 border-b-2 border-gray-300">
               <th className="px-4 py-3 text-center font-bold text-gray-800">FECHA DE PAGO</th>
               <th className="px-4 py-3 text-center font-bold text-gray-800">NUM. DE PAGO</th>
               <th className="px-4 py-3 text-right font-bold text-gray-800">SALDO ANTERIOR</th>
@@ -190,7 +207,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
             {paymentHistory.length > 0 ? (
               statementRows.map((payment, idx) => {
                 return (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-yellow-50' : 'bg-white'}>
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                     <td className="px-4 py-3 text-center text-gray-900">
                       {editingPaymentId === idx ? (
                         <div className="flex gap-2 items-center justify-center">

@@ -176,7 +176,9 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
       return {
         label: 'Vencido',
         dateClass: 'text-red-700',
-        badgeClass: 'bg-red-100 text-red-700'
+        badgeClass: 'bg-red-100 text-red-700',
+        daysDiff,
+        daysLabel: `vencido hace ${Math.abs(daysDiff)} ${Math.abs(daysDiff) === 1 ? 'día' : 'días'}`
       }
     }
 
@@ -184,7 +186,9 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
       return {
         label: 'Próximo',
         dateClass: 'text-amber-700',
-        badgeClass: 'bg-amber-100 text-amber-700'
+        badgeClass: 'bg-amber-100 text-amber-700',
+        daysDiff,
+        daysLabel: `faltan ${daysDiff} ${daysDiff === 1 ? 'día' : 'días'}`
       }
     }
 
@@ -192,14 +196,18 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
       return {
         label: 'Al corriente',
         dateClass: 'text-green-700',
-        badgeClass: 'bg-green-100 text-green-700'
+        badgeClass: 'bg-green-100 text-green-700',
+        daysDiff,
+        daysLabel: `faltan ${daysDiff} ${daysDiff === 1 ? 'día' : 'días'}`
       }
     }
 
     return {
       label: 'Pendiente',
       dateClass: 'text-gray-700',
-      badgeClass: 'bg-gray-100 text-gray-700'
+      badgeClass: 'bg-gray-100 text-gray-700',
+      daysDiff,
+      daysLabel: `faltan ${daysDiff} ${daysDiff === 1 ? 'día' : 'días'}`
     }
   }
 
@@ -277,12 +285,15 @@ function PersonalServiceTable({ services, onUpdateServiceAmount, onRegisterPayme
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-2">
                           <span className={`font-medium ${dueStatus.dateClass}`}>
                             {nextPaymentDate.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
                           </span>
                           <span className={`inline-flex w-fit px-2 py-1 rounded-full text-xs font-medium ${dueStatus.badgeClass}`}>
                             {dueStatus.label}
+                          </span>
+                          <span className={`text-xs font-medium ${dueStatus.dateClass}`}>
+                            {dueStatus.daysLabel}
                           </span>
                         </div>
                       </td>

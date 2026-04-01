@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, AlertCircle } from 'lucide-react'
+import { formatCurrencyInput } from '../utils/validators'
 import { LOAN_TABLES, getAvailableAmounts, getAvailableTerms, getPaymentFromTable, calculateFinalPayment } from '../constants/tablesData'
 import { useClients } from '../context/ClientsContext'
 
@@ -58,10 +59,13 @@ function LoanForm({ onSubmit, onCancel }) {
   }
 
   const handleInsuranceChange = (e) => {
+    const { value } = e.target
+    const formatted = formatCurrencyInput(value)
     setFormData({
       ...formData,
-      insurance: e.target.value
+      insurance: formatted
     })
+    if (errors.insurance) setErrors({ ...errors, insurance: '' })
   }
 
   const getAvailableAmountsForSource = () => {
@@ -162,30 +166,35 @@ function LoanForm({ onSubmit, onCancel }) {
           {/* Folio del Préstamo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Folio
+              Folio *
             </label>
             <input
               type="text"
               value={formData.folio}
               onChange={handleFolioChange}
               placeholder="Ej: FOLIO-001"
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                errors.folio ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm ${
+                  errors.folio ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
-            {errors.folio && <p className="text-red-500 text-xs mt-1">{errors.folio}</p>}
+              {errors.folio && (
+                <div className="mt-2 flex items-center gap-2 text-red-600 text-xs">
+                  <AlertCircle size={14} />
+                  {errors.folio}
+                </div>
+              )}
           </div>
 
           {/* Fuente de Cobro */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Fuente de Cobro
+              Fuente de Cobro *
             </label>
             <select
               value={formData.source}
               onChange={handleSourceChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                errors.source ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm ${
+                  errors.source ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             >
               <option value="">-- Selecciona una fuente --</option>
@@ -193,20 +202,25 @@ function LoanForm({ onSubmit, onCancel }) {
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
-            {errors.source && <p className="text-red-500 text-xs mt-1">{errors.source}</p>}
+            {errors.source && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-xs">
+                <AlertCircle size={14} />
+                {errors.source}
+              </div>
+            )}
           </div>
 
           {/* Monto */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Monto
+              Monto *
             </label>
             <select
               value={formData.amount}
               onChange={handleAmountChange}
               disabled={!formData.source}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                errors.amount ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm ${
+                  errors.amount ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               } ${!formData.source ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             >
               <option value="">-- Selecciona un monto --</option>
@@ -214,20 +228,25 @@ function LoanForm({ onSubmit, onCancel }) {
                 <option key={amount} value={amount}>${amount.toLocaleString()}</option>
               ))}
             </select>
-            {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
+            {errors.amount && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-xs">
+                <AlertCircle size={14} />
+                {errors.amount}
+              </div>
+            )}
           </div>
 
           {/* Plazo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Plazo (Quincenas)
+              Plazo (Quincenas) *
             </label>
             <select
               value={formData.term}
               onChange={handleTermChange}
               disabled={!formData.amount}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                errors.term ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm ${
+                  errors.term ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               } ${!formData.amount ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             >
               <option value="">-- Selecciona un plazo --</option>
@@ -235,7 +254,12 @@ function LoanForm({ onSubmit, onCancel }) {
                 <option key={term} value={term}>{term} quincenas</option>
               ))}
             </select>
-            {errors.term && <p className="text-red-500 text-xs mt-1">{errors.term}</p>}
+            {errors.term && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-xs">
+                <AlertCircle size={14} />
+                {errors.term}
+              </div>
+            )}
           </div>
 
           {/* Seguro (si aplica) */}
@@ -251,11 +275,16 @@ function LoanForm({ onSubmit, onCancel }) {
                 value={formData.insurance}
                 onChange={handleInsuranceChange}
                 placeholder="Ej: 50"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
-                  errors.insurance ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm ${
+                  errors.insurance ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
                 }`}
               />
-              {errors.insurance && <p className="text-red-500 text-xs mt-1">{errors.insurance}</p>}
+              {errors.insurance && (
+                <div className="mt-2 flex items-center gap-2 text-red-600 text-xs">
+                  <AlertCircle size={14} />
+                  {errors.insurance}
+                </div>
+              )}
               {sourceData.insuranceType === 'global' && (
                 <p className="text-xs text-gray-500 mt-1">Se divide entre las {formData.term || 'X'} quincenas</p>
               )}

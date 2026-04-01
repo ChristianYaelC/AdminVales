@@ -22,13 +22,13 @@ Sistema administrativo para:
 
 ### VALES
 
-- Cliente (`name`, `phone`, `address`).
+- Cliente (`name`, `phone`, `address`, `workAddress?`).
 - Prestamo (`folio`, `source`, `amount`, `term`, `basePayment`, `insurance`, `finalPayment`, `status`).
 - Pagos (`num`, `amount`, `date`) con estado de cuenta.
 
 ### BANCO
 
-- Cliente banco (`name`, `phone`, `address`, `valesClientId?`).
+- Cliente banco (`name`, `phone`, `address`, `workAddress?`, `valesClientId?`).
 - Producto banco (`productType=loan|insurance`, `amount`, `termMonths`, `monthlyPayment`, `status`, `createdAt`).
 - Pagos banco (`num`, `amount`, `date`) con tabla mensual por producto.
 
@@ -38,6 +38,13 @@ Sistema administrativo para:
 - Registro de pago por fecha.
 - Edicion de monto por variacion del recibo.
 - Estado de proximo pago (`Al corriente`, `Proximo`, `Vencido`).
+
+### CONFIGURACION OPERATIVA
+
+- Centro de recordatorios para servicios personales en riesgo.
+- Parametros de recordatorio:
+  - `upcomingWindowDays`.
+  - `graceDays`.
 
 ## 4) Reglas de negocio detectadas
 
@@ -65,6 +72,7 @@ Sistema administrativo para:
 - `clients`
 - `loans`
 - `loan_payments`
+- `personal_services`
 - `loan_source_settings`
 - `loan_rate_tables`
 
@@ -98,6 +106,7 @@ erDiagram
     text name
     text phone
     text address
+    text work_address
     timestamptz created_at
   }
 
@@ -126,6 +135,17 @@ erDiagram
     numeric previous_balance
     numeric amount_paid
     numeric new_balance
+  }
+
+  PERSONAL_SERVICES {
+    uuid id PK
+    uuid owner_id
+    text name
+    numeric amount
+    text frequency
+    int frequency_days
+    int due_day
+    date last_payment_date
   }
 
   LOAN_SOURCE_SETTINGS {
@@ -186,7 +206,8 @@ Detalle tecnico en:
   "area": "vales|banco",
   "name": "string",
   "phone": "string|null",
-  "address": "string|null"
+  "address": "string|null",
+  "work_address": "string|null"
 }
 ```
 
@@ -225,6 +246,21 @@ Detalle tecnico en:
   "previous_balance": "numeric",
   "amount_paid": "numeric",
   "new_balance": "numeric"
+}
+```
+
+### Servicio personal
+
+```json
+{
+  "id": "uuid",
+  "owner_id": "uuid",
+  "name": "string",
+  "amount": "numeric",
+  "frequency": "monthly|bimonthly|quarterly|custom",
+  "frequency_days": "int|null",
+  "due_day": "int",
+  "last_payment_date": "date|null"
 }
 ```
 

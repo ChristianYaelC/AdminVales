@@ -1,27 +1,33 @@
 import { useState } from 'react'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, AlertCircle } from 'lucide-react'
+import { formatPhoneInput, parsePhoneInput, validateName, validatePhone, validateAddress } from '../utils/validators'
 
 function ClientForm({ onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: ''
+    address: '',
+    workAddress: ''
   })
 
   const [errors, setErrors] = useState({})
 
   const handleNameChange = (e) => {
+    const { value } = e.target
+    const filtered = value.replace(/[0-9]/g, '')
     setFormData({
       ...formData,
-      name: e.target.value
+      name: filtered
     })
     if (errors.name) setErrors({ ...errors, name: '' })
   }
 
   const handlePhoneChange = (e) => {
+    const { value } = e.target
+    const formatted = formatPhoneInput(value)
     setFormData({
       ...formData,
-      phone: e.target.value
+      phone: formatted
     })
     if (errors.phone) setErrors({ ...errors, phone: '' })
   }
@@ -34,17 +40,31 @@ function ClientForm({ onSubmit, onCancel }) {
     if (errors.address) setErrors({ ...errors, address: '' })
   }
 
+  const handleWorkAddressChange = (e) => {
+    setFormData({
+      ...formData,
+      workAddress: e.target.value
+    })
+  }
+
   const validateForm = () => {
     const newErrors = {}
-    if (!formData.name.trim()) {
-      newErrors.name = 'El nombre es requerido'
+
+    const nameValidation = validateName(formData.name)
+    if (!nameValidation.valid) {
+      newErrors.name = nameValidation.error
     }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'El teléfono es requerido'
+
+    const phoneValidation = validatePhone(formData.phone)
+    if (!phoneValidation.valid) {
+      newErrors.phone = phoneValidation.error
     }
-    if (!formData.address.trim()) {
-      newErrors.address = 'El domicilio es requerido'
+
+    const addressValidation = validateAddress(formData.address)
+    if (!addressValidation.valid) {
+      newErrors.address = addressValidation.error
     }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -52,7 +72,12 @@ function ClientForm({ onSubmit, onCancel }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (validateForm()) {
-      onSubmit(formData)
+      onSubmit({
+        name: formData.name.trim(),
+        phone: parsePhoneInput(formData.phone),
+        address: formData.address.trim(),
+        workAddress: formData.workAddress.trim()
+      })
     }
   }
 
@@ -75,52 +100,81 @@ function ClientForm({ onSubmit, onCancel }) {
           {/* Campo Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre del Cliente
+              Nombre del Cliente *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={handleNameChange}
               placeholder="Ej: Juan García López"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.name && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                {errors.name}
+              </div>
+            )}
           </div>
 
           {/* Campo Teléfono */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Número de Teléfono
+              Número de Teléfono *
             </label>
             <input
               type="tel"
               value={formData.phone}
               onChange={handlePhoneChange}
-              placeholder="Ej: 555-1234567"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.phone ? 'border-red-500' : 'border-gray-300'
+              placeholder="(555) 123-4567"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
-            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+            {errors.phone && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                {errors.phone}
+              </div>
+            )}
           </div>
 
           {/* Campo Domicilio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Domicilio
+              Domicilio de Casa *
             </label>
             <input
               type="text"
               value={formData.address}
               onChange={handleAddressChange}
               placeholder="Ej: Calle Principal 123, Apt 4B"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.address ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
               }`}
             />
-            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+            {errors.address && (
+              <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} />
+                {errors.address}
+              </div>
+            )}
+          </div>
+
+          {/* Campo Domicilio de Trabajo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Domicilio de Trabajo (Opcional)
+            </label>
+            <input
+              type="text"
+              value={formData.workAddress}
+              onChange={handleWorkAddressChange}
+              placeholder="Ej: Av. Industrial 200, Parque Industrial"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors border-gray-300 focus:ring-blue-500"
+            />
           </div>
 
           {/* Botones */}

@@ -9,7 +9,8 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: ''
+    address: '',
+    workAddress: ''
   })
 
   const [errors, setErrors] = useState({})
@@ -59,6 +60,14 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
     }
   }
 
+  const handleWorkAddressChange = (e) => {
+    const { value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      workAddress: value
+    }))
+  }
+
   const validateForm = () => {
     const newErrors = {}
 
@@ -93,10 +102,11 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
         name: formData.name.trim(),
         phone: parsePhoneInput(formData.phone),
         address: formData.address.trim(),
+        workAddress: formData.workAddress.trim(),
         valesClientId: selectedExistingClientId,
         loans: []
       })
-      setFormData({ name: '', phone: '', address: '' })
+      setFormData({ name: '', phone: '', address: '', workAddress: '' })
       setExistingClientSearch('')
       setSelectedExistingClientId(null)
     }
@@ -117,7 +127,8 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
     setFormData({
       name: client.name || '',
       phone: formatPhoneInput(client.phone || ''),
-      address: client.address || ''
+      address: client.address || '',
+      workAddress: client.workAddress || ''
     })
 
     if (errors.existingClient) {
@@ -130,7 +141,7 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
     if (mode === 'new') {
       setSelectedExistingClientId(null)
       setExistingClientSearch('')
-      setFormData({ name: '', phone: '', address: '' })
+      setFormData({ name: '', phone: '', address: '', workAddress: '' })
     }
     if (errors.existingClient) {
       setErrors((prev) => ({ ...prev, existingClient: '' }))
@@ -274,7 +285,7 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
           {/* Domicilio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Domicilio *
+              Domicilio de Casa *
             </label>
             <textarea
               value={formData.address}
@@ -292,6 +303,21 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
                 {errors.address}
               </div>
             )}
+          </div>
+
+          {/* Domicilio de Trabajo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Domicilio de Trabajo (Opcional)
+            </label>
+            <textarea
+              value={formData.workAddress}
+              onChange={handleWorkAddressChange}
+              readOnly={clientMode === 'existing'}
+              placeholder="Empresa, calle, número, colonia"
+              rows={2}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors resize-none border-gray-300 focus:ring-blue-500"
+            />
           </div>
 
           {/* Info */}

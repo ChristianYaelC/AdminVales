@@ -42,6 +42,8 @@ Abre `http://localhost:5173/`.
 - Tabla mensual de pagos por producto en Banco.
 - Modulo Gestion Personal con registro de pago, edicion de monto y estado visual de proximo pago.
 - Alta de cliente en Banco con opcion de usar cliente existente de Vales.
+- Alta de cliente con domicilio de casa y domicilio de trabajo opcional.
+- Modulo Configuracion con centro de recordatorios.
 
 ---
 

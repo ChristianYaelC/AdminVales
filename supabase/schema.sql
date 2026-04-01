@@ -98,10 +98,53 @@ create table if not exists public.clients (
   name text not null,
   phone text,
   address text,
+  work_address text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint clients_name_not_empty check (char_length(trim(name)) > 0)
 );
+
+-- Configuracion operativa por usuario (pantalla Configuracion)
+create table if not exists public.app_user_settings (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  upcoming_window_days integer not null default 7,
+  grace_days integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint app_user_settings_owner_unique unique (owner_id),
+  constraint app_user_settings_upcoming_window_range check (upcoming_window_days between 1 and 30),
+  constraint app_user_settings_grace_days_range check (grace_days between 0 and 15)
+);
+
+-- Servicios personales (modulo Gestion Personal)
+create table if not exists public.personal_services (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  name text not null,
+  amount numeric(14,2) not null,
+  frequency text not null,
+  frequency_days integer,
+  due_day integer not null,
+  last_payment_date date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint personal_services_name_not_empty check (char_length(trim(name)) > 0),
+  constraint personal_services_amount_positive check (amount > 0),
+  constraint personal_services_due_day_range check (due_day between 1 and 31),
+  constraint personal_services_frequency_valid check (frequency in ('monthly', 'bimonthly', 'quarterly', 'custom')),
+  constraint personal_services_custom_days_valid check (
+    (frequency <> 'custom' and frequency_days is null)
+    or
+    (frequency = 'custom' and frequency_days is not null and frequency_days between 1 and 365)
+  )
+);
+
+create index if not exists personal_services_owner_idx
+  on public.personal_services(owner_id);
+
+create index if not exists personal_services_due_day_idx
+  on public.personal_services(owner_id, due_day);
 
 create table if not exists public.loans (
   id uuid primary key default gen_random_uuid(),
@@ -465,6 +508,16 @@ create trigger trg_clients_updated_at
 before update on public.clients
 for each row execute function public.set_updated_at();
 
+drop trigger if exists trg_app_user_settings_updated_at on public.app_user_settings;
+create trigger trg_app_user_settings_updated_at
+before update on public.app_user_settings
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_personal_services_updated_at on public.personal_services;
+create trigger trg_personal_services_updated_at
+before update on public.personal_services
+for each row execute function public.set_updated_at();
+
 drop trigger if exists trg_loans_updated_at on public.loans;
 create trigger trg_loans_updated_at
 before update on public.loans
@@ -502,6 +555,8 @@ for each row execute function public.sync_payment_owner_id();
 -- =====================================================
 
 alter table public.clients enable row level security;
+alter table public.app_user_settings enable row level security;
+alter table public.personal_services enable row level security;
 alter table public.loans enable row level security;
 alter table public.loan_payments enable row level security;
 alter table public.loan_source_settings enable row level security;
@@ -514,6 +569,16 @@ drop policy if exists clients_select_own on public.clients;
 drop policy if exists clients_insert_own on public.clients;
 drop policy if exists clients_update_own on public.clients;
 drop policy if exists clients_delete_own on public.clients;
+
+drop policy if exists app_user_settings_select_own on public.app_user_settings;
+drop policy if exists app_user_settings_insert_own on public.app_user_settings;
+drop policy if exists app_user_settings_update_own on public.app_user_settings;
+drop policy if exists app_user_settings_delete_own on public.app_user_settings;
+
+drop policy if exists personal_services_select_own on public.personal_services;
+drop policy if exists personal_services_insert_own on public.personal_services;
+drop policy if exists personal_services_update_own on public.personal_services;
+drop policy if exists personal_services_delete_own on public.personal_services;
 
 drop policy if exists loans_select_own on public.loans;
 drop policy if exists loans_insert_own on public.loans;
@@ -542,6 +607,30 @@ create policy clients_update_own on public.clients
 for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
 
 create policy clients_delete_own on public.clients
+for delete using (owner_id = auth.uid());
+
+create policy app_user_settings_select_own on public.app_user_settings
+for select using (owner_id = auth.uid());
+
+create policy app_user_settings_insert_own on public.app_user_settings
+for insert with check (owner_id = auth.uid());
+
+create policy app_user_settings_update_own on public.app_user_settings
+for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+create policy app_user_settings_delete_own on public.app_user_settings
+for delete using (owner_id = auth.uid());
+
+create policy personal_services_select_own on public.personal_services
+for select using (owner_id = auth.uid());
+
+create policy personal_services_insert_own on public.personal_services
+for insert with check (owner_id = auth.uid());
+
+create policy personal_services_update_own on public.personal_services
+for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+create policy personal_services_delete_own on public.personal_services
 for delete using (owner_id = auth.uid());
 
 create policy loans_select_own on public.loans

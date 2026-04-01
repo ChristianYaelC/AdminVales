@@ -75,7 +75,7 @@ npm run dev
 ¡Perfecto! Ya tienes la aplicación ejecutándose. Puedes:
 
 - **Buscar clientes**: Usa el campo de búsqueda en la sección "Vales"
-- **Agregar cliente**: Haz clic en "Agregar Cliente" (completa nombre, telefono y domicilio)
+- **Agregar cliente**: Haz clic en "Agregar Cliente" (completa nombre, telefono, domicilio de casa y opcional domicilio de trabajo)
 - **Ver préstamos**: Selecciona un cliente de la lista
 - **Registrar pagos**: Haz clic en "Registrar Pago" y confirma en la ventana de confirmacion
 - **Banco (nuevo flujo)**:
@@ -87,6 +87,8 @@ npm run dev
   - Crear servicios con periodicidad configurable.
   - Registrar pago por fecha y editar monto cuando varia el recibo.
   - Revisar estado visual de proximo pago (al corriente/proximo/vencido).
+- **Configuracion**:
+  - Revisar Centro de Recordatorios (vencidos / hoy / proximos).
 
 ## Paso 6: Detener la Aplicación
 
@@ -179,7 +181,7 @@ npm cache clean --force
 
 Una vez que tengas la aplicacion ejecutandose:
 
-1. Agrega un cliente (nombre, telefono y domicilio).
+1. Agrega un cliente (nombre, telefono, domicilio de casa y domicilio de trabajo opcional).
 2. Crea un prestamo en Banco sin folio y sin fuente.
 3. Registra pago desde la tabla mensual (con boton Registrar).
 4. Verifica estado de cuenta y actualizacion de pagado/restante.

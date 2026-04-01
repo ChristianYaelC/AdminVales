@@ -245,7 +245,10 @@ function BancoPage() {
                 <span className="font-medium">Teléfono:</span> {selectedClient.phone || '—'}
               </p>
               <p className="text-sm text-gray-600">
-                <span className="font-medium">Domicilio:</span> {selectedClient.address || '—'}
+                <span className="font-medium">Domicilio Casa:</span> {selectedClient.address || '—'}
+              </p>
+              <p className="text-sm text-gray-600">
+                <span className="font-medium">Domicilio Trabajo:</span> {selectedClient.workAddress || '—'}
               </p>
             </div>
           </div>
