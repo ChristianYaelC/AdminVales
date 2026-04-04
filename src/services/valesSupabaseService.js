@@ -26,6 +26,29 @@ export async function createValesClient({ name, phone, address }) {
   return data
 }
 
+export async function updateClientProfile({ clientId, name, phone, address, workAddress }) {
+  const { data, error } = await supabase.rpc('update_client_profile', {
+    p_client_id: clientId,
+    p_name: name?.trim() || '',
+    p_phone: phone?.trim() || null,
+    p_address: address?.trim() || null,
+    p_work_address: workAddress?.trim() || null
+  })
+
+  if (error) throw error
+  return Array.isArray(data) ? data[0] : data
+}
+
+export async function deleteClientById(clientId) {
+  const { error } = await supabase
+    .from('clients')
+    .delete()
+    .eq('id', clientId)
+
+  if (error) throw error
+  return true
+}
+
 export async function createValesLoan({
   clientId,
   folio,

@@ -23,12 +23,14 @@ Sistema administrativo para:
 ### VALES
 
 - Cliente (`name`, `phone`, `address`, `workAddress?`).
+- Cliente editable en UI (actualizacion de telefono y domicilios).
 - Prestamo (`folio`, `source`, `amount`, `term`, `basePayment`, `insurance`, `finalPayment`, `status`).
 - Pagos (`num`, `amount`, `date`) con estado de cuenta.
 
 ### BANCO
 
 - Cliente banco (`name`, `phone`, `address`, `workAddress?`, `valesClientId?`).
+- Cliente banco editable en UI (sin afectar historial de pagos/productos).
 - Producto banco (`productType=loan|insurance`, `amount`, `termMonths`, `monthlyPayment`, `status`, `createdAt`).
 - Pagos banco (`num`, `amount`, `date`) con tabla mensual por producto.
 
@@ -49,6 +51,7 @@ Sistema administrativo para:
 ## 4) Reglas de negocio detectadas
 
 1. Un folio debe ser unico en VALES.
+1. Edicion de cliente modifica solo datos de contacto/domicilio; no altera historial de prestamos/pagos.
 1. Cada fuente define montos/plazos validos por tabulador.
 1. Seguro: `global` se divide entre quincenas y `perQuincena` se suma directo al pago.
 1. Registro de pago individual en VALES: monto fijo por quincena con confirmacion previa.

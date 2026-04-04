@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Search, Plus, X, Check, Trash2 } from 'lucide-react'
+import { Search, Plus, X, Check, Trash2, Edit2 } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
 import ClientForm from '../components/ClientForm'
+import ClientEditModal from '../components/ClientEditModal'
 import LoanForm from '../components/LoanForm'
 import LoansTable from '../components/LoansTable'
 import ConfirmModal from '../components/ConfirmModal'
@@ -19,6 +20,7 @@ import {
 function ValesPage() {
   const { valesClients, setValesClients } = useClients()
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditClientForm, setShowEditClientForm] = useState(false)
   const [showLoanForm, setShowLoanForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchFolioTerm, setSearchFolioTerm] = useState('')
@@ -30,6 +32,8 @@ function ValesPage() {
   const [loanStatusFilter, setLoanStatusFilter] = useState('all')
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingPayment, setPendingPayment] = useState(null)
+
+  const generateLocalId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
   const sourcesList = {
     captavale: 'CaptaVale',
@@ -47,12 +51,30 @@ function ValesPage() {
   const selectedClient = valesClients.find(c => c.id === selectedClientId)
 
   // Agregar nuevo cliente
-  const handleAddClient = (clientData) => {
-    const newClient = {
-      id: Math.max(...valesClients.map(c => c.id), 0) + 1,
+  const handleAddClient = async (clientData) => {
+    let newClient = {
+      id: generateLocalId(),
       ...clientData,
       loans: []
     }
+
+    try {
+      const { createValesClient } = await import('../services/valesSupabaseService')
+      const persistedClient = await createValesClient(clientData)
+      if (persistedClient) {
+        newClient = {
+          id: persistedClient.id,
+          name: persistedClient.name,
+          phone: persistedClient.phone || '',
+          address: persistedClient.address || '',
+          workAddress: persistedClient.work_address || '',
+          loans: []
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo persistir cliente de Vales en Supabase:', error?.message || error)
+    }
+
     setValesClients([...valesClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
@@ -95,6 +117,36 @@ function ValesPage() {
   // Actualizar cliente
   const handleUpdateClient = (id, updatedClient) => {
     setValesClients(valesClients.map(c => c.id === id ? { ...c, ...updatedClient } : c))
+  }
+
+  const handleUpdateSelectedClient = async (clientData) => {
+    if (!selectedClientId) return
+
+    handleUpdateClient(selectedClientId, clientData)
+
+    try {
+      const isLocalId = String(selectedClientId).startsWith('local-')
+      if (!isLocalId) {
+        const { updateClientProfile } = await import('../services/valesSupabaseService')
+        const persistedClient = await updateClientProfile({
+          clientId: selectedClientId,
+          ...clientData
+        })
+
+        if (persistedClient) {
+          handleUpdateClient(selectedClientId, {
+            name: persistedClient.name,
+            phone: persistedClient.phone || '',
+            address: persistedClient.address || '',
+            workAddress: persistedClient.work_address || ''
+          })
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo persistir el cliente en Supabase:', error?.message || error)
+    }
+
+    setShowEditClientForm(false)
   }
 
   // Eliminar cliente
@@ -225,11 +277,23 @@ function ValesPage() {
   }
 
   // Manejar confirmación del modal
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     if (!pendingPayment) return
 
     if (pendingPayment.type === 'deleteClient') {
-      setValesClients(valesClients.filter(c => c.id !== pendingPayment.clientId))
+      const clientIdToDelete = pendingPayment.clientId
+
+      try {
+        const isLocalId = String(clientIdToDelete).startsWith('local-')
+        if (!isLocalId) {
+          const { deleteClientById } = await import('../services/valesSupabaseService')
+          await deleteClientById(clientIdToDelete)
+        }
+      } catch (error) {
+        console.warn('No se pudo eliminar cliente en Supabase:', error?.message || error)
+      }
+
+      setValesClients(valesClients.filter(c => c.id !== clientIdToDelete))
       if (selectedClientId === pendingPayment.clientId) {
         setSelectedClientId(null)
         setSelectedLoanId(null)
@@ -299,6 +363,15 @@ function ValesPage() {
           />
         )}
 
+        {showEditClientForm && selectedClient && (
+          <ClientEditModal
+            client={selectedClient}
+            title="Editar Cliente - Vales"
+            onSubmit={handleUpdateSelectedClient}
+            onCancel={() => setShowEditClientForm(false)}
+          />
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Lista de clientes */}
           <div className="lg:col-span-1">
@@ -331,15 +404,6 @@ function ValesPage() {
                         <p className="font-medium text-gray-900 text-sm">{client.name}</p>
                         <p className="text-xs text-gray-500 mt-1">{client.loans.length} préstamo(s)</p>
                       </button>
-                      {selectedClientId === client.id && (
-                        <button
-                          onClick={() => handleDeleteClient(client.id)}
-                          className="w-full px-4 py-2 text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 text-sm border-t border-gray-100"
-                        >
-                          <Trash2 size={16} />
-                          Eliminar Cliente
-                        </button>
-                      )}
                     </div>
                   ))
                 )}
@@ -353,49 +417,73 @@ function ValesPage() {
               <div className="bg-white rounded-lg shadow">
                 {/* Header del cliente */}
                 <div className="p-6 border-b border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
-                      <div className="mt-2 space-y-1">
-                        {selectedClient.phone && (
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Teléfono:</span> {selectedClient.phone}
-                          </p>
-                        )}
-                        {selectedClient.address && (
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Domicilio Casa:</span> {selectedClient.address}
-                          </p>
-                        )}
-                        {selectedClient.workAddress && (
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Domicilio Trabajo:</span> {selectedClient.workAddress}
-                          </p>
-                        )}
-                          <div className="pt-2 flex flex-wrap gap-2">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
-                              Total prestamos: {selectedClient.loans.length}
-                            </span>
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                              Activos: {selectedClient.loans.filter((loan) => loan.status === 'active').length}
-                            </span>
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
-                              Completados: {selectedClient.loans.filter((loan) => loan.status === 'completed').length}
-                            </span>
-                          </div>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
+                          <button
+                            onClick={() => setShowEditClientForm(true)}
+                            title="Editar cliente"
+                            aria-label="Editar cliente"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClient(selectedClient.id)}
+                            title="Eliminar cliente"
+                            aria-label="Eliminar cliente"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          {selectedClient.phone && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">Teléfono:</span> {selectedClient.phone}
+                            </p>
+                          )}
+                          {selectedClient.address && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">Domicilio Casa:</span> {selectedClient.address}
+                            </p>
+                          )}
+                          {selectedClient.workAddress && (
+                            <p className="text-sm text-gray-600">
+                              <span className="font-medium">Domicilio Trabajo:</span> {selectedClient.workAddress}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                        <button
+                          onClick={() => {
+                            setShowLoanForm(true)
+                            setSelectedSource(null)
+                            setSelectedLoanId(null)
+                          }}
+                          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm whitespace-nowrap"
+                        >
+                          <Plus size={16} />
+                          Crear Préstamo
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setShowLoanForm(true)
-                        setSelectedSource(null)
-                        setSelectedLoanId(null)
-                      }}
-                      className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm whitespace-nowrap"
-                    >
-                      <Plus size={16} />
-                      Crear Préstamo
-                    </button>
+
+                    <div className="pt-1 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                        Total prestamos: {selectedClient.loans.length}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+                        Activos: {selectedClient.loans.filter((loan) => loan.status === 'active').length}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                        Completados: {selectedClient.loans.filter((loan) => loan.status === 'completed').length}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

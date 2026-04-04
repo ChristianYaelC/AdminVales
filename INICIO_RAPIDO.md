@@ -34,6 +34,7 @@ Abre `http://localhost:5173/`.
 ## Lo mas importante que ya incluye
 
 - Modulo Vales con clientes y prestamos por fuente.
+- Edicion de cliente en Vales y Banco para actualizar telefono y domicilios.
 - Registro de pago por boton (monto fijo por quincena).
 - Confirmacion antes de registrar pago.
 - Estado de cuenta con saldo anterior / nuevo saldo.

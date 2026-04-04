@@ -6,6 +6,7 @@ Construida con React + Vite + Tailwind CSS.
 ## Caracteristicas actuales
 
 - Gestion de clientes en modulo Vales (nombre, telefono, domicilio de casa y domicilio de trabajo opcional).
+- Edicion de cliente en Vales y Banco (nombre, telefono, domicilio de casa y domicilio de trabajo).
 - Alta de prestamos por fuente con folio unico.
 - Tabuladores por fuente y calculo de pago por quincena.
 - Registro de pago individual con monto fijo por quincena (boton Registrar).
@@ -110,6 +111,7 @@ Notas de estructura:
 
 1. Alta de cliente: modo principal crear cliente nuevo.
 1. Alta de cliente (alterno): usar cliente existente de Vales con autocompletado de nombre, telefono, domicilio de casa y domicilio de trabajo.
+1. Edicion de cliente: actualizar telefono y domicilios cuando cambien.
 1. Alta de prestamo: monto y plazo en meses (sin folio y sin fuente).
 1. Alta de seguro: monto total y plazo en meses.
 1. Registro de pago mensual por tabla (Mes 1..N) con boton Registrar.
@@ -186,6 +188,11 @@ Nota: estos ajustes se guardan actualmente en `localStorage` (clave `vales_app_s
 Cambios de tabulacion en Supabase:
 
 1. El proceso para cambiar pagos por quincena y verificar impacto (sin alterar prestamos existentes) esta en `docs/base-datos-supabase.md`, seccion "Cambios de tabulacion en Supabase (produccion)".
+
+Actualizacion de cliente en Supabase:
+
+1. Funcion disponible: `public.update_client_profile(p_client_id, p_name, p_phone, p_address, p_work_address)`.
+2. Solo actualiza clientes del usuario autenticado (`owner_id = auth.uid()`).
 
 ## Soporte rapido
 

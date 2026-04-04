@@ -40,6 +40,7 @@ Campos clave en `clients` para alinear UI actual:
 
 1. `address`: domicilio de casa.
 2. `work_address`: domicilio de trabajo (opcional).
+3. Datos editables desde UI con `update_client_profile`.
 
 Campos clave en `app_user_settings`:
 
@@ -103,6 +104,19 @@ Funciones incluidas:
 3. `registerNextQuincenaPayment`
 4. `updateLoanCreatedAt`
 5. `updatePaymentDate`
+6. `updateClientProfile` (recomendado para editar telefono/domicilios)
+
+Funcion SQL disponible para edicion de cliente:
+
+```sql
+select * from public.update_client_profile(
+  p_client_id := 'UUID_DEL_CLIENTE',
+  p_name := 'Nombre Cliente',
+  p_phone := '4421234567',
+  p_address := 'Calle Casa 123',
+  p_work_address := 'Parque Industrial 45'
+);
+```
 
 ### Ejemplo 1: reemplazar alta de cliente
 

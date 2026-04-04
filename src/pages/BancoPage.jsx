@@ -1,7 +1,8 @@
 ﻿import { useState } from 'react'
-import { Search, Plus, Trash2 } from 'lucide-react'
+import { Search, Plus, Trash2, Edit2 } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
 import BancoClientForm from '../components/BancoClientForm'
+import ClientEditModal from '../components/ClientEditModal'
 import BancoLoanForm from '../components/BancoLoanForm'
 import BancoInsuranceForm from '../components/BancoInsuranceForm'
 import BancoInsuranceTable from '../components/BancoInsuranceTable'
@@ -14,6 +15,7 @@ function BancoPage() {
   const [selectedProductId, setSelectedProductId] = useState(null)
   const [selectedProductType, setSelectedProductType] = useState(null) // 'insurance' o 'loan'
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showEditClientForm, setShowEditClientForm] = useState(false)
   const [showInsuranceForm, setShowInsuranceForm] = useState(false)
   const [showLoanForm, setShowLoanForm] = useState(false)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
@@ -24,13 +26,34 @@ function BancoPage() {
     client.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleAddClient = (clientData) => {
-    const newClient = {
-      id: Math.max(...bancoClients.map(c => c.id), 0) + 1,
+  const generateLocalId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+  const handleAddClient = async (clientData) => {
+    let newClient = {
+      id: generateLocalId(),
       ...clientData,
       insurance: [],
       loans: []
     }
+
+    try {
+      const { bancoService } = await import('../services/banco')
+      const persistedClient = await bancoService.createBancoClient(clientData)
+      if (persistedClient) {
+        newClient = {
+          id: persistedClient.id,
+          name: persistedClient.name,
+          phone: persistedClient.phone || '',
+          address: persistedClient.address || '',
+          workAddress: persistedClient.work_address || '',
+          insurance: [],
+          loans: []
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo persistir cliente de Banco en Supabase:', error?.message || error)
+    }
+
     setBancoClients([...bancoClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
@@ -187,9 +210,60 @@ function BancoPage() {
     setIsConfirmModalOpen(true)
   }
 
-  const handleConfirmAction = () => {
+  const handleUpdateClientData = async (clientData) => {
+    if (!selectedClientId) return
+
+    const updatedClients = bancoClients.map(client =>
+      client.id === selectedClientId ? { ...client, ...clientData } : client
+    )
+    setBancoClients(updatedClients)
+
+    try {
+      const isLocalId = String(selectedClientId).startsWith('local-')
+      if (!isLocalId) {
+        const { updateClientProfile } = await import('../services/valesSupabaseService')
+        const persistedClient = await updateClientProfile({
+          clientId: selectedClientId,
+          ...clientData
+        })
+
+        if (persistedClient) {
+          const refreshedClients = updatedClients.map(client =>
+            client.id === selectedClientId
+              ? {
+                  ...client,
+                  name: persistedClient.name,
+                  phone: persistedClient.phone || '',
+                  address: persistedClient.address || '',
+                  workAddress: persistedClient.work_address || ''
+                }
+              : client
+          )
+          setBancoClients(refreshedClients)
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo persistir el cliente en Supabase:', error?.message || error)
+    }
+
+    setShowEditClientForm(false)
+  }
+
+  const handleConfirmAction = async () => {
     if (pendingAction?.type === 'deleteClient') {
-      setBancoClients(bancoClients.filter(c => c.id !== pendingAction.clientId))
+      const clientIdToDelete = pendingAction.clientId
+
+      try {
+        const isLocalId = String(clientIdToDelete).startsWith('local-')
+        if (!isLocalId) {
+          const { bancoService } = await import('../services/banco')
+          await bancoService.deleteClientById(clientIdToDelete)
+        }
+      } catch (error) {
+        console.warn('No se pudo eliminar cliente en Supabase:', error?.message || error)
+      }
+
+      setBancoClients(bancoClients.filter(c => c.id !== clientIdToDelete))
       if (selectedClientId === pendingAction.clientId) {
         setSelectedClientId(null)
         setSelectedProductId(null)
@@ -239,7 +313,27 @@ function BancoPage() {
       return (
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
+                <button
+                  onClick={() => setShowEditClientForm(true)}
+                  title="Editar cliente"
+                  aria-label="Editar cliente"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  <Edit2 size={14} />
+                </button>
+                <button
+                  onClick={() => handleDeleteClient(selectedClient.id)}
+                  title="Eliminar cliente"
+                  aria-label="Eliminar cliente"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
             <div className="mt-2 space-y-1">
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Teléfono:</span> {selectedClient.phone || '—'}
@@ -260,7 +354,7 @@ function BancoPage() {
                 <h3 className="text-lg font-bold text-gray-900">Seguros</h3>
                 <button
                   onClick={() => setShowInsuranceForm(true)}
-                  className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  className="inline-flex items-center justify-center gap-2 w-40 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
                 >
                   <Plus size={16} />
                   Nuevo Seguro
@@ -301,7 +395,7 @@ function BancoPage() {
                 <h3 className="text-lg font-bold text-gray-900">Préstamos</h3>
                 <button
                   onClick={() => setShowLoanForm(true)}
-                  className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  className="inline-flex items-center justify-center gap-2 w-40 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
                 >
                   <Plus size={16} />
                   Nuevo Préstamo
@@ -487,15 +581,6 @@ function BancoPage() {
                           {((client.insurance || []).length + (client.loans || []).length)} producto(s)
                         </p>
                       </button>
-                      {selectedClientId === client.id && (
-                        <button
-                          onClick={() => handleDeleteClient(client.id)}
-                          className="w-full px-4 py-2 text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 text-sm border-t border-gray-100"
-                        >
-                          <Trash2 size={16} />
-                          Eliminar
-                        </button>
-                      )}
                     </div>
                   ))
                 )}
@@ -516,6 +601,15 @@ function BancoPage() {
           valesClients={valesClients}
           onSubmit={handleAddClient}
           onCancel={() => setShowAddForm(false)}
+        />
+      )}
+
+      {showEditClientForm && selectedClient && (
+        <ClientEditModal
+          client={selectedClient}
+          title="Editar Cliente - Banco"
+          onSubmit={handleUpdateClientData}
+          onCancel={() => setShowEditClientForm(false)}
         />
       )}
 

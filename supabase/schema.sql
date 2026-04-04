@@ -267,6 +267,41 @@ begin
 end;
 $$;
 
+-- Actualiza datos de cliente (uso sugerido desde UI de edicion de cliente)
+create or replace function public.update_client_profile(
+  p_client_id uuid,
+  p_name text,
+  p_phone text,
+  p_address text,
+  p_work_address text default null
+)
+returns public.clients
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_client public.clients;
+begin
+  update public.clients
+  set
+    name = trim(p_name),
+    phone = nullif(trim(coalesce(p_phone, '')), ''),
+    address = nullif(trim(coalesce(p_address, '')), ''),
+    work_address = nullif(trim(coalesce(p_work_address, '')), ''),
+    updated_at = now()
+  where id = p_client_id
+    and owner_id = auth.uid()
+  returning * into v_client;
+
+  if v_client.id is null then
+    raise exception 'Cliente no encontrado o sin permisos';
+  end if;
+
+  return v_client;
+end;
+$$;
+
 -- Propaga owner_id desde cliente al prestamo para evitar cruces de tenant
 create or replace function public.sync_loan_owner_id()
 returns trigger
