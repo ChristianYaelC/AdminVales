@@ -2,34 +2,40 @@
 
 ## Paso 1: Instalar Node.js
 
-El proyecto requiere Node.js para funcionar. Si aún no lo tienes, sigue estos pasos:
+El proyecto requiere Node.js para funcionar. Si aun no lo tienes, sigue estos pasos.
 
 ### Windows
 
-1. Abre tu navegador y ve a: https://nodejs.org/
-2. Descarga la version LTS (Recommended For Most Users)
-3. Abre el instalador descargado
-4. Sigue los pasos del instalador con las opciones por defecto
-5. **Reinicia tu computadora** después de instalar
+1. Abre tu navegador y ve a <https://nodejs.org/>.
+2. Descarga la version LTS (Recommended For Most Users).
+3. Abre el instalador descargado.
+4. Sigue los pasos del instalador con las opciones por defecto.
+5. Reinicia tu computadora despues de instalar.
 6. Abre Windows PowerShell o CMD y verifica:
-   ```bash
-   node --version
-   npm --version
-   ```
-   Deberías ver números de versión en ambos comandos.
+
+```bash
+node --version
+npm --version
+```
+
+Debes ver numeros de version en ambos comandos.
 
 ## Paso 2: Preparar el proyecto
 
-1. Abre **PowerShell** o **CMD** en tu computadora
+1. Abre PowerShell o CMD en tu computadora.
 2. Navega a la carpeta del proyecto:
-   ```bash
-   cd h:\vales
-   ```
-3. Verifica que ves los archivos del proyecto:
-   ```bash
-   dir
-   ```
-  Deberias ver: `package.json`, `vite.config.js`, `src`, etc.
+
+```bash
+cd h:\vales
+```
+
+1. Verifica que ves los archivos del proyecto:
+
+```bash
+dir
+```
+
+Debes ver `package.json`, `vite.config.js`, `src`, etc.
 
 ## Paso 3: Instalar dependencias
 
@@ -39,128 +45,145 @@ Ejecuta este comando en la terminal:
 npm install
 ```
 
-**¿Qué está sucediendo?**
-- npm descargará e instalará todas las librerías necesarias
-- Esto puede tomar 2-5 minutos según tu velocidad de internet
-- Se creará una carpeta llamada `node_modules` (puedes ignorarla)
-- Verás líneas de descarga mientras progresa
+Que esta sucediendo:
 
-Espera hasta que veas algo como:
-```
+- npm descargara e instalara todas las librerias necesarias.
+- Esto puede tomar 2-5 minutos segun tu velocidad de internet.
+- Se creara una carpeta llamada `node_modules` (puedes ignorarla).
+- Veras lineas de descarga mientras progresa.
+
+Ejemplo esperado al final:
+
+```text
 added 150 packages in 2m
 ```
 
 ## Paso 4: Ejecutar la aplicacion
 
-Una vez terminada la instalación, ejecuta:
+Una vez terminada la instalacion, ejecuta:
 
 ```bash
 npm run dev
 ```
 
-**¿Qué sucede ahora?**
-1. Se iniciará el servidor de desarrollo
-2. Verás mensajes similares a:
-   ```
-   > vite
+Que sucede ahora:
 
-     VITE v5.0.8  ready in 345 ms
+1. Se iniciara el servidor de desarrollo.
+2. Veras mensajes similares a:
 
-     ➜  Local:   http://localhost:5173/
-   ```
-3. **Tu navegador se abrirá automáticamente** mostrando la aplicación
+```text
+> vite
 
-## Paso 5: Usa la Aplicación
+  VITE v5.0.8  ready in 345 ms
 
-¡Perfecto! Ya tienes la aplicación ejecutándose. Puedes:
+  Local:   http://localhost:5173/
+```
 
-- **Buscar clientes**: Usa el campo de búsqueda en la sección "Vales"
-- **Agregar cliente**: Haz clic en "Agregar Cliente" (completa nombre, telefono, domicilio de casa y opcional domicilio de trabajo)
-- **Editar cliente**: Selecciona cliente y usa "Editar Cliente" para actualizar telefono/domicilios.
-- **Ver préstamos**: Selecciona un cliente de la lista
-- **Registrar pagos**: Haz clic en "Registrar Pago" y confirma en la ventana de confirmacion
-- **Banco (nuevo flujo)**:
+1. Tu navegador se abrira automaticamente mostrando la aplicacion.
+
+## Paso 5: Usa la aplicacion
+
+Ya con la aplicacion ejecutandose, puedes:
+
+- Buscar clientes usando el campo de busqueda en la seccion Vales.
+- Agregar cliente con nombre, telefono, domicilio de casa y domicilio de trabajo opcional.
+- Editar cliente para actualizar telefono y domicilios.
+- Ver prestamos al seleccionar un cliente de la lista.
+- Registrar pagos con confirmacion.
+- Usar Banco:
   - Alta de cliente nuevo por defecto o usar cliente existente de Vales.
   - Crear prestamo sin folio/fuente (monto y plazo en meses).
   - Crear seguro por monto total y plazo en meses.
   - Registrar pagos desde tabla mensual (Mes 1..N).
-- **Gestion Personal**:
+- Usar Gestion Personal:
   - Crear servicios con periodicidad configurable.
   - Registrar pago por fecha y editar monto cuando varia el recibo.
   - Revisar estado visual de proximo pago (al corriente/proximo/vencido).
-- **Configuracion**:
-  - Revisar Centro de Recordatorios (vencidos / hoy / proximos).
+- Usar Configuracion:
+  - Revisar Centro de Recordatorios (vencidos/hoy/proximos).
 
-## Paso 6: Detener la Aplicación
+## Paso 6: Detener la aplicacion
 
 Cuando termines de trabajar, en la terminal presiona:
-```
+
+```text
 CTRL + C
 ```
 
-Esto detendrá el servidor de desarrollo.
+Esto detendra el servidor de desarrollo.
 
-## Solución de Problemas
+## Solucion de problemas
 
 ### "npm: El termino 'npm' no se reconoce"
-- **Solución**: Node.js no está instalado correctamente o la computadora no fue reiniciada
-- Reinstala Node.js y asegúrate de reiniciar
-- Usa una nueva ventana de PowerShell/CMD después de instalar
+
+- Solucion: Node.js no esta instalado correctamente o la computadora no fue reiniciada.
+- Reinstala Node.js y asegurate de reiniciar.
+- Usa una nueva ventana de PowerShell o CMD despues de instalar.
 
 ### "node_modules not found" al ejecutar npm run dev
-- **Solución**: No completaste el paso `npm install`
-- Ejecuta nuevamente: `npm install`
+
+- Solucion: No completaste el paso `npm install`.
+- Ejecuta nuevamente `npm install`.
 
 ### El navegador no se abre automaticamente
-- **Solución**: Abre manualmente: `http://localhost:5173/` en tu navegador
 
-### Errores de puerto (Puerto 5173 en uso)
-- **Solución**: Otro programa está usando ese puerto
+- Solucion: Abre manualmente `http://localhost:5173/` en tu navegador.
+
+### Errores de puerto (puerto 5173 en uso)
+
+- Solucion: Otro programa esta usando ese puerto.
 - Cambia el puerto en `vite.config.js`:
-  ```javascript
-  server: {
-    port: 5174,  // Cambia a otro número
-    open: true
-  }
-  ```
+
+```javascript
+server: {
+  port: 5174,
+  open: true
+}
+```
 
 ### El proyecto se ve lento o con errores
-- **Solución**: Limpia el cache de npm
-  ```bash
-  npm cache clean --force
-  ```
+
+- Solucion: Limpia el cache de npm.
+
+```bash
+npm cache clean --force
+```
+
 - Elimina la carpeta `node_modules`:
-  ```bash
-  rmdir /s /q node_modules
-  ```
+
+```bash
+rmdir /s /q node_modules
+```
+
 - Reinstala:
-  ```bash
-  npm install
-  ```
+
+```bash
+npm install
+```
 
 ## Dependencias instaladas
 
-El proyecto utiliza estas librerías (se instalan automáticamente):
+El proyecto utiliza estas librerias (se instalan automaticamente):
 
-| Librería | Propósito |
-|----------|-----------|
-| **react** | Framework para crear interfaces |
-| **react-dom** | Renderizar React en el navegador |
-| **vite** | Herramienta de compilación rápida |
-| **tailwindcss** | Estilos CSS modernos |
-| **lucide-react** | Iconos vectoriales |
-| **postcss** | Procesador de CSS |
+| Libreria         | Proposito                         |
+| ---------------- | --------------------------------- |
+| **react**        | Framework para crear interfaces   |
+| **react-dom**    | Renderizar React en el navegador  |
+| **vite**         | Herramienta de compilacion rapida |
+| **tailwindcss**  | Estilos CSS modernos              |
+| **lucide-react** | Iconos vectoriales                |
+| **postcss**      | Procesador de CSS                 |
 
 ## Comandos utiles
 
 ```bash
-# Inicia el servidor (ya sabes esto)
+# Inicia el servidor
 npm run dev
 
-# Prepara para producción (crea carpeta 'dist')
+# Prepara para produccion (crea carpeta dist)
 npm run build
 
-# Ve cómo se vería en producción
+# Ve como se veria en produccion
 npm run preview
 
 # Limpia el cache
@@ -169,12 +192,12 @@ npm cache clean --force
 
 ## Checklist de verificacion
 
-- [ ] Node.js instalado (`node --version` funciona)
-- [ ] npm instalado (`npm --version` funciona)
-- [ ] Navegaste a `h:\vales` en la terminal
-- [ ] Ejecutaste `npm install` (se completó sin errores)
-- [ ] Ejecutaste `npm run dev` (el navegador se abrió)
-- [ ] Ves la aplicación en `http://localhost:5173/`
+- [ ] Node.js instalado (`node --version` funciona).
+- [ ] npm instalado (`npm --version` funciona).
+- [ ] Navegaste a `h:\vales` en la terminal.
+- [ ] Ejecutaste `npm install` (se completo sin errores).
+- [ ] Ejecutaste `npm run dev` (el navegador se abrio).
+- [ ] Ves la aplicacion en `http://localhost:5173/`.
 
 ---
 
@@ -189,10 +212,10 @@ Una vez que tengas la aplicacion ejecutandose:
 5. Verifica estado de cuenta y actualizacion de pagado/restante.
 6. En Gestion Personal, registra pago y confirma que Proxima Fecha avance al siguiente ciclo.
 
-Nota: la persistencia a base de datos se agregara despues de estabilizar cambios de frontend.
+Nota: actualmente la app funciona en modo local para pruebas y ya tiene persistencia parcial opcional a Supabase en clientes (Vales/Banco).
 
 ## Documentacion complementaria
 
 1. Especificacion funcional y arquitectura: `docs/especificacion-proyecto.md`.
 2. Plan de migracion y esquema SQL: `docs/base-datos-supabase.md`.
-3. Para cambiar tabulaciones en Supabase (sin afectar prestamos existentes), revisa en `docs/base-datos-supabase.md` la seccion "Cambios de tabulacion en Supabase (produccion)".
+3. Para cambiar tabulaciones en Supabase sin afectar prestamos existentes, revisa la seccion "Cambios de tabulacion en Supabase (produccion)" en `docs/base-datos-supabase.md`.

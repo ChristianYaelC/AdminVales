@@ -2,12 +2,13 @@
 
 ## Estado actual
 
-La migracion a Supabase esta preparada pero no activada en runtime.
-La recomendacion vigente es:
+La migracion a Supabase esta en estado parcial en runtime.
 
-1. Seguir iterando frontend y reglas de negocio.
-2. Congelar comportamiento funcional.
-3. Ejecutar migracion SQL y conectar servicios.
+Estado vigente:
+
+1. Clientes (Vales/Banco): alta, edicion y eliminacion ya intentan persistir en Supabase.
+2. Si Supabase no esta configurado o no responde, esos flujos conservan fallback local para pruebas.
+3. Prestamos/pagos y carga inicial completa aun no estan migrados al 100%.
 
 ## Inconsistencias detectadas originalmente
 
@@ -105,6 +106,11 @@ Funciones incluidas:
 4. `updateLoanCreatedAt`
 5. `updatePaymentDate`
 6. `updateClientProfile` (recomendado para editar telefono/domicilios)
+
+Nota de runtime actual:
+
+1. En UI se usan imports dinamicos para evitar romper la carga inicial cuando faltan variables de entorno.
+2. La pantalla no debe quedar en blanco por ausencia de `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 
 Funcion SQL disponible para edicion de cliente:
 

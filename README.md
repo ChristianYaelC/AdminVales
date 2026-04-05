@@ -103,9 +103,10 @@ Notas de estructura:
 
 ## Estado de datos
 
-- Actualmente el proyecto sigue trabajando con estado local.
-- Los cambios se pierden al recargar.
-- Ya existe preparacion para migracion a Supabase (documentada), pero no esta activa en runtime.
+- El proyecto funciona en modo local por defecto (sin bloquear UI si no hay variables Supabase).
+- Existe persistencia parcial opcional a Supabase para clientes (alta, edicion y eliminacion en Vales/Banco).
+- Si Supabase no esta configurado o falla, esos flujos mantienen fallback local para pruebas.
+- Aun no hay hidratacion inicial desde base de datos; por eso, los datos locales no persistidos se pierden al recargar.
 
 ## Flujo actual Banco
 
@@ -122,10 +123,13 @@ Notas de estructura:
 1. Alta de servicio con periodicidad y dia de pago.
 1. Registro de pago con fecha exacta (sin desfase de dia por zona horaria).
 1. Edicion de monto para servicios variables (ej. luz/internet).
-1. Proxima Fecha se recalcula desde el ultimo pago y muestra estado visual:
-  - `Al corriente` (verde)
-  - `Proximo` (amarillo)
-  - `Vencido` (rojo)
+1. Proxima Fecha se recalcula desde el ultimo pago y muestra estado visual.
+
+Estados visuales:
+
+- `Al corriente` (verde)
+- `Proximo` (amarillo)
+- `Vencido` (rojo)
 
 ## Modelo recomendado (Vales + Banco)
 
@@ -179,11 +183,16 @@ Documentos relacionados:
 La seccion Configuracion esta orientada a operacion diaria (no tecnica):
 
 1. Centro de recordatorios para servicios personales en riesgo.
-2. Ajustes de ventana y gracia de recordatorios:
-  - `upcomingWindowDays`
-  - `graceDays`
+2. Ajustes de ventana y gracia de recordatorios.
+
+Parametros:
+
+- `upcomingWindowDays`
+- `graceDays`
 
 Nota: estos ajustes se guardan actualmente en `localStorage` (clave `vales_app_settings`) mientras la persistencia Supabase no esta activa.
+
+Nota de alcance actual: la persistencia parcial activa en Supabase aplica a clientes. Prestamos/pagos y otros modulos siguen operando principalmente en estado local hasta completar la migracion total.
 
 Cambios de tabulacion en Supabase:
 

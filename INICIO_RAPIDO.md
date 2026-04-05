@@ -63,6 +63,11 @@ Abre `http://localhost:5173/`.
 2. Vuelve a correr `npm run dev`.
 3. Consulta `GUIA_INSTALACION.md`.
 
+Nota de datos actual:
+
+1. La app funciona sin Supabase en modo local.
+2. Si configuras variables Supabase, clientes en Vales/Banco ya pueden persistir (alta/edicion/eliminacion).
+
 ## Documentacion recomendada
 
 1. Arquitectura y reglas: `docs/especificacion-proyecto.md`.

@@ -15,7 +15,7 @@ Sistema administrativo para:
 
 - Frontend: React 18 + Vite.
 - UI: Tailwind CSS + Lucide.
-- Estado actual: local state con Context.
+- Estado actual: Context + persistencia parcial opcional a Supabase para clientes.
 - Migracion objetivo: Supabase (Postgres + Auth + RLS).
 
 ## 3) Dominios y entidades
@@ -180,6 +180,12 @@ Detalle tecnico en:
 2. Ajustar cambios funcionales pendientes.
 3. Validar reglas de negocio y UX.
 
+### Fase 1.5 (estado actual)
+
+1. Alta/edicion/eliminacion de clientes en Vales y Banco ya intentan persistir en Supabase.
+2. Si Supabase no esta configurado o no responde, se mantiene fallback local para pruebas.
+3. No hay carga inicial completa desde Supabase en arranque (hidratacion pendiente).
+
 ### Fase 2 (migracion tecnica)
 
 1. Crear esquema SQL + RLS en Supabase.
@@ -272,5 +278,5 @@ Detalle tecnico en:
 1. Ejecutar `supabase/schema.sql`.
 2. Configurar variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
 3. Validar login (auth.uid) para RLS.
-4. Reemplazar handlers locales por servicios Supabase.
+4. Completar reemplazo de handlers locales restantes por servicios Supabase (prestamos/pagos y carga inicial).
 5. Probar flujo completo: crear cliente, crear prestamo, registrar pago, editar fecha.
