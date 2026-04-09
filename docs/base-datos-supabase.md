@@ -9,6 +9,7 @@ Estado vigente:
 1. Clientes (Vales/Banco): alta, edicion y eliminacion ya intentan persistir en Supabase.
 2. Si Supabase no esta configurado o no responde, esos flujos conservan fallback local para pruebas.
 3. Prestamos/pagos y carga inicial completa aun no estan migrados al 100%.
+4. La logica de calculo de proxima fecha en Gestion Personal se centralizo en util compartida (`src/domain/personal/paymentDates.js`) para evitar divergencias entre vistas.
 
 ## Inconsistencias detectadas originalmente
 

@@ -8,11 +8,15 @@ function ConfirmModal({ isOpen, title, message, amount, type, onConfirm, onCance
     switch(type) {
       case 'deleteClient':
       case 'deleteLoan':
+      case 'deleteInsurance':
+      case 'deleteService':
         return {
           color: 'bg-red-600 hover:bg-red-700',
           text: 'Eliminar'
         }
       case 'registerLoanPayment':
+      case 'paySourceQuincena':
+      case 'payAllSources':
         return {
           color: 'bg-green-600 hover:bg-green-700',
           text: 'Registrar Pago'

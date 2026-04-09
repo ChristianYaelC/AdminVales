@@ -1,9 +1,9 @@
-import { HomeIcon, Settings, DollarSign, X, CreditCard } from 'lucide-react'
+import { Settings, DollarSign, X, CreditCard, Landmark } from 'lucide-react'
 
 function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
   const menuItems = [
     { id: 'vales', label: 'Vales', icon: DollarSign },
-    { id: 'banco', label: 'Banco', icon: HomeIcon },
+    { id: 'banco', label: 'Banco', icon: Landmark },
     { id: 'personal', label: 'Gestión Personal', icon: CreditCard },
     { id: 'configuracion', label: 'Configuración', icon: Settings },
   ]

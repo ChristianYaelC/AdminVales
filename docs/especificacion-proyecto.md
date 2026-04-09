@@ -60,6 +60,7 @@ Sistema administrativo para:
 1. Regla de quincena unificada en VALES: `currentPayment` representa pagos ya registrados; la proxima quincena es `currentPayment + 1`; se completa cuando `currentPayment >= totalPayments`.
 1. Regla Banco mensual: no usa folio ni fuente; el pago mensual se calcula como `monto / termMonths` y la tabla mensual controla pagos por mes.
 1. Regla Gestion Personal: la proxima fecha se calcula desde `lastPaymentDate` cuando existe pago registrado; sin pago, se calcula desde el ciclo actual.
+1. Etiquetado UX actual: cuando `status='active'` se muestra como `Falta por pagar` en pantallas operativas.
 
 ## 5) Riesgos a vigilar antes de migracion
 

@@ -20,6 +20,12 @@ function BancoPage() {
   const [showLoanForm, setShowLoanForm] = useState(false)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState(null)
+  const [feedback, setFeedback] = useState(null)
+
+  const showFeedback = (message, kind = 'success') => {
+    setFeedback({ message, kind })
+    setTimeout(() => setFeedback(null), 2500)
+  }
 
   const selectedClient = bancoClients.find(client => client.id === selectedClientId)
   const filteredClients = bancoClients.filter(client =>
@@ -57,6 +63,7 @@ function BancoPage() {
     setBancoClients([...bancoClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
+    showFeedback('Cliente guardado correctamente')
   }
 
   const handleAddInsurance = (insuranceData) => {
@@ -85,6 +92,7 @@ function BancoPage() {
 
     setBancoClients(updatedClients)
     setShowInsuranceForm(false)
+    showFeedback('Seguro creado correctamente')
   }
 
   const handleAddLoan = (loanData) => {
@@ -113,6 +121,7 @@ function BancoPage() {
 
     setBancoClients(updatedClients)
     setShowLoanForm(false)
+    showFeedback('Préstamo creado correctamente')
   }
 
   const handleRegisterInsurancePayment = (insuranceId, paymentData) => {
@@ -143,6 +152,7 @@ function BancoPage() {
     })
 
     setBancoClients(updatedClients)
+    showFeedback('Pago de seguro registrado correctamente')
   }
 
   const handleRegisterLoanPayment = (loanId, paymentData) => {
@@ -174,6 +184,7 @@ function BancoPage() {
     })
 
     setBancoClients(updatedClients)
+    showFeedback('Pago de préstamo registrado correctamente')
   }
 
   const handleDeleteClient = (clientId) => {
@@ -247,6 +258,7 @@ function BancoPage() {
     }
 
     setShowEditClientForm(false)
+    showFeedback('Cliente actualizado correctamente')
   }
 
   const handleConfirmAction = async () => {
@@ -268,6 +280,7 @@ function BancoPage() {
         setSelectedClientId(null)
         setSelectedProductId(null)
       }
+      showFeedback('Cliente eliminado correctamente')
     } else if (pendingAction?.type === 'deleteInsurance' && selectedClientId) {
       const updatedClients = bancoClients.map(client => {
         if (client.id !== selectedClientId) return client
@@ -281,6 +294,7 @@ function BancoPage() {
         setSelectedProductId(null)
         setSelectedProductType(null)
       }
+      showFeedback('Seguro eliminado correctamente')
     } else if (pendingAction?.type === 'deleteLoan' && selectedClientId) {
       const updatedClients = bancoClients.map(client => {
         if (client.id !== selectedClientId) return client
@@ -294,6 +308,7 @@ function BancoPage() {
         setSelectedProductId(null)
         setSelectedProductType(null)
       }
+      showFeedback('Préstamo eliminado correctamente')
     }
 
     setIsConfirmModalOpen(false)
@@ -310,28 +325,67 @@ function BancoPage() {
     }
 
     if (!selectedProductId) {
+      const totalInsurance = (selectedClient.insurance || []).length
+      const totalLoans = (selectedClient.loans || []).length
+      const totalProducts = totalInsurance + totalLoans
+      const pendingInsurance = (selectedClient.insurance || []).filter(i => i.status !== 'completed').length
+      const pendingLoans = (selectedClient.loans || []).filter(l => l.status !== 'completed').length
+      const totalPendingProducts = pendingInsurance + pendingLoans
+      const totalCompletedProducts = totalProducts - totalPendingProducts
+
+      const totalInsuranceRemaining = (selectedClient.insurance || []).reduce((sum, insurance) => {
+        const paid = (insurance.payments || []).reduce((acc, p) => acc + Number(p.amount || 0), 0)
+        return sum + Math.max(0, Number(insurance.amount || 0) - paid)
+      }, 0)
+
+      const totalLoanRemaining = (selectedClient.loans || []).reduce((sum, loan) => {
+        const paid = (loan.payments || []).reduce((acc, p) => acc + Number(p.amount || 0), 0)
+        return sum + Math.max(0, Number(loan.amount || 0) - paid)
+      }, 0)
+
+      const remainingBalance = totalInsuranceRemaining + totalLoanRemaining
+
       return (
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
-                <button
-                  onClick={() => setShowEditClientForm(true)}
-                  title="Editar cliente"
-                  aria-label="Editar cliente"
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                >
-                  <Edit2 size={14} />
-                </button>
-                <button
-                  onClick={() => handleDeleteClient(selectedClient.id)}
-                  title="Eliminar cliente"
-                  aria-label="Eliminar cliente"
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                >
-                  <Trash2 size={14} />
-                </button>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedClient.name}</h2>
+                  <button
+                    onClick={() => setShowEditClientForm(true)}
+                    title="Editar cliente"
+                    aria-label="Editar cliente"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClient(selectedClient.id)}
+                    title="Eliminar cliente"
+                    aria-label="Eliminar cliente"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => setShowInsuranceForm(true)}
+                    className="inline-flex items-center justify-center gap-2 w-40 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                    <Plus size={16} />
+                    Nuevo Seguro
+                  </button>
+                  <button
+                    onClick={() => setShowLoanForm(true)}
+                    className="inline-flex items-center justify-center gap-2 w-40 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                    <Plus size={16} />
+                    Nuevo Préstamo
+                  </button>
+                </div>
               </div>
             </div>
             <div className="mt-2 space-y-1">
@@ -345,21 +399,31 @@ function BancoPage() {
                 <span className="font-medium">Domicilio Trabajo:</span> {selectedClient.workAddress || '—'}
               </p>
             </div>
+
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                <p className="text-xs text-gray-600">Total productos</p>
+                <p className="text-lg font-bold text-gray-900">{totalProducts}</p>
+              </div>
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+                <p className="text-xs text-blue-700">Falta por pagar</p>
+                <p className="text-lg font-bold text-blue-700">{totalPendingProducts}</p>
+              </div>
+              <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+                <p className="text-xs text-green-700">Completados</p>
+                <p className="text-lg font-bold text-green-700">{totalCompletedProducts}</p>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                <p className="text-xs text-amber-700">Saldo restante</p>
+                <p className="text-lg font-bold text-amber-700">${remainingBalance.toFixed(2)}</p>
+              </div>
+            </div>
           </div>
 
           <div className="p-6 space-y-6">
             {/* Seguros */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Seguros</h3>
-                <button
-                  onClick={() => setShowInsuranceForm(true)}
-                  className="inline-flex items-center justify-center gap-2 w-40 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                >
-                  <Plus size={16} />
-                  Nuevo Seguro
-                </button>
-              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Seguros</h3>
 
               {(selectedClient.insurance || []).length === 0 ? (
                 <p className="text-gray-500 text-sm">No hay seguros registrados</p>
@@ -380,7 +444,7 @@ function BancoPage() {
                           <p className="text-sm text-gray-600">Plazo: {insurance.termMonths} meses | Pago mensual: ${insurance.monthlyPayment.toFixed(2)}</p>
                         </div>
                         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${insurance.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                          {insurance.status === 'completed' ? 'Completo' : 'Activo'}
+                          {insurance.status === 'completed' ? 'Completo' : 'Falta por pagar'}
                         </span>
                       </div>
                     </button>
@@ -391,16 +455,7 @@ function BancoPage() {
 
             {/* Préstamos */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Préstamos</h3>
-                <button
-                  onClick={() => setShowLoanForm(true)}
-                  className="inline-flex items-center justify-center gap-2 w-40 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
-                >
-                  <Plus size={16} />
-                  Nuevo Préstamo
-                </button>
-              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Préstamos</h3>
 
               {(selectedClient.loans || []).length === 0 ? (
                 <p className="text-gray-500 text-sm">No hay préstamos registrados</p>
@@ -429,7 +484,7 @@ function BancoPage() {
                             <p className="text-sm text-gray-600">Pagado: ${totalPaid.toFixed(2)} | Restante: ${remaining.toFixed(2)}</p>
                           </div>
                           <span className={`text-xs font-semibold px-2 py-1 rounded-full ${loan.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                            {loan.status === 'completed' ? 'Completo' : 'Activo'}
+                            {loan.status === 'completed' ? 'Completo' : 'Falta por pagar'}
                           </span>
                         </div>
                       </button>
@@ -529,6 +584,16 @@ function BancoPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión Bancaria</h1>
           <p className="text-gray-600">Seguros y Préstamos con registro de pagos</p>
         </div>
+
+        {feedback && (
+          <div className={`mb-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+            feedback.kind === 'error'
+              ? 'bg-red-50 border-red-200 text-red-700'
+              : 'bg-green-50 border-green-200 text-green-700'
+          }`}>
+            {feedback.message}
+          </div>
+        )}
 
         {/* Búsqueda y Botón */}
         <div className="mb-8 flex gap-4 flex-col sm:flex-row">
@@ -632,6 +697,7 @@ function BancoPage() {
         isOpen={isConfirmModalOpen}
         title={pendingAction?.title}
         message={pendingAction?.message}
+        type={pendingAction?.type}
         onConfirm={handleConfirmAction}
         onCancel={() => {
           setIsConfirmModalOpen(false)

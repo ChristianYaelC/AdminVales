@@ -24,13 +24,14 @@ Construida con React + Vite + Tailwind CSS.
   - Seguros y Prestamos como productos mensuales independientes de Vales.
   - Prestamos sin folio ni fuente, con monto total + plazo en meses.
   - Calculo automatico de pago mensual (`monto / meses`) y tabla de pagos por mes.
-  - Registro de pago por mes con boton Registrar y estado pendiente/pagado.
+  - Registro de pago por mes con boton Registrar y estado `Falta por pagar`/`Pagado`.
 - Modulo Gestion Personal con:
   - Servicios por periodicidad (mensual, bimestral, trimestral o personalizada).
   - Registro de pago por fecha y edicion de monto cuando el recibo varia.
   - Estado visual en Proxima Fecha: `Al corriente`, `Proximo`, `Vencido`.
 - Modulo Configuracion con:
   - Centro de recordatorios (vencidos, para hoy y proximos) usando servicios personales.
+  - Resumen operativo de cartera con falta por pagar en Vales y Banco.
 
 ## Regla de quincena usada (Vales)
 

@@ -104,6 +104,15 @@ create table if not exists public.clients (
   constraint clients_name_not_empty check (char_length(trim(name)) > 0)
 );
 
+create index if not exists clients_owner_area_idx
+  on public.clients(owner_id, area);
+
+create index if not exists clients_owner_name_search_idx
+  on public.clients(owner_id, lower(name));
+
+create index if not exists clients_owner_created_at_idx
+  on public.clients(owner_id, created_at desc);
+
 -- Configuracion operativa por usuario (pantalla Configuracion)
 create table if not exists public.app_user_settings (
   id uuid primary key default gen_random_uuid(),
@@ -218,6 +227,60 @@ create table if not exists public.loans (
   )
 );
 
+-- Reglas adicionales (agregadas como NOT VALID para no bloquear datos historicos).
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'clients_phone_format'
+  ) then
+    alter table public.clients
+      add constraint clients_phone_format
+      check (phone is null or phone ~ '^[0-9]{10}$') not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'loans_required_fields_vales'
+  ) then
+    alter table public.loans
+      add constraint loans_required_fields_vales
+      check (
+        area <> 'vales'
+        or (
+          term_quincenas is not null
+          and total_payments is not null
+          and final_payment_amount is not null
+          and final_payment_amount > 0
+          and total_payments = term_quincenas
+        )
+      ) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'loans_required_fields_banco'
+  ) then
+    alter table public.loans
+      add constraint loans_required_fields_banco
+      check (
+        area <> 'banco'
+        or (
+          product_type is not null
+          and term_months is not null
+          and total_payments is not null
+          and total_payments = term_months
+          and monthly_payment_amount is not null
+          and monthly_payment_amount > 0
+        )
+      ) not valid;
+  end if;
+end
+$$;
+
 create unique index if not exists loans_owner_folio_unique
   on public.loans(owner_id, folio)
   where folio is not null;
@@ -299,6 +362,37 @@ begin
   end if;
 
   return v_client;
+end;
+$$;
+
+-- Upsert de configuracion operativa por usuario.
+create or replace function public.save_app_user_settings(
+  p_upcoming_window_days integer,
+  p_grace_days integer
+)
+returns public.app_user_settings
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  v_settings public.app_user_settings;
+begin
+  insert into public.app_user_settings (owner_id, upcoming_window_days, grace_days)
+  values (
+    auth.uid(),
+    greatest(1, least(coalesce(p_upcoming_window_days, 7), 30)),
+    greatest(0, least(coalesce(p_grace_days, 0), 15))
+  )
+  on conflict (owner_id)
+  do update
+  set
+    upcoming_window_days = excluded.upcoming_window_days,
+    grace_days = excluded.grace_days,
+    updated_at = now()
+  returning * into v_settings;
+
+  return v_settings;
 end;
 $$;
 

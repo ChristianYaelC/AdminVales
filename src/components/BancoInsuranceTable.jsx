@@ -102,7 +102,7 @@ function BancoInsuranceTable({ insurance, onRegisterPayment, onUpdatePayment, on
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                        Pendiente
+                        Falta por pagar
                       </span>
                     )}
                   </td>

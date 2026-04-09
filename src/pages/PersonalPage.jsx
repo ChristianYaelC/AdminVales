@@ -82,7 +82,7 @@ function PersonalPage() {
         {/* Resumen */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Servicios Activos</h3>
+            <h3 className="text-sm font-medium text-gray-600 mb-2">Servicios con falta por pagar</h3>
             <p className="text-3xl font-bold text-gray-900">{personalServices.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow p-6">

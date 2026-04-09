@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, Plus, X, Check, Trash2, Edit2 } from 'lucide-react'
+import { Search, Plus, X, Trash2, Edit2 } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
 import ClientForm from '../components/ClientForm'
 import ClientEditModal from '../components/ClientEditModal'
@@ -32,6 +32,12 @@ function ValesPage() {
   const [loanStatusFilter, setLoanStatusFilter] = useState('all')
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingPayment, setPendingPayment] = useState(null)
+  const [feedback, setFeedback] = useState(null)
+
+  const showFeedback = (message, kind = 'success') => {
+    setFeedback({ message, kind })
+    setTimeout(() => setFeedback(null), 2500)
+  }
 
   const generateLocalId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -78,6 +84,7 @@ function ValesPage() {
     setValesClients([...valesClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
+    showFeedback('Cliente guardado correctamente')
   }
 
   // Agregar nuevo préstamo (usando tabuladores)
@@ -112,6 +119,7 @@ function ValesPage() {
 
     setValesClients(updatedClients)
     setShowLoanForm(false)
+    showFeedback('Préstamo creado correctamente')
   }
 
   // Actualizar cliente
@@ -147,6 +155,7 @@ function ValesPage() {
     }
 
     setShowEditClientForm(false)
+    showFeedback('Cliente actualizado correctamente')
   }
 
   // Eliminar cliente
@@ -298,14 +307,19 @@ function ValesPage() {
         setSelectedClientId(null)
         setSelectedLoanId(null)
       }
+      showFeedback('Cliente eliminado correctamente')
     } else if (pendingPayment.type === 'deleteLoan') {
       performDeleteLoan(pendingPayment.loanId)
+      showFeedback('Préstamo eliminado correctamente')
     } else if (pendingPayment.type === 'registerLoanPayment') {
       handleRegisterPayment(pendingPayment.loanId)
+      showFeedback('Pago registrado correctamente')
     } else if (pendingPayment.type === 'paySourceQuincena') {
       handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
+      showFeedback('Quincena pagada correctamente')
     } else if (pendingPayment.type === 'payAllSources') {
       handlePayAllSources()
+      showFeedback('Se registraron los pagos de todas las fuentes')
     }
 
     setIsConfirmModalOpen(false)
@@ -323,8 +337,18 @@ function ValesPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Vales</h1>
-          <p className="text-gray-600">Busca un cliente para ver sus préstamos activos</p>
+          <p className="text-gray-600">Busca un cliente para ver sus préstamos con falta por pagar</p>
         </div>
+
+        {feedback && (
+          <div className={`mb-4 rounded-lg border px-4 py-3 text-sm font-medium ${
+            feedback.kind === 'error'
+              ? 'bg-red-50 border-red-200 text-red-700'
+              : 'bg-green-50 border-green-200 text-green-700'
+          }`}>
+            {feedback.message}
+          </div>
+        )}
 
         {/* Buscador y botón agregar */}
         <div className="mb-8 flex gap-4 flex-col sm:flex-row">
@@ -478,7 +502,7 @@ function ValesPage() {
                         Total prestamos: {selectedClient.loans.length}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                        Activos: {selectedClient.loans.filter((loan) => loan.status === 'active').length}
+                        Falta por pagar: {selectedClient.loans.filter((loan) => loan.status === 'active').length}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
                         Completados: {selectedClient.loans.filter((loan) => loan.status === 'completed').length}
@@ -724,7 +748,7 @@ function ValesPage() {
                               <div className="mb-4 flex flex-wrap gap-2">
                                 {[
                                   { key: 'all', label: 'Todos' },
-                                  { key: 'active', label: 'Activos' },
+                                  { key: 'active', label: 'Falta por pagar' },
                                   { key: 'completed', label: 'Completados' }
                                 ].map((filter) => {
                                   const count = filter.key === 'all'
@@ -775,7 +799,7 @@ function ValesPage() {
                                       Progreso: {Math.min((loan.payments || []).length, loan.totalPayments)}/{loan.totalPayments}
                                     </p>
                                     <p className={`text-xs mt-1 font-medium ${loan.status === 'completed' ? 'text-green-600' : 'text-blue-600'}`}>
-                                      Estado: {loan.status === 'completed' ? 'Completado' : 'Activo'}
+                                      Estado: {loan.status === 'completed' ? 'Completado' : 'Falta por pagar'}
                                     </p>
                                     {loan.insurance > 0 && (
                                       <p className="text-xs text-orange-600 mt-1">
