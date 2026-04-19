@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "context:update": "node scripts/update-project-context.mjs",
+    "context:watch": "node scripts/watch-project-context.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",

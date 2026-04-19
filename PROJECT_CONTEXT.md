@@ -1,0 +1,150 @@
+# PROJECT_CONTEXT
+
+This file is generated automatically to provide a compact, AI-friendly snapshot of the project.
+
+## Metadata
+
+- Generated at: 2026-04-19T09:13:34.667Z
+- Project name: vales-y-prestamos
+- Version: 0.0.1
+- Private: true
+- Package manager: npm
+
+## Tech Stack
+
+- Runtime: Node.js
+- Frontend: React + Vite
+- Styling: Tailwind CSS
+- Testing: Vitest
+- Backend (optional): Supabase
+
+## NPM Scripts
+
+- build: `vite build`
+- context:update: `node scripts/update-project-context.mjs`
+- context:watch: `node scripts/watch-project-context.mjs`
+- dev: `vite`
+- preview: `vite preview`
+- test: `vitest run`
+- test:watch: `vitest`
+
+## Dependencies
+
+- @supabase/supabase-js
+- lucide-react
+- react
+- react-dom
+
+## Dev Dependencies
+
+- @types/react
+- @types/react-dom
+- @vitejs/plugin-react
+- autoprefixer
+- postcss
+- tailwindcss
+- vite
+- vitest
+
+## File Tree (depth <= 4)
+
+- docs/
+  - base-datos-supabase.md
+  - especificacion-proyecto.md
+- scripts/
+  - update-project-context.mjs
+  - watch-project-context.mjs
+- src/
+  - components/
+    - BancoClientForm.jsx
+    - BancoInsuranceForm.jsx
+    - BancoInsuranceTable.jsx
+    - BancoLoanForm.jsx
+    - ClientEditModal.jsx
+    - ClientForm.jsx
+    - ConfirmModal.jsx
+    - LoanForm.jsx
+    - LoansTable.jsx
+    - PersonalServiceForm.jsx
+    - PersonalServiceTable.jsx
+    - Sidebar.jsx
+  - constants/
+    - tablesData.js
+  - context/
+    - ClientsContext.jsx
+  - domain/
+    - personal/
+      - paymentDates.js
+      - paymentDates.test.js
+    - vales/
+      - loanCalculations.js
+      - loanCalculations.test.js
+  - lib/
+    - supabaseClient.js
+  - pages/
+    - BancoPage.jsx
+    - ConfiguracionPage.jsx
+    - PersonalPage.jsx
+    - ValesPage.jsx
+  - services/
+    - banco/
+      - index.js
+    - vales/
+      - index.js
+    - valesSupabaseService.js
+  - utils/
+    - validators.js
+  - App.jsx
+  - index.css
+  - main.jsx
+- supabase/
+  - schema.sql
+- .gitignore
+- GUIA_INSTALACION.md
+- index.html
+- INICIO_RAPIDO.md
+- package-lock.json
+- package.json
+- postcss.config.js
+- PROJECT_CONTEXT.md
+- README.md
+- tailwind.config.js
+- vite.config.js
+
+## Important Files Check
+
+- README.md: present
+- GUIA_INSTALACION.md: present
+- INICIO_RAPIDO.md: present
+- docs/especificacion-proyecto.md: present
+- docs/base-datos-supabase.md: present
+- supabase/schema.sql: present
+- src/main.jsx: present
+- src/App.jsx: present
+- src/pages/ValesPage.jsx: present
+- src/pages/BancoPage.jsx: present
+- src/pages/ConfiguracionPage.jsx: present
+- src/context/ClientsContext.jsx: present
+- src/domain/personal/paymentDates.js: present
+- package.json: present
+- vite.config.js: present
+- tailwind.config.js: present
+
+## Quick Analysis Notes
+
+- This project currently has documentation in README and docs/ for setup and architecture details.
+- Supabase schema lives in supabase/schema.sql.
+- Domain utilities for personal payment date logic are in src/domain/personal/.
+
+## Manual Notes (preserved)
+
+<!-- MANUAL_NOTES_START -->
+- Add project-specific notes here.
+- This section is preserved across regenerations.
+<!-- MANUAL_NOTES_END -->
+
+## Update Workflow
+
+- Manual refresh: `npm run context:update`
+- Continuous refresh while coding: `npm run context:watch`
+- Recommended for commits: run `npm run context:update` before commit, so this file always reflects latest state.

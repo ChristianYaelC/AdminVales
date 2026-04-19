@@ -78,7 +78,18 @@ npm run build
 npm run preview
 npm run test
 npm run test:watch
+npm run context:update
+npm run context:watch
 ```
+
+## Contexto compacto para IA
+
+Existe un archivo maestro llamado `PROJECT_CONTEXT.md` pensado para analisis rapido por IA sin releer toda la carpeta.
+
+- Generar o refrescar manualmente: `npm run context:update`
+- Mantener actualizado en tiempo real mientras trabajas: `npm run context:watch`
+
+El archivo conserva una seccion manual entre marcadores para agregar notas propias sin perderlas al regenerar.
 
 ## Estructura principal
 
