@@ -22,7 +22,7 @@ function runUpdate() {
   }
 
   running = true;
-  const child = spawn(process.execPath, ["scripts/update-project-context.mjs"], {
+  const child = spawn(process.execPath, ["scripts/sync-source-docs.mjs"], {
     cwd: ROOT,
     stdio: "inherit",
   });

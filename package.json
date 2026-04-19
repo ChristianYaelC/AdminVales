@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "context:update": "node scripts/update-project-context.mjs",
+    "context:update": "node scripts/sync-source-docs.mjs",
     "context:watch": "node scripts/watch-project-context.mjs"
   },
   "dependencies": {
