@@ -577,10 +577,11 @@ function BancoPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <p className="panel-title mb-2">Monitoreo bancario</p>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión Bancaria</h1>
           <p className="text-gray-600">Seguros y Préstamos con registro de pagos</p>
         </div>
@@ -604,12 +605,12 @@ function BancoPage() {
               placeholder="Buscar cliente..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="btn-primary"
           >
             <Plus size={20} />
             Nuevo Cliente
@@ -620,18 +621,18 @@ function BancoPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Lista de clientes */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow">
+            <div className="app-surface">
               <div className="p-4 border-b border-gray-200">
                 <h2 className="font-bold text-gray-900">Clientes ({filteredClients.length})</h2>
               </div>
-              <div className="max-h-[30rem] overflow-y-auto">
+              <div className="max-h-[30rem] stable-scroll-y">
                 {filteredClients.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">No hay clientes</div>
                 ) : (
                   filteredClients.map(client => (
                     <div
                       key={client.id}
-                      className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedClientId === client.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''}`}
+                      className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedClientId === client.id ? 'bg-blue-50 border-l-4 border-l-secondary' : ''}`}
                     >
                       <button
                         onClick={() => {

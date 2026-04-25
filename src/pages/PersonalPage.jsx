@@ -71,25 +71,26 @@ function PersonalPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <p className="panel-title mb-2">Servicios recurrentes</p>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión Personal</h1>
           <p className="text-gray-600">Registra tus servicios personales y mantén un control de pagos</p>
         </div>
 
         {/* Resumen */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="app-surface p-6 kpi-card">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Servicios con falta por pagar</h3>
             <p className="text-3xl font-bold text-gray-900">{personalServices.length}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="app-surface p-6 kpi-card">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Gasto Mensual Promedio</h3>
-            <p className="text-3xl font-bold text-blue-600">${calculateMonthlyTotal().toFixed(2)}</p>
+            <p className="text-3xl font-bold text-secondary">${calculateMonthlyTotal().toFixed(2)}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="app-surface p-6 kpi-card">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Gasto Anual Estimado</h3>
             <p className="text-3xl font-bold text-green-600">${calculateYearlyTotal().toFixed(2)}</p>
           </div>
@@ -100,7 +101,7 @@ function PersonalPage() {
           <h2 className="text-xl font-bold text-gray-900">Servicios</h2>
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="btn-primary"
           >
             <Plus size={20} />
             Nuevo Servicio

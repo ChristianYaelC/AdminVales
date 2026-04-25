@@ -56,6 +56,15 @@ function ValesPage() {
   // Obtener cliente seleccionado
   const selectedClient = valesClients.find(c => c.id === selectedClientId)
 
+  const activeLoansGlobal = valesClients.reduce(
+    (sum, client) => sum + (client.loans || []).filter((loan) => loan.status === 'active').length,
+    0
+  )
+  const totalRemainingGlobal = valesClients.reduce(
+    (sum, client) => sum + getAllSourcesRemainingTotal(client.loans || []),
+    0
+  )
+
   // Agregar nuevo cliente
   const handleAddClient = async (clientData) => {
     let newClient = {
@@ -332,10 +341,11 @@ function ValesPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <p className="panel-title mb-2">Operacion de prestamos</p>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión de Vales</h1>
           <p className="text-gray-600">Busca un cliente para ver sus préstamos con falta por pagar</p>
         </div>
@@ -350,6 +360,26 @@ function ValesPage() {
           </div>
         )}
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="app-surface p-5 kpi-card">
+            <p className="panel-title">Clientes activos</p>
+            <p className="mt-2 text-3xl font-bold text-primary">{valesClients.length}</p>
+            <p className="mt-1 text-sm text-gray-500">Base total registrada</p>
+          </div>
+          <div className="app-surface p-5 kpi-card">
+            <p className="panel-title">Prestamos con falta por pagar</p>
+            <p className="mt-2 text-3xl font-bold text-secondary">{activeLoansGlobal}</p>
+            <p className="mt-1 text-sm text-gray-500">Quincenas pendientes por procesar</p>
+          </div>
+          <div className="app-surface p-5 kpi-card">
+            <p className="panel-title">Total pendiente global</p>
+            <p className="mt-2 text-3xl font-bold text-primary">
+              ${totalRemainingGlobal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="mt-1 text-sm text-gray-500">Suma de todos los saldos</p>
+          </div>
+        </div>
+
         {/* Buscador y botón agregar */}
         <div className="mb-8 flex gap-4 flex-col sm:flex-row">
           <div className="flex-1 relative">
@@ -359,12 +389,12 @@ function ValesPage() {
               placeholder="Buscar cliente por nombre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
             />
           </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            className="btn-primary whitespace-nowrap"
           >
             <Plus size={20} />
             Agregar Cliente
@@ -399,11 +429,11 @@ function ValesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Lista de clientes */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow">
+            <div className="app-surface">
               <div className="p-4 border-b border-gray-200">
                 <h2 className="font-bold text-gray-900">Clientes ({filteredClients.length})</h2>
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-96 stable-scroll-y">
                 {filteredClients.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
                     No hay clientes
@@ -413,7 +443,7 @@ function ValesPage() {
                     <div
                       key={client.id}
                       className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                        selectedClientId === client.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                        selectedClientId === client.id ? 'bg-blue-50 border-l-4 border-l-secondary' : ''
                       }`}
                     >
                       <button
@@ -438,7 +468,7 @@ function ValesPage() {
           {/* Detalles del cliente y préstamos */}
           <div className="lg:col-span-3">
             {selectedClient ? (
-              <div className="bg-white rounded-lg shadow">
+              <div className="app-surface overflow-hidden">
                 {/* Header del cliente */}
                 <div className="p-6 border-b border-gray-200">
                   <div className="space-y-3 mb-4">
@@ -450,7 +480,7 @@ function ValesPage() {
                             onClick={() => setShowEditClientForm(true)}
                             title="Editar cliente"
                             aria-label="Editar cliente"
-                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-secondary text-white hover:bg-blue-700 transition-colors"
                           >
                             <Edit2 size={14} />
                           </button>
@@ -489,7 +519,7 @@ function ValesPage() {
                             setSelectedSource(null)
                             setSelectedLoanId(null)
                           }}
-                          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm whitespace-nowrap"
+                          className="btn-primary text-sm whitespace-nowrap"
                         >
                           <Plus size={16} />
                           Crear Préstamo
@@ -513,7 +543,7 @@ function ValesPage() {
 
                 {/* Pestañas de Fuentes de Cobro */}
                 <div className="border-b border-gray-200 px-6 bg-gray-50">
-                  <div className="flex gap-1 overflow-x-auto">
+                  <div className="flex gap-1 stable-scroll-x">
                     {/* Pestaña Fuentes General */}
                     <button
                       onClick={() => {
@@ -524,7 +554,7 @@ function ValesPage() {
                       }}
                       className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
                         showSourceSummary
-                          ? 'border-blue-600 text-blue-600'
+                          ? 'border-secondary text-secondary'
                           : 'border-transparent text-gray-600 hover:text-gray-900'
                       }`}
                     >
@@ -546,7 +576,7 @@ function ValesPage() {
                           }}
                           className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
                             !showSourceSummary && selectedSource === key
-                              ? 'border-blue-600 text-blue-600'
+                              ? 'border-secondary text-secondary'
                               : 'border-transparent text-gray-600 hover:text-gray-900'
                           }`}
                         >
@@ -558,7 +588,7 @@ function ValesPage() {
                 </div>
 
                 {/* Contenido: Resumen de Fuentes o Lista de préstamos o tabla */}
-                <div className="p-6">
+                <div className="p-6 min-h-[26rem]">
                   {showSourceSummary ? (
                     // Resumen de Fuentes General
                     <div className="space-y-6">
@@ -568,7 +598,7 @@ function ValesPage() {
                           onClick={() => setViewMode('current')}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                             viewMode === 'current'
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-secondary text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                         >
@@ -578,7 +608,7 @@ function ValesPage() {
                           onClick={() => setViewMode('total')}
                           className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                             viewMode === 'total'
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-secondary text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                         >
@@ -607,7 +637,7 @@ function ValesPage() {
                                 <p className="text-xs text-gray-600 mb-1">
                                   {viewMode === 'current' ? 'A pagar ahora' : 'Total restante'}
                                 </p>
-                                <p className="text-2xl font-bold text-blue-600">
+                                <p className="text-2xl font-bold text-secondary">
                                   ${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                 </p>
                               </div>
@@ -626,7 +656,7 @@ function ValesPage() {
                                     })
                                     setIsConfirmModalOpen(true)
                                   }}
-                                  className="w-full bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+                                  className="w-full bg-secondary text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                                 >
                                   Pagar Quincena
                                 </button>
@@ -641,7 +671,7 @@ function ValesPage() {
                         <p className="text-sm text-gray-600 mb-4">
                           {viewMode === 'current' ? 'TOTAL A PAGAR ESTA QUINCENA' : 'TOTAL GENERAL'}
                         </p>
-                        <p className="text-4xl font-bold text-blue-600 mb-6">
+                        <p className="text-4xl font-bold text-secondary mb-6">
                           ${(viewMode === 'current' 
                             ? getTotalActivePayments(selectedClient.loans)
                             : getTotalAllPayments(selectedClient.loans)
@@ -660,7 +690,7 @@ function ValesPage() {
                               })
                               setIsConfirmModalOpen(true)
                             }}
-                            className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                            className="w-full bg-secondary text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                           >
                             Pagar Todas las Fuentes
                           </button>
@@ -681,7 +711,7 @@ function ValesPage() {
                             <>
                               <button
                                 onClick={() => setSelectedLoanId(null)}
-                                className="mb-4 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                className="mb-4 text-secondary hover:text-blue-700 text-sm font-medium"
                               >
                                 ← Volver a préstamos
                               </button>
@@ -705,7 +735,7 @@ function ValesPage() {
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                   <div className="flex items-center justify-between mb-3">
                                     <p className="text-sm text-gray-600 font-medium">Total Quincena {currentQuincena}</p>
-                                    <p className="text-2xl font-bold text-blue-600">
+                                      <p className="text-2xl font-bold text-secondary">
                                       ${sourceTotal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                     </p>
                                   </div>
@@ -721,7 +751,7 @@ function ValesPage() {
                                       })
                                       setIsConfirmModalOpen(true)
                                     }}
-                                    className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                    className="w-full bg-secondary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                                   >
                                     Pagar Quincena Completa
                                   </button>
@@ -740,7 +770,7 @@ function ValesPage() {
                                   placeholder="Buscar por folio..."
                                   value={searchFolioTerm}
                                   onChange={(e) => setSearchFolioTerm(e.target.value)}
-                                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
                                 />
                               </div>
 
@@ -763,7 +793,7 @@ function ValesPage() {
                                       onClick={() => setLoanStatusFilter(filter.key)}
                                       className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                                         isActive
-                                          ? 'bg-blue-600 text-white border-blue-600'
+                                          ? 'bg-secondary text-white border-secondary'
                                           : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
                                       }`}
                                     >
@@ -781,10 +811,10 @@ function ValesPage() {
                                   <button
                                     key={loan.id}
                                     onClick={() => setSelectedLoanId(loan.id)}
-                                    className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                                    className="p-4 border-2 border-gray-200 rounded-lg hover:border-secondary hover:bg-blue-50 transition-colors text-left"
                                   >
                                     <div className="flex items-start justify-between mb-2">
-                                      <p className="font-bold text-blue-600 text-sm">Folio: {loan.folio}</p>
+                                      <p className="font-bold text-secondary text-sm">Folio: {loan.folio}</p>
                                       {loan.createdAt && (
                                         <p className="text-xs text-gray-500 text-right">{loan.createdAt}</p>
                                       )}
@@ -795,10 +825,10 @@ function ValesPage() {
                                     <p className="text-sm text-gray-600">
                                       Plazo: {loan.term} quincenas | Pago: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                     </p>
-                                    <p className="text-sm text-blue-600 mt-2 font-medium">
+                                    <p className="text-sm text-secondary mt-2 font-medium">
                                       Progreso: {Math.min((loan.payments || []).length, loan.totalPayments)}/{loan.totalPayments}
                                     </p>
-                                    <p className={`text-xs mt-1 font-medium ${loan.status === 'completed' ? 'text-green-600' : 'text-blue-600'}`}>
+                                    <p className={`text-xs mt-1 font-medium ${loan.status === 'completed' ? 'text-green-600' : 'text-secondary'}`}>
                                       Estado: {loan.status === 'completed' ? 'Completado' : 'Falta por pagar'}
                                     </p>
                                     {loan.insurance > 0 && (

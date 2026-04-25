@@ -13,7 +13,7 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
       {/* Overlay para móvil */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-40"
+          className="fixed inset-0 bg-black/40 backdrop-blur-[1px] md:hidden z-40"
           onClick={onToggle}
         />
       )}
@@ -21,14 +21,18 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
       {/* Sidebar */}
       <aside className={`${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } fixed md:relative md:translate-x-0 w-64 bg-gray-900 text-white h-screen transition-transform duration-300 z-50 md:z-auto flex flex-col`}>
+      } fixed md:relative md:translate-x-0 w-64 bg-primary text-white h-screen transition-transform duration-300 z-50 md:z-auto flex flex-col`}>
         
         {/* Header del Sidebar */}
-        <div className="p-6 border-b border-gray-700 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Vales & Préstamos</h1>
+        <div className="p-6 border-b border-slate-600/60 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-300">Sistema interno</p>
+            <h1 className="text-xl font-bold">Vales y Prestamos</h1>
+          </div>
           <button 
             onClick={onToggle}
-            className="md:hidden p-1 hover:bg-gray-800 rounded"
+            className="md:hidden p-1 hover:bg-slate-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+            aria-label="Cerrar menu lateral"
           >
             <X size={20} />
           </button>
@@ -42,22 +46,22 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
               <button
                 key={item.id}
                 onClick={() => onPageChange(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-300 ${
                   currentPage === item.id
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-800'
+                    ? 'bg-secondary text-white shadow-md shadow-blue-900/20'
+                    : 'text-slate-300 hover:bg-slate-700/80 hover:text-white'
                 }`}
               >
                 <Icon size={20} />
-                <span className="font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </button>
             )
           })}
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-700">
-          <p className="text-xs text-gray-400">v1.0.0</p>
+        <div className="p-4 border-t border-slate-600/60">
+          <p className="text-xs text-slate-300">v1.0.0</p>
         </div>
       </aside>
     </>

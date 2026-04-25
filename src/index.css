@@ -2,12 +2,86 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-gray-100 text-gray-800;
+    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Sora', 'IBM Plex Sans', sans-serif;
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  .app-surface {
+    @apply bg-white rounded-xl shadow border border-gray-100 transition-all duration-200;
+  }
+
+  .app-surface:hover {
+    @apply shadow-md;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300;
+  }
+
+  .btn-neutral {
+    @apply inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 font-medium transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300;
+  }
+
+  .panel-title {
+    @apply text-xs uppercase tracking-wide font-semibold text-gray-500;
+  }
+
+  .page-enter {
+    animation: pageEnter 120ms ease-out;
+  }
+
+  .kpi-card {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  .stable-scroll-y {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+
+  .stable-scroll-x {
+    overflow-x: auto;
+    scrollbar-gutter: stable;
+  }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .kpi-card,
+  .app-surface {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 .table-striped tbody tr:nth-child(odd) {

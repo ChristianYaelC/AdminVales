@@ -102,30 +102,31 @@ function ConfiguracionPage() {
   }, [reminders])
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
+          <p className="panel-title mb-2">Control operativo</p>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Configuración</h1>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
+          <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Préstamos con falta por pagar (Vales)</p>
-            <p className="text-2xl font-bold text-blue-600">{operationalSummary.activeValesLoans}</p>
+            <p className="text-2xl font-bold text-secondary">{operationalSummary.activeValesLoans}</p>
           </div>
-          <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
+          <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Productos con falta por pagar (Banco)</p>
             <p className="text-2xl font-bold text-indigo-600">{operationalSummary.activeBancoProducts}</p>
           </div>
-          <div className="bg-white rounded-lg shadow border border-gray-100 p-4">
+          <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Servicios personales</p>
             <p className="text-2xl font-bold text-emerald-600">{operationalSummary.personalServicesCount}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow border border-gray-100 p-6">
+        <div className="app-surface p-6">
           <div className="flex items-center gap-2 mb-4">
-            <BellRing size={18} className="text-blue-600" />
+            <BellRing size={18} className="text-secondary" />
             <h2 className="text-lg font-bold text-gray-900">Centro de Recordatorios</h2>
           </div>
 
