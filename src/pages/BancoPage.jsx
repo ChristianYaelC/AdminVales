@@ -426,8 +426,11 @@ function BancoPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-4">Seguros</h3>
 
               {(selectedClient.insurance || []).length === 0 ? (
-                <p className="text-gray-500 text-sm">No hay seguros registrados</p>
-              ) : (
+                  <div className="p-4">
+                    <p className="text-sm text-gray-700 font-medium">No hay seguros registrados</p>
+                    <p className="mt-1 text-sm text-gray-500">Agrega un seguro para que aparezca en esta lista.</p>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {(selectedClient.insurance || []).map(insurance => (
                     <button
@@ -458,7 +461,10 @@ function BancoPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-4">Préstamos</h3>
 
               {(selectedClient.loans || []).length === 0 ? (
-                <p className="text-gray-500 text-sm">No hay préstamos registrados</p>
+                <div className="p-4">
+                  <p className="text-sm text-gray-700 font-medium">No hay préstamos registrados</p>
+                  <p className="mt-1 text-sm text-gray-500">Crea un préstamo para comenzar a registrar pagos.</p>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {(selectedClient.loans || []).map(loan => {

@@ -845,16 +845,8 @@ function ValesPage() {
                                 .filter((loan) => loanStatusFilter === 'all' || loan.status === loanStatusFilter)
                                 .length === 0 && (
                                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                                  <p className="text-sm text-gray-700 font-medium">No hay prestamos que coincidan con los filtros</p>
-                                  <button
-                                    onClick={() => {
-                                      setSearchFolioTerm('')
-                                      setLoanStatusFilter('all')
-                                    }}
-                                    className="mt-3 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
-                                  >
-                                    Limpiar filtros
-                                  </button>
+                                  <p className="text-sm text-gray-700 font-medium">No hay préstamos que coincidan con los filtros</p>
+                                  <p className="mt-2 text-sm text-gray-500">Ajusta los filtros para ver préstamos o crea uno nuevo para empezar.</p>
                                 </div>
                               )}
                             </div>

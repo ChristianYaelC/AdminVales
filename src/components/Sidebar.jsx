@@ -31,9 +31,7 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
               <h1 className="mt-1 text-xl font-semibold tracking-tight">Vales y Préstamos</h1>
               <p className="mt-1 text-sm text-slate-600">Operación rápida, ordenada y clara.</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm">
-              <PanelLeft size={18} />
-            </div>
+            {/* Icono removido: era decorativo y no funcionaba */}
           </div>
           <button 
             onClick={onToggle}
