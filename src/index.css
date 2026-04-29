@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply bg-gray-100 text-gray-800;
+    @apply bg-slate-100 text-slate-800;
     font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -25,19 +25,19 @@
 
 @layer components {
   .app-surface {
-    @apply bg-white rounded-xl shadow border border-gray-100 transition-all duration-200;
+    @apply bg-white/85 backdrop-blur rounded-2xl shadow-sm border border-white/70 transition-all duration-200;
   }
 
   .app-surface:hover {
-    @apply shadow-md;
+    @apply shadow-lg;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300;
+    @apply inline-flex items-center justify-center gap-2 bg-secondary text-white px-4 py-2.5 rounded-xl font-medium transition-all hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300;
   }
 
   .btn-neutral {
-    @apply inline-flex items-center justify-center gap-2 bg-white text-gray-700 px-4 py-2 rounded-lg border border-gray-300 font-medium transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300;
+    @apply inline-flex items-center justify-center gap-2 bg-white text-slate-700 px-4 py-2.5 rounded-xl border border-slate-200 font-medium transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300;
   }
 
   .panel-title {
@@ -45,11 +45,11 @@
   }
 
   .page-enter {
-    animation: pageEnter 120ms ease-out;
+    animation: pageEnter 220ms ease-out;
   }
 
   .kpi-card {
-    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl;
   }
 
   .stable-scroll-y {
@@ -93,9 +93,9 @@
 }
 
 .input-amount {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right;
+  @apply w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-right bg-white/90 shadow-sm;
 }
 
 .table-cell-border {
-  @apply border-r border-gray-200 last:border-r-0;
+  @apply border-r border-slate-200 last:border-r-0;
 }

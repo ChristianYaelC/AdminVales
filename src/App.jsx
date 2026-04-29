@@ -12,7 +12,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const renderPage = () => {
-    switch(currentPage) {
+    switch (currentPage) {
       case 'vales':
         return <ValesPage />
       case 'banco':
@@ -28,9 +28,9 @@ function App() {
 
   return (
     <ClientsProvider>
-      <div className="flex h-screen bg-gray-100">
-        <Sidebar 
-          currentPage={currentPage} 
+      <div className="flex h-screen overflow-hidden bg-white text-slate-900">
+        <Sidebar
+          currentPage={currentPage}
           onPageChange={(page) => {
             setCurrentPage(page)
             setSidebarOpen(false)
@@ -38,29 +38,25 @@ function App() {
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
-        
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header para móvil */}
-          <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Panel operativo</p>
-              <h1 className="text-lg font-bold text-primary">Vales y Prestamos</h1>
-            </div>
-            <button 
+
+        <div className="flex flex-1 flex-col overflow-hidden bg-white">
+          <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8 md:hidden">
+            <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
               aria-label={sidebarOpen ? 'Cerrar menu lateral' : 'Abrir menu lateral'}
             >
-              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+              <span>Menú</span>
             </button>
-          </div>
+          </header>
 
-          {/* Contenido principal */}
-          <main
-            className="flex-1 overflow-y-scroll overflow-x-hidden bg-gradient-to-b from-gray-100 via-gray-100 to-blue-50/40"
-            style={{ scrollbarGutter: 'stable' }}
-          >
-            {renderPage()}
+          <main className="relative flex-1 overflow-y-auto overflow-x-hidden stable-scroll-y bg-white" style={{ scrollbarGutter: 'stable' }}>
+            <div className="w-full px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                {renderPage()}
+              </div>
+            </div>
           </main>
         </div>
       </div>
