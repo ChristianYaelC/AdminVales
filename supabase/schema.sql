@@ -1,9 +1,9 @@
 -- =====================================================
 -- SUPABASE SCHEMA - VALES Y PRESTAMOS
 -- =====================================================
--- `servings` añadido como concepto en UI; no hay columna adicional en la BD por ahora.
+-- `servings` añadido como concepto en UI; las recetas ya cuentan con soporte opcional en este esquema.
 -- UI: se deshabilita la rueda del ratón sobre inputs numéricos para evitar cambios accidentales.
--- La persistencia de Recetas debe hidratar primero desde localStorage antes de escribir cambios.
+-- La persistencia de Recetas debe hidratar primero desde localStorage antes de escribir cambios si se usa modo local.
 
 create extension if not exists pgcrypto;
 
@@ -35,6 +35,10 @@ begin
 
   if not exists (select 1 from pg_type where typname = 'loan_product_type') then
     create type public.loan_product_type as enum ('loan', 'insurance');
+  end if;
+
+  if not exists (select 1 from pg_type where typname = 'recipe_section_type') then
+    create type public.recipe_section_type as enum ('ingredient', 'step');
   end if;
 end $$;
 
@@ -318,6 +322,66 @@ create index if not exists loan_payments_loan_idx on public.loan_payments(loan_i
 create index if not exists loan_payments_owner_date_idx on public.loan_payments(owner_id, payment_date desc);
 
 -- =====================================================
+-- RECETAS
+-- =====================================================
+
+create table if not exists public.recipes (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  title text not null,
+  category text,
+  cook_time_minutes integer,
+  servings integer,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint recipes_title_not_empty check (char_length(trim(title)) > 0),
+  constraint recipes_cook_time_positive check (cook_time_minutes is null or cook_time_minutes > 0),
+  constraint recipes_servings_positive check (servings is null or servings > 0)
+);
+
+create index if not exists recipes_owner_idx on public.recipes(owner_id);
+create index if not exists recipes_owner_title_idx on public.recipes(owner_id, lower(title));
+create index if not exists recipes_owner_category_idx on public.recipes(owner_id, lower(category));
+
+create table if not exists public.recipe_ingredients (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  recipe_id uuid not null references public.recipes(id) on delete cascade,
+  position integer not null,
+  name text not null,
+  quantity text,
+  unit text,
+  cost numeric(14,2),
+  note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint recipe_ingredients_name_not_empty check (char_length(trim(name)) > 0),
+  constraint recipe_ingredients_position_positive check (position > 0),
+  constraint recipe_ingredients_cost_positive check (cost is null or cost >= 0),
+  constraint recipe_ingredients_unique_position unique (recipe_id, position)
+);
+
+create index if not exists recipe_ingredients_recipe_idx on public.recipe_ingredients(recipe_id, position);
+create index if not exists recipe_ingredients_owner_idx on public.recipe_ingredients(owner_id);
+
+create table if not exists public.recipe_steps (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  recipe_id uuid not null references public.recipes(id) on delete cascade,
+  position integer not null,
+  text text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint recipe_steps_text_not_empty check (char_length(trim(text)) > 0),
+  constraint recipe_steps_position_positive check (position > 0),
+  constraint recipe_steps_unique_position unique (recipe_id, position)
+);
+
+create index if not exists recipe_steps_recipe_idx on public.recipe_steps(recipe_id, position);
+create index if not exists recipe_steps_owner_idx on public.recipe_steps(owner_id);
+
+-- =====================================================
 -- FUNCIONES DE MANTENIMIENTO
 -- =====================================================
 
@@ -431,6 +495,44 @@ begin
   end if;
 
   new.owner_id := loan_owner;
+  return new;
+end;
+$$;
+
+-- Propaga owner_id desde la receta a sus ingredientes
+create or replace function public.sync_recipe_ingredient_owner_id()
+returns trigger
+language plpgsql
+as $$
+declare
+  recipe_owner uuid;
+begin
+  select owner_id into recipe_owner from public.recipes where id = new.recipe_id;
+
+  if recipe_owner is null then
+    raise exception 'Receta no existe';
+  end if;
+
+  new.owner_id := recipe_owner;
+  return new;
+end;
+$$;
+
+-- Propaga owner_id desde la receta a sus pasos
+create or replace function public.sync_recipe_step_owner_id()
+returns trigger
+language plpgsql
+as $$
+declare
+  recipe_owner uuid;
+begin
+  select owner_id into recipe_owner from public.recipes where id = new.recipe_id;
+
+  if recipe_owner is null then
+    raise exception 'Receta no existe';
+  end if;
+
+  new.owner_id := recipe_owner;
   return new;
 end;
 $$;
@@ -555,6 +657,35 @@ as $$
   order by l.changed_at desc
   limit greatest(coalesce(p_limit, 100), 1);
 $$;
+
+-- =====================================================
+-- TRIGGERS
+-- =====================================================
+
+drop trigger if exists set_updated_at_recipes on public.recipes;
+create trigger set_updated_at_recipes
+before update on public.recipes
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_updated_at_recipe_ingredients on public.recipe_ingredients;
+create trigger set_updated_at_recipe_ingredients
+before update on public.recipe_ingredients
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_updated_at_recipe_steps on public.recipe_steps;
+create trigger set_updated_at_recipe_steps
+before update on public.recipe_steps
+for each row execute function public.set_updated_at();
+
+drop trigger if exists sync_recipe_ingredient_owner_id_trigger on public.recipe_ingredients;
+create trigger sync_recipe_ingredient_owner_id_trigger
+before insert on public.recipe_ingredients
+for each row execute function public.sync_recipe_ingredient_owner_id();
+
+drop trigger if exists sync_recipe_step_owner_id_trigger on public.recipe_steps;
+create trigger sync_recipe_step_owner_id_trigger
+before insert on public.recipe_steps
+for each row execute function public.sync_recipe_step_owner_id();
 
 -- Verificacion rapida despues de cambiar tabulacion.
 -- Muestra valor actual, ultimo cambio y distribucion de prestamos por pago guardado.
@@ -692,6 +823,9 @@ alter table public.loan_payments enable row level security;
 alter table public.loan_source_settings enable row level security;
 alter table public.loan_rate_tables enable row level security;
 alter table public.loan_rate_change_log enable row level security;
+alter table public.recipes enable row level security;
+alter table public.recipe_ingredients enable row level security;
+alter table public.recipe_steps enable row level security;
 
 -- Limpiar politicas previas
 
@@ -724,6 +858,18 @@ drop policy if exists loan_source_settings_read_all on public.loan_source_settin
 drop policy if exists loan_rate_tables_read_all on public.loan_rate_tables;
 drop policy if exists loan_rate_change_log_select_own on public.loan_rate_change_log;
 drop policy if exists loan_rate_change_log_insert_own on public.loan_rate_change_log;
+drop policy if exists recipes_select_own on public.recipes;
+drop policy if exists recipes_insert_own on public.recipes;
+drop policy if exists recipes_update_own on public.recipes;
+drop policy if exists recipes_delete_own on public.recipes;
+drop policy if exists recipe_ingredients_select_own on public.recipe_ingredients;
+drop policy if exists recipe_ingredients_insert_own on public.recipe_ingredients;
+drop policy if exists recipe_ingredients_update_own on public.recipe_ingredients;
+drop policy if exists recipe_ingredients_delete_own on public.recipe_ingredients;
+drop policy if exists recipe_steps_select_own on public.recipe_steps;
+drop policy if exists recipe_steps_insert_own on public.recipe_steps;
+drop policy if exists recipe_steps_update_own on public.recipe_steps;
+drop policy if exists recipe_steps_delete_own on public.recipe_steps;
 
 -- Politicas por usuario dueno (auth.uid)
 
@@ -799,6 +945,42 @@ for select using (changed_by = auth.uid());
 
 create policy loan_rate_change_log_insert_own on public.loan_rate_change_log
 for insert with check (changed_by = auth.uid());
+
+create policy recipes_select_own on public.recipes
+for select using (owner_id = auth.uid());
+
+create policy recipes_insert_own on public.recipes
+for insert with check (owner_id = auth.uid());
+
+create policy recipes_update_own on public.recipes
+for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+create policy recipes_delete_own on public.recipes
+for delete using (owner_id = auth.uid());
+
+create policy recipe_ingredients_select_own on public.recipe_ingredients
+for select using (owner_id = auth.uid());
+
+create policy recipe_ingredients_insert_own on public.recipe_ingredients
+for insert with check (owner_id = auth.uid());
+
+create policy recipe_ingredients_update_own on public.recipe_ingredients
+for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+create policy recipe_ingredients_delete_own on public.recipe_ingredients
+for delete using (owner_id = auth.uid());
+
+create policy recipe_steps_select_own on public.recipe_steps
+for select using (owner_id = auth.uid());
+
+create policy recipe_steps_insert_own on public.recipe_steps
+for insert with check (owner_id = auth.uid());
+
+create policy recipe_steps_update_own on public.recipe_steps
+for update using (owner_id = auth.uid()) with check (owner_id = auth.uid());
+
+create policy recipe_steps_delete_own on public.recipe_steps
+for delete using (owner_id = auth.uid());
 
 -- =====================================================
 -- SEED DE FUENTES

@@ -28,9 +28,9 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
         <div className="border-b border-slate-200 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Sistema interno</p>
-              <h1 className="mt-1 text-xl font-semibold tracking-tight">Vales y Préstamos</h1>
-              <p className="mt-1 text-sm text-slate-600">Operación rápida, ordenada y clara.</p>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Panel administrativo</p>
+              <h1 className="mt-1 text-xl font-semibold tracking-tight">Gestión Integral</h1>
+              
             </div>
             {/* Icono removido: era decorativo y no funcionaba */}
           </div>
@@ -72,7 +72,7 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
           <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
             <CircleUserRound size={18} className="text-slate-500" />
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Panel operativo</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Panel principal</p>
               <p className="truncate text-sm text-slate-700">v1.0.0</p>
             </div>
           </div>

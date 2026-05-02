@@ -12,6 +12,7 @@ Use this file as the shared UI contract for every page in the project. It is int
 ## Page Structure
 
 - Keep a compact header with title, short description, and clear spacing below.
+- Keep the header order consistent: small section label above the main `h1`, with the label compact and the `h1` given breathing room below.
 - Use reusable metric cards at the top of each page when summary data is helpful.
 - Keep the content area split into a narrow list pane and a main detail pane when the page manages records.
 - Keep forms grouped by meaning: metadata, items, long text, actions.

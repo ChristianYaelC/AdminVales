@@ -44,6 +44,7 @@ Abre `http://localhost:5173/`.
 - Modulo Gestion Personal con registro de pago, edicion de monto y estado visual de proximo pago.
 - Alta de cliente en Banco con opcion de usar cliente existente de Vales.
 - Alta de cliente con domicilio de casa y domicilio de trabajo opcional.
+- Modulo Recetas con receta de prueba, exportacion PDF/Word y formato listo para imprimir.
 - Modulo Configuracion con centro de recordatorios.
 
 ---
@@ -184,6 +185,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - App.jsx
   - index.css
   - main.jsx
+  - recipeExport.js
 - supabase/
   - schema.sql
 - .gitignore
@@ -210,6 +212,9 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_settings
   - loans
   - personal_services
+  - recipe_ingredients
+  - recipe_steps
+  - recipes
 - Types:
   - app_area
   - insurance_mode
@@ -217,12 +222,15 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_code
   - loan_status
   - payment_periodicity
+  - recipe_section_type
 - Functions:
   - get_loan_rate_change_history
   - save_app_user_settings
   - set_updated_at
   - sync_loan_owner_id
   - sync_payment_owner_id
+  - sync_recipe_ingredient_owner_id
+  - sync_recipe_step_owner_id
   - update_client_profile
   - update_rate_for_new_loans
   - verify_rate_change_effect

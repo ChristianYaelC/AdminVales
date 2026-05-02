@@ -586,11 +586,10 @@ function BancoPage() {
     <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <p className="panel-title mb-2">Monitoreo bancario</p>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión Bancaria</h1>
-          <p className="text-gray-600">Seguros y Préstamos con registro de pagos</p>
-        </div>
+          <div className="mb-8">
+            <p className="panel-title mb-1">Monitoreo bancario</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-3">Banco</h1>
+          </div>
 
         {feedback && (
           <div className={`mb-4 rounded-lg border px-4 py-3 text-sm font-medium ${

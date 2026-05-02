@@ -6,8 +6,13 @@ import {
   BorderStyle,
   Document,
   Footer,
+  LeaderType,
   Packer,
   Paragraph,
+  PageNumber,
+  Tab,
+  TabStopPosition,
+  TabStopType,
   Table,
   TableCell,
   TableRow,
@@ -76,13 +81,7 @@ const groupByCategory = (recipes = []) => {
   return { ordered, grouped }
 }
 
-const dotLeader = (label, pageNumber) => {
-  const base = safeText(label).trim()
-  const dots = Math.max(8, 52 - base.length)
-  return `${base} ${'.'.repeat(dots)} ${pageNumber}`
-}
-
-const line = () => ({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 520, y2: 0, lineWidth: 0.5, lineColor: '#dddddd' }] })
+const line = () => ({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 453, y2: 0, lineWidth: 0.5, lineColor: '#dddddd' }] })
 
 const buildSingleRecipeBody = (recipe, options = {}) => {
   const category = getCategory(recipe).toUpperCase()
@@ -92,94 +91,70 @@ const buildSingleRecipeBody = (recipe, options = {}) => {
   const topSpacing = options.topSpacing ?? 32
 
   const content = []
+  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : []
+  const steps = Array.isArray(recipe.steps) ? recipe.steps : []
+  const tipsText = getTipsText(recipe).trim()
 
   content.push({ text: category, style: 'categoryLabel', margin: [0, topSpacing, 0, 6] })
-  content.push({ ...line(), margin: [0, 0, 0, 20] })
+  content.push({ ...line(), margin: [0, 0, 0, 18] })
+  content.push({ text: title, style: 'recipeTitle', margin: [0, 0, 0, 10] })
+  if (meta) {
+    content.push({ text: meta, style: 'metaLine', margin: [0, 0, 0, 18] })
+  }
 
-  content.push({ text: title, style: 'recipeTitle', margin: [0, 0, 0, 12] })
-  if (meta) content.push({ text: meta, style: 'metaLine', margin: [0, 0, 0, 30] })
+  content.push({ text: 'INGREDIENTES', style: 'ingredientsHeader', margin: [0, 0, 0, 8] })
+  content.push({ ...line(), margin: [0, 0, 0, 12] })
 
-  content.push({
-    columns: [
-      { width: '*', text: 'INGREDIENTES', style: 'ingredientsHeader' },
-      { width: 120, text: servings, style: 'servingsText', alignment: 'right' }
-    ],
-    columnGap: 10
-  })
-  content.push({ ...line(), margin: [0, 6, 0, 16] })
-
-  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : []
   if (ingredients.length) {
     ingredients.forEach((ingredient) => {
       const qty = safeText(ingredient.quantity).trim()
       const unit = safeText(ingredient.unit).trim()
       const amount = [qty, unit].filter(Boolean).join(' ') || '-'
+      const name = safeText(ingredient.name).trim() || '-'
+      const note = safeText(ingredient.note).trim()
 
       content.push({
-        columns: [
-          { width: 90, text: amount, style: 'ingredientQty', alignment: 'right' },
-          { width: '*', text: safeText(ingredient.name).trim() || '-', style: 'ingredientName' }
+        text: [
+          { text: `${amount} `, style: 'ingredientQty', bold: true },
+          { text: name, style: 'ingredientName' }
         ],
-        columnGap: 12,
-        margin: [0, 0, 0, 8]
+        margin: [0, 0, 0, note ? 2 : 8]
       })
 
-      if (safeText(ingredient.note).trim()) {
-        content.push({ text: safeText(ingredient.note).trim(), style: 'ingredientNote', margin: [104, 0, 0, 10] })
+      if (note) {
+        content.push({ text: note, style: 'ingredientNote', margin: [0, 0, 0, 8] })
       }
     })
   } else {
-    content.push({ text: '- Sin ingredientes', style: 'ingredientNote', margin: [0, 0, 0, 24] })
+    content.push({ text: '- Sin ingredientes', style: 'ingredientNote', margin: [0, 0, 0, 4] })
   }
 
-  content.push({ text: '', margin: [0, 0, 0, 16] })
-  content.push({ text: 'ELABORACIÓN', style: 'stepsHeader', margin: [0, 0, 0, 6] })
-  content.push({ ...line(), margin: [0, 0, 0, 14] })
+  content.push({ text: 'ELABORACIÓN', style: 'stepsHeader', margin: [0, 14, 0, 8] })
+  content.push({ ...line(), margin: [0, 0, 0, 12] })
 
-  const steps = Array.isArray(recipe.steps) ? recipe.steps : []
-  steps.forEach((step, index) => {
-    const text = typeof step === 'string' ? step : (step && (step.text || step.description || ''))
-    content.push({
-      columns: [
-        { width: 26, text: `${index + 1}.`, style: 'stepNumber' },
-        { width: '*', text: safeText(text).trim() || '-', style: 'stepText' }
-      ],
-      columnGap: 8,
-      margin: [0, 0, 0, 10]
+  if (steps.length) {
+    steps.forEach((step, index) => {
+      const text = typeof step === 'string' ? step : (step && (step.text || step.description || ''))
+      content.push({
+        columns: [
+          { text: `${index + 1}.`, style: 'stepNumber', width: 22 },
+          { text: safeText(text).trim() || '-', style: 'stepText', width: '*' }
+        ],
+        columnGap: 8,
+        margin: [0, 0, 0, 5]
+      })
     })
-  })
+  } else {
+    content.push({ text: '- Sin pasos', style: 'stepText', margin: [0, 0, 0, 4] })
+  }
 
-  const tipsText = getTipsText(recipe)
-  if (tipsText.trim()) {
-    content.push({ text: '', margin: [0, 14, 0, 4] })
-    content.push({ text: 'CONSEJOS:', style: 'tipsLabel', margin: [0, 0, 0, 4] })
-    content.push({ text: tipsText.trim(), style: 'tipsText' })
+  if (tipsText) {
+    content.push({ text: 'CONSEJOS', style: 'tipsLabel', margin: [0, 12, 0, 4] })
+    content.push({ text: tipsText, style: 'tipsText', margin: [0, 0, 0, 0] })
   }
 
   return content
 }
-
-const buildSinglePdfDefinition = (recipe) => ({
-  pageSize: 'A4',
-  pageMargins: [PDF_MARGIN, PDF_MARGIN, PDF_MARGIN, PDF_MARGIN],
-  defaultStyle: { font: 'Helvetica', color: '#1a1a1a' },
-  content: buildSingleRecipeBody(recipe, { topSpacing: 36 }),
-  styles: {
-    categoryLabel: { fontSize: 10, color: '#888888', bold: false },
-    recipeTitle: { fontSize: 40, bold: true, color: '#1a1a1a' },
-    metaLine: { fontSize: 10, color: '#888888' },
-    ingredientsHeader: { fontSize: 13, bold: true, color: '#1a1a1a' },
-    servingsText: { fontSize: 10, italics: true, color: '#888888' },
-    ingredientQty: { fontSize: 11, bold: true, color: '#1a1a1a' },
-    ingredientName: { fontSize: 11, color: '#1a1a1a' },
-    ingredientNote: { fontSize: 9, italics: true, color: '#999999' },
-    stepsHeader: { fontSize: 13, bold: true, color: '#1a1a1a' },
-    stepNumber: { fontSize: 11, bold: true, color: '#1a1a1a' },
-    stepText: { fontSize: 11, color: '#1a1a1a', lineHeight: 1.5 },
-    tipsLabel: { fontSize: 11, bold: true, color: '#1a1a1a' },
-    tipsText: { fontSize: 10, italics: true, color: '#444444' }
-  }
-})
 
 const buildCookbookPagePlan = (recipes = []) => {
   const { ordered, grouped } = groupByCategory(recipes)
@@ -199,84 +174,92 @@ const buildCookbookPdfDefinition = (recipes = []) => {
   const { ordered, grouped, pages } = buildCookbookPagePlan(recipes)
   const content = []
 
+  // Cover page
   content.push({
     stack: [
       { text: 'RECETARIO', style: 'coverTitle' },
-      { text: 'Cocina Tradicional y Gourmet', style: 'coverSubtitle', margin: [0, 14, 0, 0] },
-      { ...line(), margin: [120, 20, 120, 0] }
+      { ...line(), margin: [0, 20, 0, 0] }
     ],
     alignment: 'center',
-    margin: [0, 170, 0, 0]
+    margin: [0, 170, 0, 0],
+    pageBreak: 'after'
   })
-  content.push({ text: '', pageBreak: 'after' })
 
   content.push({ text: 'ÍNDICE', style: 'tocTitle', margin: [0, 0, 0, 8] })
   content.push({ ...line(), margin: [0, 0, 0, 16] })
 
   let pageNumber = 3
   ordered.forEach((category) => {
-    content.push({ text: category.toUpperCase(), style: 'tocCategory', margin: [0, 4, 0, 8] })
+    content.push({ text: category.toUpperCase(), style: 'tocCategory', margin: [0, 6, 0, 8] })
     grouped.get(category).forEach((recipe) => {
-      content.push({ text: dotLeader(`    ${safeText(recipe.title).trim()}`, pageNumber), style: 'tocRecipe', margin: [0, 0, 0, 4] })
+      content.push({
+        columns: [
+          { text: safeText(recipe.title).trim(), style: 'tocRecipe', width: '*' },
+          { text: String(pageNumber), style: 'tocPage', width: 'auto', alignment: 'right' }
+        ],
+        columnGap: 12,
+        margin: [0, 0, 0, 4]
+      })
       pageNumber += 1
     })
-    content.push({ text: '', margin: [0, 0, 0, 16] })
+    content.push({ text: '', margin: [0, 0, 0, 12] })
     pageNumber += 1
   })
-
-  content.push({ text: '', pageBreak: 'after' })
 
   ordered.forEach((category) => {
     content.push({
       stack: [
-        { ...line(), margin: [70, 0, 70, 22] },
+        { ...line(), margin: [0, 0, 0, 22] },
         { text: category.toUpperCase(), style: 'dividerTitle', margin: [0, 0, 0, 22] },
-        { ...line(), margin: [70, 0, 70, 0] }
+        { ...line(), margin: [0, 0, 0, 0] }
       ],
       alignment: 'center',
       margin: [0, 180, 0, 0],
       pageBreak: 'before'
     })
-    content.push({ text: '', pageBreak: 'after' })
 
     grouped.get(category).forEach((recipe) => {
-      content.push({ stack: buildSingleRecipeBody(recipe, { topSpacing: 36 }), pageBreak: 'before' })
-      content.push({ text: '', pageBreak: 'after' })
+      content.push({
+        stack: buildSingleRecipeBody(recipe, { topSpacing: 36 }),
+        pageBreak: 'before'
+      })
     })
   })
 
   return {
     pageSize: 'A4',
     pageMargins: [PDF_MARGIN, PDF_MARGIN, PDF_MARGIN, PDF_MARGIN],
-    defaultStyle: { font: 'Helvetica', color: '#1a1a1a' },
+    defaultStyle: { color: '#1a1a1a' },
     content,
     styles: {
-      coverTitle: { fontSize: 60, bold: true, color: '#1a1a1a' },
-      coverSubtitle: { fontSize: 24, color: '#1a1a1a' },
-      tocTitle: { fontSize: 24, bold: true, color: '#1a1a1a' },
-      tocCategory: { fontSize: 12, bold: true, color: '#1a1a1a' },
-      tocRecipe: { fontSize: 11, color: '#1a1a1a' },
-      dividerTitle: { fontSize: 32, bold: true, color: '#1a1a1a' },
-      categoryLabel: { fontSize: 10, color: '#888888' },
-      recipeTitle: { fontSize: 40, bold: true, color: '#1a1a1a' },
-      metaLine: { fontSize: 10, color: '#888888' },
-      ingredientsHeader: { fontSize: 13, bold: true, color: '#1a1a1a' },
-      servingsText: { fontSize: 10, italics: true, color: '#888888' },
-      ingredientQty: { fontSize: 11, bold: true, color: '#1a1a1a' },
-      ingredientName: { fontSize: 11, color: '#1a1a1a' },
-      ingredientNote: { fontSize: 9, italics: true, color: '#999999' },
-      stepsHeader: { fontSize: 13, bold: true, color: '#1a1a1a' },
-      stepNumber: { fontSize: 11, bold: true, color: '#1a1a1a' },
-      stepText: { fontSize: 11, color: '#1a1a1a', lineHeight: 1.5 },
-      tipsLabel: { fontSize: 11, bold: true, color: '#1a1a1a' },
-      tipsText: { fontSize: 10, italics: true, color: '#444444' },
-      footerText: { fontSize: 9, color: '#888888' }
+      coverTitle: { fontSize: 60, color: '#111111' },
+      coverSubtitle: { fontSize: 22, color: '#555555' },
+      tocTitle: { fontSize: 26, color: '#111111' },
+      tocCategory: { fontSize: 13, color: '#333333', bold: true },
+      tocRecipe: { fontSize: 11, color: '#222222' },
+      tocPage: { fontSize: 11, color: '#666666' },
+      dividerTitle: { fontSize: 32, color: '#111111', bold: true },
+      categoryLabel: { fontSize: 10, color: '#777777' },
+      recipeTitle: { fontSize: 40, color: '#111111' },
+      metaLine: { fontSize: 10, color: '#666666' },
+      ingredientsHeader: { fontSize: 15, color: '#111111', bold: true },
+      servingsText: { fontSize: 10, color: '#777777' },
+      ingredientQty: { fontSize: 11, color: '#111111' },
+      ingredientName: { fontSize: 11, color: '#222222' },
+      ingredientNote: { fontSize: 9, color: '#777777', italics: true },
+      stepsHeader: { fontSize: 15, color: '#111111', bold: true },
+      stepNumber: { fontSize: 11, color: '#111111', bold: true },
+      stepText: { fontSize: 11, color: '#222222', lineHeight: 1.35 },
+      tipsLabel: { fontSize: 12, color: '#111111', bold: true },
+      tipsText: { fontSize: 10, color: '#555555', italics: true },
+      footerText: { fontSize: 9, color: '#666666' }
     },
     footer: (currentPage) => {
       const page = pages[currentPage - 1]
-      if (!page || page.type !== 'recipe') return { text: '' }
+      if (!page || page.type !== 'recipe') return { text: '', margin: [40, 10, 40, 0] }
 
       return {
+        margin: [40, 10, 40, 0],
         columns: [
           { text: page.category.toUpperCase(), style: 'footerText', alignment: 'left' },
           { text: String(currentPage), style: 'footerText', alignment: 'right' }
@@ -286,11 +269,40 @@ const buildCookbookPdfDefinition = (recipes = []) => {
   }
 }
 
+const buildSinglePdfDefinition = (recipe) => ({
+  pageSize: 'A4',
+  pageMargins: [PDF_MARGIN, PDF_MARGIN, PDF_MARGIN, PDF_MARGIN],
+  defaultStyle: { color: '#1a1a1a' },
+  content: buildSingleRecipeBody(recipe),
+  styles: {
+    coverTitle: { fontSize: 60, color: '#111111' },
+    coverSubtitle: { fontSize: 22, color: '#555555' },
+    tocTitle: { fontSize: 26, color: '#111111' },
+    tocCategory: { fontSize: 13, color: '#333333', bold: true },
+    tocRecipe: { fontSize: 11, color: '#222222' },
+    tocPage: { fontSize: 11, color: '#666666' },
+    dividerTitle: { fontSize: 32, color: '#111111', bold: true },
+    categoryLabel: { fontSize: 10, color: '#777777' },
+    recipeTitle: { fontSize: 40, color: '#111111' },
+    metaLine: { fontSize: 10, color: '#666666' },
+    ingredientsHeader: { fontSize: 15, color: '#111111', bold: true },
+    servingsText: { fontSize: 10, color: '#777777' },
+    ingredientQty: { fontSize: 11, color: '#111111' },
+    ingredientName: { fontSize: 11, color: '#222222' },
+    ingredientNote: { fontSize: 9, color: '#777777', italics: true },
+    stepsHeader: { fontSize: 15, color: '#111111', bold: true },
+    stepNumber: { fontSize: 11, color: '#111111', bold: true },
+    stepText: { fontSize: 11, color: '#222222', lineHeight: 1.35 },
+    tipsLabel: { fontSize: 12, color: '#111111', bold: true },
+    tipsText: { fontSize: 10, color: '#555555', italics: true },
+    footerText: { fontSize: 9, color: '#666666' }
+  }
+})
 export async function exportSingleRecipePDF(recipe) {
   try {
     let pm = pdfMake
     try { if (typeof window !== 'undefined') window.__lastPdfExport = { step: 'start', title: safeText(recipe.title) } } catch (e) {}
-    // If pdfMake is not ready or vfs missing, try dynamic import at runtime
+
     const needsLoad = !pm || !pm.createPdf || !pm.vfs || Object.keys(pm.vfs || {}).length === 0
     if (needsLoad) {
       try {
@@ -310,7 +322,6 @@ export async function exportSingleRecipePDF(recipe) {
       }
     }
 
-    // If vfs is empty after dynamic load, avoid using pdfMake and fallback to jsPDF
     if (!pm || !pm.createPdf || !pm.vfs || Object.keys(pm.vfs || {}).length === 0) {
       console.error('pdfMake no está disponible en runtime después del intento de carga — usando jsPDF como fallback')
       try {
@@ -338,8 +349,7 @@ export async function exportSingleRecipePDF(recipe) {
     try {
       console.log('Generando PDF para', recipe.title)
       try { if (typeof window !== 'undefined') window.__lastPdfExport = { step: 'creating', title: safeText(recipe.title) } } catch (e) {}
-      
-      // Use getBuffer() + downloadBlob for better browser compatibility
+
       const pdfDoc = pm.createPdf(def)
       pdfDoc.getBuffer((buffer) => {
         try {
@@ -442,16 +452,16 @@ export async function exportCookbookPDF(recipes) {
   }
 }
 
-const makeWordLine = (text, { font, size, bold = false, italics = false, color = '1a1a1a', alignment = AlignmentType.LEFT, spacing = {} } = {}) =>
+const makeWordLine = (text, { size, bold = false, italics = false, color = '1a1a1a', alignment = AlignmentType.LEFT, spacing = {} } = {}) =>
   new Paragraph({
-    children: [new TextRun({ text, font, size: size * 2, bold, italics, color })],
+    children: [new TextRun({ text, size: size * 2, bold, italics, color })],
     alignment,
     spacing
   })
 
 const makeRuleParagraph = () =>
   new Paragraph({
-    children: [new TextRun({ text: '', font: 'Times New Roman' })],
+    children: [new TextRun({ text: '' })],
     border: {
       bottom: {
         color: 'DDDDDD',
@@ -464,23 +474,24 @@ const makeRuleParagraph = () =>
 
 const makeIngredientParagraphsWord = (ingredients = []) => {
   if (!ingredients.length) {
-    return [makeWordLine('- Sin ingredientes', { font: 'Montserrat', size: 11, bold: true })]
+    return [makeWordLine('- Sin ingredientes', { size: 11, color: '777777', italics: true })]
   }
 
   return ingredients.flatMap((ingredient) => {
     const qty = [safeText(ingredient.quantity).trim(), safeText(ingredient.unit).trim()].filter(Boolean).join(' ')
+    const amount = qty || '-'
+    const name = safeText(ingredient.name).trim() || '-'
+    const note = safeText(ingredient.note).trim()
     const para = new Paragraph({
       children: [
-        new TextRun({ text: qty || '-', font: 'Montserrat', size: 22, bold: true }),
-        new TextRun({ text: '  ' }),
-        new TextRun({ text: safeText(ingredient.name).trim() || '-', font: 'Montserrat', size: 22, bold: true })
+        new TextRun({ text: `${amount} `, size: 22, bold: true, color: '1a1a1a' }),
+        new TextRun({ text: name, size: 22, color: '222222' })
       ],
-      spacing: { after: 120 }
+      spacing: { after: note ? 40 : 120 }
     })
 
-    const note = safeText(ingredient.note).trim()
     if (note) {
-      return [para, makeWordLine(note, { font: 'Montserrat', size: 9, italics: true, color: '999999', spacing: { after: 80 } })]
+      return [para, makeWordLine(note, { size: 9, italics: true, color: '777777', spacing: { after: 80 } })]
     }
     return [para]
   })
@@ -488,44 +499,48 @@ const makeIngredientParagraphsWord = (ingredients = []) => {
 
 const buildSingleRecipeWordSection = (recipe) => {
   const children = []
+  const ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : []
+  const steps = Array.isArray(recipe.steps) ? recipe.steps : []
+  const tipsText = getTipsText(recipe).trim()
 
-  children.push(makeWordLine(getCategory(recipe).toUpperCase(), { font: 'Montserrat', size: 10, color: '888888', spacing: { after: 90 } }))
+  children.push(makeWordLine(getCategory(recipe).toUpperCase(), { size: 10, color: '777777', spacing: { after: 70 } }))
   children.push(makeRuleParagraph())
-  children.push(makeWordLine(safeText(recipe.title).trim(), { font: 'Playfair Display', size: 36, bold: true, spacing: { before: 320, after: 160 } }))
+  children.push(makeWordLine(safeText(recipe.title).trim(), { size: 36, bold: true, color: '111111', spacing: { before: 260, after: 120 } }))
 
   const meta = getMetaText(recipe)
   if (meta) {
-    children.push(makeWordLine(meta, { font: 'Lora', size: 10, color: '888888', spacing: { after: 560 } }))
+    children.push(makeWordLine(meta, { size: 10, color: '777777', spacing: { after: 240 } }))
   }
 
-  children.push(makeWordLine('INGREDIENTES', { font: 'Montserrat', size: 13, bold: true, spacing: { after: 20 } }))
-  if (safeText(recipe.servings).trim()) {
-    children.push(makeWordLine(safeText(recipe.servings).trim(), { font: 'Open Sans', size: 10, italics: true, color: '888888', alignment: AlignmentType.RIGHT, spacing: { after: 0 } }))
-  }
-  // Use paragraphs for ingredients instead of a table for better portability
-  const ingredientParagraphs = makeIngredientParagraphsWord(Array.isArray(recipe.ingredients) ? recipe.ingredients : [])
-  ingredientParagraphs.forEach((p) => children.push(p))
+  children.push(makeWordLine('INGREDIENTES', { size: 15, bold: true, color: '111111', spacing: { after: 70 } }))
+  children.push(makeRuleParagraph())
+  children.push(...makeIngredientParagraphsWord(ingredients))
 
-  children.push(makeWordLine('ELABORACIÓN', { font: 'Lora', size: 13, bold: true, spacing: { before: 320, after: 0 } }))
+  children.push(makeWordLine('ELABORACIÓN', { size: 15, bold: true, color: '111111', spacing: { before: 180, after: 70 } }))
   children.push(makeRuleParagraph())
 
-  ;(Array.isArray(recipe.steps) ? recipe.steps : []).forEach((step, index) => {
-    children.push(
-      new Paragraph({
-        children: [
-          new TextRun({ text: `${index + 1}. `, font: 'Open Sans', size: 22, bold: true, color: '1a1a1a' }),
-          new TextRun({ text: safeText(typeof step === 'string' ? step : (step && (step.text || ''))).trim() || '-', font: 'Lora', size: 22, color: '1a1a1a' })
-        ],
-        spacing: { after: 180 },
-        lineSpacing: 360
-      })
-    )
-  })
+  if (steps.length) {
+    steps.forEach((step, index) => {
+      const stepText = safeText(typeof step === 'string' ? step : (step && (step.text || step.description || ''))).trim() || '-'
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: `${index + 1}.`, size: 22, bold: true, color: '111111' }),
+            new TextRun({ text: ' ', size: 22 }),
+            new TextRun({ text: stepText, size: 22, color: '222222' })
+          ],
+          spacing: { after: 60 },
+          lineSpacing: 280
+        })
+      )
+    })
+  } else {
+    children.push(makeWordLine('- Sin pasos', { size: 11, color: '777777', italics: true, spacing: { after: 60 } }))
+  }
 
-  const tipsText = getTipsText(recipe)
-  if (tipsText.trim()) {
-    children.push(makeWordLine('CONSEJOS:', { font: 'Lora', size: 11, bold: true, spacing: { before: 220, after: 40 } }))
-    children.push(makeWordLine(tipsText.trim(), { font: 'Lora', size: 10, italics: true, color: '444444' }))
+  if (tipsText) {
+    children.push(makeWordLine('CONSEJOS', { size: 12, bold: true, color: '111111', spacing: { before: 140, after: 40 } }))
+    children.push(makeWordLine(tipsText, { size: 10, italics: true, color: '555555' }))
   }
 
   return children
@@ -536,30 +551,21 @@ const createWordDocument = (sections) => new Document({ sections })
 const cookbookFooter = (category) =>
   new Footer({
     children: [
-      new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        borders: {
-          top: { style: BorderStyle.NONE },
-          bottom: { style: BorderStyle.NONE },
-          left: { style: BorderStyle.NONE },
-          right: { style: BorderStyle.NONE },
-          insideHorizontal: { style: BorderStyle.NONE },
-          insideVertical: { style: BorderStyle.NONE }
-        },
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({
-                children: [makeWordLine(category.toUpperCase(), { font: 'Open Sans', size: 8, color: '888888' })],
-                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
-              }),
-              new TableCell({
-                children: [makeWordLine('', { font: 'Open Sans', size: 8, color: '888888', alignment: AlignmentType.RIGHT })],
-                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
-              })
-            ]
-          })
-        ]
+      new Paragraph({
+        children: [
+          new TextRun({ text: category.toUpperCase(), size: 8, color: '777777' }),
+          new Tab(),
+          new TextRun({ children: [PageNumber.CURRENT], size: 8, color: '777777' })
+        ],
+        tabStops: [
+          {
+            type: TabStopType.RIGHT,
+            position: TabStopPosition.MAX,
+            leader: LeaderType.DOT
+          }
+        ],
+        indent: { left: 400, right: 400 },
+        spacing: { before: 0, after: 0 }
       })
     ]
   })
@@ -583,8 +589,7 @@ export async function exportCookbookWord(recipes) {
   sections.push({
     properties: { page: { margin: { top: DOCX_MARGIN, right: DOCX_MARGIN, bottom: DOCX_MARGIN, left: DOCX_MARGIN } } },
     children: [
-      new Paragraph({ children: [new TextRun({ text: 'RECETARIO', font: 'Playfair Display', size: 120, bold: true, color: '1a1a1a' })], alignment: AlignmentType.CENTER, spacing: { before: 700, after: 160 } }),
-      new Paragraph({ children: [new TextRun({ text: 'Cocina Tradicional y Gourmet', font: 'Lora', size: 48, color: '1a1a1a' })], alignment: AlignmentType.CENTER, spacing: { after: 90 } }),
+      new Paragraph({ children: [new TextRun({ text: 'RECETARIO', size: 120, bold: true, color: '1a1a1a' })], alignment: AlignmentType.CENTER, spacing: { before: 700, after: 160 } }),
       makeRuleParagraph()
     ]
   })
@@ -598,15 +603,29 @@ export async function exportCookbookWord(recipes) {
   sections.push({
     properties: { page: { margin: { top: DOCX_MARGIN, right: DOCX_MARGIN, bottom: DOCX_MARGIN, left: DOCX_MARGIN } } },
     children: [
-      new Paragraph({ children: [new TextRun({ text: 'ÍNDICE', font: 'Montserrat', size: 24, bold: true })], spacing: { after: 120 } }),
+      new Paragraph({ children: [new TextRun({ text: 'ÍNDICE', size: 24, bold: true, color: '111111' })], spacing: { after: 120 } }),
       makeRuleParagraph(),
       ...ordered.flatMap((category, categoryIndex) => {
         const beforeCount = ordered.slice(0, categoryIndex).reduce((sum, cat) => sum + grouped.get(cat).length + 1, 0)
         const startPage = 3 + beforeCount
 
         return [
-          new Paragraph({ children: [new TextRun({ text: category.toUpperCase(), font: 'Montserrat', size: 12, bold: true })], spacing: { before: 220, after: 100 } }),
-          ...grouped.get(category).map((recipe, recipeIndex) => new Paragraph({ children: [new TextRun({ text: dotLeader(`    ${safeText(recipe.title).trim()}`, startPage + 1 + recipeIndex), font: 'Open Sans', size: 11 })], spacing: { after: 30 } }))
+          new Paragraph({ children: [new TextRun({ text: category.toUpperCase(), size: 12, bold: true, color: '111111' })], spacing: { before: 220, after: 80 } }),
+          ...grouped.get(category).map((recipe, recipeIndex) => new Paragraph({
+            children: [
+              new TextRun({ text: safeText(recipe.title).trim(), size: 11, color: '222222' }),
+              new Tab(),
+              new TextRun({ text: String(startPage + 1 + recipeIndex), size: 11, color: '666666' })
+            ],
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TabStopPosition.MAX,
+                leader: LeaderType.DOT
+              }
+            ],
+            spacing: { after: 30 }
+          }))
         ]
       })
     ]
@@ -616,7 +635,7 @@ export async function exportCookbookWord(recipes) {
     sections.push({
       properties: { page: { margin: { top: DOCX_MARGIN, right: DOCX_MARGIN, bottom: DOCX_MARGIN, left: DOCX_MARGIN } } },
       children: [
-        new Paragraph({ children: [new TextRun({ text: category.toUpperCase(), font: 'Playfair Display', size: 48, bold: true })], alignment: AlignmentType.CENTER, spacing: { before: 1200, after: 120 } }),
+        new Paragraph({ children: [new TextRun({ text: category.toUpperCase(), size: 48, bold: true, color: '111111' })], alignment: AlignmentType.CENTER, spacing: { before: 1200, after: 120 } }),
         makeRuleParagraph()
       ]
     })

@@ -19,7 +19,7 @@ Estado vigente:
 4. Los IDs locales (`Math.max + 1`) no son seguros para concurrencia real ni multiples usuarios.
 5. En BANCO, ahora hay productos mensuales (prestamo/seguro) sin folio ni fuente, con pagos por mes en estado local; falta persistencia relacional y transaccional.
 6. En Gestion Personal, se requiere guardar fechas en formato ISO (`YYYY-MM-DD`) para evitar desfases por zona horaria en UI.
-7. El modulo Recetas actualmente es local en `localStorage` y no forma parte del esquema Supabase todavia.
+7. El modulo Recetas sigue operando en `localStorage` en la UI actual, pero ya existe esquema Supabase preparado para migracion futura.
 8. La persistencia de Recetas debe esperar a la hidratacion inicial antes de escribir en `localStorage`, para no perder el contenido al recargar.
 
 ## Estructura propuesta
@@ -29,6 +29,7 @@ Estado vigente:
 - Tabla `loan_source_settings`: configuracion por fuente.
 - Tabla `loan_rate_tables`: tabulador por fuente/monto/plazo.
 - Tabla `app_user_settings`: configuracion operativa del usuario para recordatorios.
+- Tablas `recipes`, `recipe_ingredients` y `recipe_steps`: persistencia futura para el modulo Recetas.
 
 Campos clave agregados en `loans` para alinear UI actual:
 
@@ -57,6 +58,27 @@ Campos clave en `personal_services`:
 4. `due_day` (1..31).
 5. `last_payment_date` (tipo `date`, formato ISO).
 
+Campos clave en `recipes`:
+
+1. `title`.
+2. `category`.
+3. `cook_time_minutes`.
+4. `servings`.
+5. `notes`.
+
+Campos clave en `recipe_ingredients`:
+
+1. `recipe_id`.
+2. `position`.
+3. `name`.
+4. `quantity`, `unit`, `cost`, `note`.
+
+Campos clave en `recipe_steps`:
+
+1. `recipe_id`.
+2. `position`.
+3. `text`.
+
 ## Criterio Vales + Banco
 
 Para este proyecto se recomienda modelo compartido:
@@ -65,6 +87,7 @@ Para este proyecto se recomienda modelo compartido:
 2. Separacion por tipo en `loans.area` (`vales` o `banco`).
 3. `loan_payments` ligado a `loans` sin duplicar tablas por modulo.
 4. Para Banco, usar `product_type`, `term_months`, `monthly_payment_amount` y periodicidad mensual; no depende de folio/fuente.
+5. Para Recetas, usar una tabla principal y tablas hijas de ingredientes/pasos para mantener el orden de exportacion.
 
 Con esto puedes operar cada apartado por separado en UI, pero sin duplicar personas ni perder trazabilidad completa.
 
@@ -185,7 +208,7 @@ El script incluye:
 2. Politicas por `owner_id = auth.uid()` para `clients`, `loans`, `loan_payments`.
 3. Triggers para propagar owner y evitar cruces entre usuarios.
 4. Politicas de solo lectura autenticada para tabuladores.
-5. Politicas por `owner_id = auth.uid()` para `app_user_settings` y `personal_services`.
+5. Politicas por `owner_id = auth.uid()` para `app_user_settings`, `personal_services` y el modulo Recetas.
 
 ## Recomendacion operativa
 
@@ -264,6 +287,7 @@ order by changed_at desc;
 3. Validar UI para registro, edicion de fechas y estado completed.
 4. Ejecutar `supabase/schema.sql` en proyecto de prueba.
 5. Probar flujo completo end-to-end y luego mover a produccion.
+6. Si se desea migrar Recetas, cargar primero `recipes` y luego ingredientes/pasos respetando `position`.
 
 <!-- AUTO_SYNC_BLOCK:START -->
 ## Resumen Auto-Sync
@@ -375,6 +399,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - App.jsx
   - index.css
   - main.jsx
+  - recipeExport.js
 - supabase/
   - schema.sql
 - .gitignore
@@ -401,6 +426,9 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_settings
   - loans
   - personal_services
+  - recipe_ingredients
+  - recipe_steps
+  - recipes
 - Types:
   - app_area
   - insurance_mode
@@ -408,12 +436,15 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_code
   - loan_status
   - payment_periodicity
+  - recipe_section_type
 - Functions:
   - get_loan_rate_change_history
   - save_app_user_settings
   - set_updated_at
   - sync_loan_owner_id
   - sync_payment_owner_id
+  - sync_recipe_ingredient_owner_id
+  - sync_recipe_step_owner_id
   - update_client_profile
   - update_rate_for_new_loans
   - verify_rate_change_effect

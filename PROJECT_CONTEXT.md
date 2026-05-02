@@ -4,7 +4,7 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
 
 ## Metadata
 
-- Project name: vales-y-prestamos
+- Project name: gestion-integral
 - Version: 0.0.1
 - Private: true
 - Package manager: npm
@@ -30,8 +30,10 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
 ## Dependencies
 
 - @supabase/supabase-js
+- docx
 - jspdf
 - lucide-react
+- pdfmake
 - react
 - react-dom
 
@@ -122,6 +124,7 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
   - App.jsx
   - index.css
   - main.jsx
+  - recipeExport.js
 - supabase/
   - schema.sql
 - .gitignore

@@ -75,9 +75,9 @@ function PersonalPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <p className="panel-title mb-2">Servicios recurrentes</p>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestión Personal</h1>
-          <p className="text-gray-600">Registra tus servicios personales y mantén un control de pagos</p>
+          <p className="panel-title mb-1">Servicios recurrentes</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">Gestión Personal</h1>
+          
         </div>
 
         {/* Resumen */}

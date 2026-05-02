@@ -99,6 +99,9 @@ Ya con la aplicacion ejecutandose, puedes:
   - Crear servicios con periodicidad configurable.
   - Registrar pago por fecha y editar monto cuando varia el recibo.
   - Revisar estado visual de proximo pago (al corriente/proximo/vencido).
+- Usar Recetas:
+  - Revisar la receta de prueba extendida.
+  - Exportar a PDF y Word para comprobar el formato de impresion.
 - Usar Configuracion:
   - Revisar Centro de Recordatorios (vencidos/hoy/proximos).
 
@@ -211,8 +214,9 @@ Una vez que tengas la aplicacion ejecutandose:
 4. Registra pago desde la tabla mensual (con boton Registrar).
 5. Verifica estado de cuenta y actualizacion de pagado/restante.
 6. En Gestion Personal, registra pago y confirma que Proxima Fecha avance al siguiente ciclo.
+7. En Recetas, exporta la receta de prueba a PDF y confirma que ocupe alrededor de dos hojas.
 
-Nota: actualmente la app funciona en modo local para pruebas y ya tiene persistencia parcial opcional a Supabase en clientes (Vales/Banco).
+Nota: actualmente la app funciona en modo local para pruebas y ya tiene persistencia parcial opcional a Supabase en clientes (Vales/Banco). Recetas sigue local, pero el esquema SQL ya queda preparado para migracion futura.
 
 ## Documentacion complementaria
 
@@ -330,6 +334,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - App.jsx
   - index.css
   - main.jsx
+  - recipeExport.js
 - supabase/
   - schema.sql
 - .gitignore
@@ -356,6 +361,9 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_settings
   - loans
   - personal_services
+  - recipe_ingredients
+  - recipe_steps
+  - recipes
 - Types:
   - app_area
   - insurance_mode
@@ -363,12 +371,15 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_code
   - loan_status
   - payment_periodicity
+  - recipe_section_type
 - Functions:
   - get_loan_rate_change_history
   - save_app_user_settings
   - set_updated_at
   - sync_loan_owner_id
   - sync_payment_owner_id
+  - sync_recipe_ingredient_owner_id
+  - sync_recipe_step_owner_id
   - update_client_profile
   - update_rate_for_new_loans
   - verify_rate_change_effect

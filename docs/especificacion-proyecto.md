@@ -11,6 +11,7 @@ Sistema administrativo para:
 - Modulo adicional BANCO con productos mensuales (seguros y prestamos) y tabla de pagos por mes.
 - Modulo GESTION PERSONAL para servicios con periodicidad configurable.
 - Modulo RECETAS para registrar materiales, procesos y exportar documentos.
+  - Recetas con ingredientes, pasos, notas y exportacion a PDF/Word.
 - Las interfaces deben seguir un sistema compartido de superficies blancas, bordes suaves, tipografia consistente y acciones azules/rojas segun el tipo.
 
 ## 2) Stack actual
@@ -45,9 +46,15 @@ Sistema administrativo para:
 
 ### RECETAS
 
- - `servings` (opcional): nuevo campo numérico añadido a Recetas; aparece junto al tiempo estimado y se incluye en exportaciones.
+ - `servings` (opcional): raciones; aparece junto al tiempo estimado y se incluye en exportaciones.
+ - `title`, `category`, `timeMinutes`, `notes`.
+ - `ingredients` y `steps` se exportan en flujo vertical de una sola columna.
  - UX: rueda del ratón deshabilitada globalmente para inputs numéricos para evitar cambios accidentales.
+ - Exportacion a PDF y Word lista para imprimir.
+
 ### ESTANDARES DE INTERFAZ
+
+- Mantener el mismo lenguaje visual de las pantallas actuales: panel-title arriba, h1 compacto debajo, tarjetas blancas y acciones azules.
 
 
 ### CONFIGURACION OPERATIVA
@@ -88,6 +95,9 @@ Sistema administrativo para:
 - `personal_services`
 - `loan_source_settings`
 - `loan_rate_tables`
+- `recipes`
+- `recipe_ingredients`
+- `recipe_steps`
 
 ### Decision de arquitectura para Vales y Banco
 
@@ -111,6 +121,8 @@ erDiagram
   CLIENTS ||--o{ LOANS : has
   LOANS ||--o{ LOAN_PAYMENTS : has
   LOAN_SOURCE_SETTINGS ||--o{ LOAN_RATE_TABLES : defines
+  RECIPES ||--o{ RECIPE_INGREDIENTS : has
+  RECIPES ||--o{ RECIPE_STEPS : has
 
   CLIENTS {
     uuid id PK
@@ -175,6 +187,31 @@ erDiagram
     int term_quincenas
     numeric base_payment
   }
+
+  RECIPES {
+    uuid id PK
+    uuid owner_id
+    text title
+    text category
+    int cook_time_minutes
+    int servings
+  }
+
+  RECIPE_INGREDIENTS {
+    uuid id PK
+    uuid recipe_id FK
+    int position
+    text name
+    text quantity
+    text unit
+  }
+
+  RECIPE_STEPS {
+    uuid id PK
+    uuid recipe_id FK
+    int position
+    text text
+  }
 ```
 
 Detalle tecnico en:
@@ -195,6 +232,7 @@ Detalle tecnico en:
 1. Alta/edicion/eliminacion de clientes en Vales y Banco ya intentan persistir en Supabase.
 2. Si Supabase no esta configurado o no responde, se mantiene fallback local para pruebas.
 3. No hay carga inicial completa desde Supabase en arranque (hidratacion pendiente).
+4. Recetas sigue siendo local en la UI, pero el SQL ya incluye tablas listas para migracion.
 
 ### Fase 2 (migracion tecnica)
 
@@ -401,6 +439,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - App.jsx
   - index.css
   - main.jsx
+  - recipeExport.js
 - supabase/
   - schema.sql
 - .gitignore
@@ -427,6 +466,9 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_settings
   - loans
   - personal_services
+  - recipe_ingredients
+  - recipe_steps
+  - recipes
 - Types:
   - app_area
   - insurance_mode
@@ -434,12 +476,15 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_code
   - loan_status
   - payment_periodicity
+  - recipe_section_type
 - Functions:
   - get_loan_rate_change_history
   - save_app_user_settings
   - set_updated_at
   - sync_loan_owner_id
   - sync_payment_owner_id
+  - sync_recipe_ingredient_owner_id
+  - sync_recipe_step_owner_id
   - update_client_profile
   - update_rate_for_new_loans
   - verify_rate_change_effect

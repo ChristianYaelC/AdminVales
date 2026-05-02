@@ -8,24 +8,43 @@ const STORAGE_KEY = 'vales_recetas'
 const demoRecipe = {
   title: 'Alcachofas con jamón y aceite de limón',
   category: 'Verduras',
-  timeMinutes: 45,
+  timeMinutes: 75,
   servings: 4,
   ingredients: [
     { id: 'ing-1', name: 'Alcachofas enteras', quantity: '8', unit: '', cost: '', note: 'Sumergir en agua con limón para evitar oxidación' },
-    { id: 'ing-2', name: 'Jamón serrano en taquitos', quantity: '100', unit: 'g', cost: '', note: '' },
-    { id: 'ing-3', name: 'Aceite de oliva virgen extra', quantity: '3', unit: 'cucharadas', cost: '', note: '' },
-    { id: 'ing-4', name: 'Zumo de limón', quantity: '1', unit: 'limón', cost: '', note: '' },
-    { id: 'ing-5', name: 'Ajo', quantity: '1', unit: 'diente', cost: '', note: 'Picado muy fino' },
-    { id: 'ing-6', name: 'Perejil fresco', quantity: '1', unit: 'ramita', cost: '', note: 'Para terminar el plato' }
+    { id: 'ing-2', name: 'Jamón serrano en taquitos', quantity: '150', unit: 'g', cost: '', note: 'Usar un jamón curado de buena calidad' },
+    { id: 'ing-3', name: 'Aceite de oliva virgen extra', quantity: '4', unit: 'cucharadas', cost: '', note: '' },
+    { id: 'ing-4', name: 'Zumo de limón', quantity: '1', unit: 'limón', cost: '', note: 'Al gusto, añadir más si requiere brillo' },
+    { id: 'ing-5', name: 'Ajo', quantity: '2', unit: 'dientes', cost: '', note: 'Picado muy fino' },
+    { id: 'ing-6', name: 'Perejil fresco', quantity: '1', unit: 'manojo', cost: '', note: 'Picar finamente' },
+    { id: 'ing-7', name: 'Sal gruesa', quantity: '1', unit: 'cucharadita', cost: '', note: '' },
+    { id: 'ing-8', name: 'Pimienta negra molida', quantity: 'Al gusto', unit: '', cost: '', note: '' },
+    { id: 'ing-9', name: 'Agua', quantity: 'Suficiente', unit: '', cost: '', note: 'Para cocer las alcachofas' },
+    { id: 'ing-10', name: 'Mantequilla (opcional)', quantity: '1', unit: 'cucharada', cost: '', note: 'Para un acabado más suave' },
+    { id: 'ing-11', name: 'Pan rallado (opcional)', quantity: '2', unit: 'cucharadas', cost: '', note: 'Para gratinar si se desea' },
+    { id: 'ing-12', name: 'Vino blanco (opcional)', quantity: '50', unit: 'ml', cost: '', note: 'Un chorrito para desglasar' }
   ],
   steps: [
-    { id: 'step-1', text: 'Limpiar las alcachofas, retirar las hojas duras y cortar las puntas.' },
-    { id: 'step-2', text: 'Ponerlas en agua con limón mientras se preparan el resto de ingredientes.' },
-    { id: 'step-3', text: 'Cocer las alcachofas en agua con sal hasta que estén tiernas, escurrir y reservar.' },
-    { id: 'step-4', text: 'Saltear el ajo en aceite de oliva, añadir el jamón y dejarlo apenas dorar.' },
-    { id: 'step-5', text: 'Incorporar las alcachofas, saltear unos minutos y terminar con zumo de limón y perejil.' }
+    { id: 'step-1', text: 'Lavar bien las alcachofas; retirar hojas exteriores duras y cortar las puntas con cuidado.' },
+    { id: 'step-2', text: 'Cortar el tallo y pelarlo si es necesario. Frotar con limón para evitar que se oxiden.' },
+    { id: 'step-3', text: 'Llena una olla con agua, añade sal gruesa y el jugo de medio limón; llevar a ebullición.' },
+    { id: 'step-4', text: 'Cocer las alcachofas durante 25-35 minutos hasta que la base esté tierna; pinchar con un cuchillo para comprobar.' },
+    { id: 'step-5', text: 'Mientras tanto, cortar el jamón en taquitos pequeños y reservar.' },
+    { id: 'step-6', text: 'En una sartén amplia calentar el aceite de oliva a fuego medio; añadir los ajos picados y pochar hasta dorar ligeramente.' },
+    { id: 'step-7', text: 'Agregar el jamón y saltear un par de minutos hasta que suelte aroma y parte de su grasa.' },
+    { id: 'step-8', text: 'Si se desea, añadir un chorrito de vino blanco para desglasar y dejar reducir un minuto.' },
+    { id: 'step-9', text: 'Incorporar las alcachofas cocidas (enteras o partidas por la mitad) a la sartén y mezclar con cuidado.' },
+    { id: 'step-10', text: 'Saltear a fuego vivo un par de minutos para que se impregnen los sabores; añadir la mantequilla si se emplea.' },
+    { id: 'step-11', text: 'Probar de sal y corregir. Añadir zumo de limón al gusto para dar brillo y acidez.' },
+    { id: 'step-12', text: 'Espolvorear perejil fresco picado por encima y un poco de pimienta negra recién molida.' },
+    { id: 'step-13', text: 'Si se desea gratinar: espolvorear pan rallado, poner bajo el grill un par de minutos hasta dorar.' },
+    { id: 'step-14', text: 'Dejar reposar 3-4 minutos antes de servir para asentar jugos y temperaturas.' },
+    { id: 'step-15', text: 'Presentar las alcachofas acompañadas del jamón y un chorrito extra de aceite de oliva virgen.' },
+    { id: 'step-16', text: 'Anotar variaciones: se puede sustituir el jamón por panceta o añadir guindilla para un toque picante.' },
+    { id: 'step-17', text: 'Para conservar: guardar en un recipiente hermético en refrigeración hasta 48 horas; recalentar suavemente.' },
+    { id: 'step-18', text: 'Consejo: para una versión vegana, omitir el jamón y añadir tomates secos y aceitunas para carácter.' }
   ],
-  notes: 'Servir al momento para mantener la textura de las alcachofas y el aroma del jamón.'
+  notes: 'Servir al momento para mantener la textura de las alcachofas y el aroma del jamón. Esta receta incluye varias alternativas y pasos detallados para que, al imprimir, el documento ocupe suficiente espacio y permita revisar diseño y paginación. Puedes ajustar el número de ingredientes o ampliar las explicaciones para probar distintos saltos de página en el PDF.'
 }
 
 const emptyRecipeForm = {
@@ -43,6 +62,15 @@ const emptyRecipeForm = {
 }
 
 const normalizeText = (value = '') => value.trim()
+
+const sanitizeNumberInput = (value, { allowDecimal = false } = {}) => {
+  const raw = normalizeText(value)
+  const cleaned = allowDecimal
+    ? raw.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1')
+    : raw.replace(/\D/g, '')
+
+  return cleaned
+}
 
 const ensureId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 
@@ -132,6 +160,7 @@ function RecetasPage() {
 
   const openNewForm = () => {
     resetForm()
+    setSelectedRecipeId(null)
     setShowForm(true)
   }
 
@@ -150,10 +179,16 @@ function RecetasPage() {
   }
 
   const handleIngredientChange = (id, field, value) => {
+    const nextValue = field === 'quantity'
+      ? sanitizeNumberInput(value)
+      : field === 'cost'
+        ? sanitizeNumberInput(value, { allowDecimal: true })
+        : value
+
     setFormData((prev) => ({
       ...prev,
       ingredients: prev.ingredients.map((ingredient) =>
-        ingredient.id === id ? { ...ingredient, [field]: value } : ingredient
+        ingredient.id === id ? { ...ingredient, [field]: nextValue } : ingredient
       )
     }))
   }
@@ -220,7 +255,7 @@ function RecetasPage() {
       setSelectedRecipeId(editingId)
     } else {
       setRecipes((prev) => [recipePayload, ...prev])
-      setSelectedRecipeId(recipePayload.id)
+      setSelectedRecipeId(null)
     }
 
     setShowForm(false)
@@ -256,40 +291,21 @@ function RecetasPage() {
     exportCookbookPDF(recipes.map(normalizeRecipeForExport)).catch((err) => { console.error('exportCookbookPDF error', err); try { if (typeof window !== 'undefined') window.__lastPdfExport = { error: String(err) } } catch (e) {} ; alert('Error generando PDF del recetario. Revisa la consola.') })
   }
 
-  const totalIngredients = recipes.reduce((sum, recipe) => sum + recipe.ingredients.length, 0)
-  const totalSteps = recipes.reduce((sum, recipe) => sum + recipe.steps.length, 0)
-
   return (
     <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <p className="panel-title mb-2">Gestor culinario</p>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Recetas</h1>
-          <p className="text-gray-600">Organiza recetas, ingredientes y recomendaciones en un formato listo para imprimir.</p>
+          <p className="panel-title mb-1">Gestor culinario</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">Recetas</h1>
+          
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 max-w-sm">
           <div className="app-surface kpi-card px-5 py-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="panel-title mb-2">Recetas</p>
                 <p className="text-3xl font-semibold text-slate-900">{recipes.length}</p>
-              </div>
-            </div>
-          </div>
-          <div className="app-surface kpi-card px-5 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="panel-title mb-2">Ingredientes</p>
-                <p className="text-3xl font-semibold text-slate-900">{totalIngredients}</p>
-              </div>
-            </div>
-          </div>
-          <div className="app-surface kpi-card px-5 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="panel-title mb-2">Pasos</p>
-                <p className="text-3xl font-semibold text-slate-900">{totalSteps}</p>
               </div>
             </div>
           </div>
@@ -471,6 +487,8 @@ function RecetasPage() {
                                 type="text"
                                 value={ingredient.quantity}
                                 onChange={(event) => handleIngredientChange(ingredient.id, 'quantity', event.target.value)}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition bg-white"
                                 placeholder="Cant."
                               />
@@ -491,6 +509,8 @@ function RecetasPage() {
                                 type="text"
                                 value={ingredient.cost}
                                 onChange={(event) => handleIngredientChange(ingredient.id, 'cost', event.target.value)}
+                                inputMode="decimal"
+                                pattern="[0-9.]*"
                                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition bg-white"
                                 placeholder="Costo"
                               />

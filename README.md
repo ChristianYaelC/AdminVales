@@ -1,6 +1,6 @@
 # Sistema Administrativo de Vales y Prestamos
 
-Aplicacion web para gestionar clientes, prestamos, pagos y recetas en modulos: Vales (quincenal), Banco (mensual), Gestion Personal y Recetas.
+Aplicacion web para gestionar clientes, prestamos, pagos, servicios y recetas en modulos: Vales (quincenal), Banco (mensual), Gestion Personal, Recetas y Configuracion operativa.
 Construida con React + Vite + Tailwind CSS.
 
 ## Estandares de interfaz
@@ -36,10 +36,12 @@ Construida con React + Vite + Tailwind CSS.
   - Registro de pago por fecha y edicion de monto cuando el recibo varia.
   - Estado visual en Proxima Fecha: `Al corriente`, `Proximo`, `Vencido`.
 - Modulo Recetas con:
- - Added `servings` (raciones) optional field next to estimated time; shown in lists and exports.
- - Mouse wheel on focused numeric inputs is globally disabled to prevent accidental value changes.
-  - Centro de recordatorios (vencidos, para hoy y proximos) usando servicios personales.
-  - Resumen operativo de cartera con falta por pagar en Vales y Banco.
+  - Titulo, categoria, tiempo estimado, raciones, ingredientes, pasos y notas.
+  - Exportacion a PDF y Word en formato de recetario listo para imprimir.
+  - Demo de prueba mas larga para validar salto de pagina en PDF.
+- Mouse wheel on focused numeric inputs is globally disabled to prevent accidental value changes.
+- Centro de recordatorios (vencidos, para hoy y proximos) usando servicios personales.
+- Resumen operativo de cartera con falta por pagar en Vales y Banco.
 
 ## Regla de quincena usada (Vales)
 
@@ -128,7 +130,7 @@ Notas de estructura:
 - Existe persistencia parcial opcional a Supabase para clientes (alta, edicion y eliminacion en Vales/Banco).
 - Si Supabase no esta configurado o falla, esos flujos mantienen fallback local para pruebas.
 - Aun no hay hidratacion inicial desde base de datos; por eso, los datos locales no persistidos se pierden al recargar.
-- Recetas sigue siendo un modulo local en `localStorage` y exporta a Word/PDF sin depender de Supabase.
+- Recetas sigue siendo un modulo local en `localStorage` y exporta a Word/PDF sin depender de Supabase, aunque ya existe esquema SQL preparado para migracion futura.
 
 ## Flujo actual Banco
 
@@ -161,6 +163,7 @@ Se usa un modelo compartido:
 2. Prestamos separados por tipo de modulo (`vales` o `banco`).
 3. Pagos siempre ligados a su prestamo.
 4. Servicios personales en tabla separada (`personal_services`) para conservar periodicidad y fechas ISO.
+5. Recetas en tablas separadas (`recipes`, `recipe_ingredients`, `recipe_steps`) para futura persistencia.
 
 ```mermaid
 erDiagram
@@ -347,6 +350,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - App.jsx
   - index.css
   - main.jsx
+  - recipeExport.js
 - supabase/
   - schema.sql
 - .gitignore
@@ -373,6 +377,9 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_settings
   - loans
   - personal_services
+  - recipe_ingredients
+  - recipe_steps
+  - recipes
 - Types:
   - app_area
   - insurance_mode
@@ -380,12 +387,15 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
   - loan_source_code
   - loan_status
   - payment_periodicity
+  - recipe_section_type
 - Functions:
   - get_loan_rate_change_history
   - save_app_user_settings
   - set_updated_at
   - sync_loan_owner_id
   - sync_payment_owner_id
+  - sync_recipe_ingredient_owner_id
+  - sync_recipe_step_owner_id
   - update_client_profile
   - update_rate_for_new_loans
   - verify_rate_change_effect
