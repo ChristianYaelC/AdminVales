@@ -30,6 +30,7 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
 ## Dependencies
 
 - @supabase/supabase-js
+- jspdf
 - lucide-react
 - react
 - react-dom
@@ -47,6 +48,28 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
 
 ## File Tree (depth <= 4)
 
+- .github/
+  - prompts/
+    - ui-ux-pro-max/
+      - data/
+        - stacks/
+        - charts.csv
+        - colors.csv
+        - icons.csv
+        - landing.csv
+        - products.csv
+        - react-performance.csv
+        - styles.csv
+        - typography.csv
+        - ui-reasoning.csv
+        - ux-guidelines.csv
+        - web-interface.csv
+      - scripts/
+        - __pycache__/
+        - core.py
+        - design_system.py
+        - search.py
+      - PROMPT.md
 - docs/
   - base-datos-supabase.md
   - especificacion-proyecto.md
@@ -63,6 +86,7 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
     - ClientEditModal.jsx
     - ClientForm.jsx
     - ConfirmModal.jsx
+    - EmptyState.jsx
     - LoanForm.jsx
     - LoansTable.jsx
     - PersonalServiceForm.jsx
@@ -85,6 +109,7 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
     - BancoPage.jsx
     - ConfiguracionPage.jsx
     - PersonalPage.jsx
+    - RecetasPage.jsx
     - ValesPage.jsx
   - services/
     - banco/
@@ -100,6 +125,7 @@ This file is generated automatically to provide a compact, AI-friendly snapshot 
 - supabase/
   - schema.sql
 - .gitignore
+- copilot-instructions.md
 - GUIA_INSTALACION.md
 - index.html
 - INICIO_RAPIDO.md

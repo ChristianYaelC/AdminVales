@@ -10,6 +10,8 @@ Sistema administrativo para:
 - Vista de resumen por fuente y total general.
 - Modulo adicional BANCO con productos mensuales (seguros y prestamos) y tabla de pagos por mes.
 - Modulo GESTION PERSONAL para servicios con periodicidad configurable.
+- Modulo RECETAS para registrar materiales, procesos y exportar documentos.
+- Las interfaces deben seguir un sistema compartido de superficies blancas, bordes suaves, tipografia consistente y acciones azules/rojas segun el tipo.
 
 ## 2) Stack actual
 
@@ -40,6 +42,13 @@ Sistema administrativo para:
 - Registro de pago por fecha.
 - Edicion de monto por variacion del recibo.
 - Estado de proximo pago (`Al corriente`, `Proximo`, `Vencido`).
+
+### RECETAS
+
+ - `servings` (opcional): nuevo campo numérico añadido a Recetas; aparece junto al tiempo estimado y se incluye en exportaciones.
+ - UX: rueda del ratón deshabilitada globalmente para inputs numéricos para evitar cambios accidentales.
+### ESTANDARES DE INTERFAZ
+
 
 ### CONFIGURACION OPERATIVA
 
@@ -318,6 +327,28 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 
 ### File Tree Snapshot
 
+- .github/
+  - prompts/
+    - ui-ux-pro-max/
+      - data/
+        - stacks/
+        - charts.csv
+        - colors.csv
+        - icons.csv
+        - landing.csv
+        - products.csv
+        - react-performance.csv
+        - styles.csv
+        - typography.csv
+        - ui-reasoning.csv
+        - ux-guidelines.csv
+        - web-interface.csv
+      - scripts/
+        - __pycache__/
+        - core.py
+        - design_system.py
+        - search.py
+      - PROMPT.md
 - docs/
   - base-datos-supabase.md
   - especificacion-proyecto.md
@@ -334,6 +365,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - ClientEditModal.jsx
     - ClientForm.jsx
     - ConfirmModal.jsx
+    - EmptyState.jsx
     - LoanForm.jsx
     - LoansTable.jsx
     - PersonalServiceForm.jsx
@@ -356,6 +388,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - BancoPage.jsx
     - ConfiguracionPage.jsx
     - PersonalPage.jsx
+    - RecetasPage.jsx
     - ValesPage.jsx
   - services/
     - banco/
@@ -371,6 +404,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 - supabase/
   - schema.sql
 - .gitignore
+- copilot-instructions.md
 - GUIA_INSTALACION.md
 - index.html
 - INICIO_RAPIDO.md

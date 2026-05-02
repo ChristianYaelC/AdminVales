@@ -19,13 +19,13 @@ Estado vigente:
 4. Los IDs locales (`Math.max + 1`) no son seguros para concurrencia real ni multiples usuarios.
 5. En BANCO, ahora hay productos mensuales (prestamo/seguro) sin folio ni fuente, con pagos por mes en estado local; falta persistencia relacional y transaccional.
 6. En Gestion Personal, se requiere guardar fechas en formato ISO (`YYYY-MM-DD`) para evitar desfases por zona horaria en UI.
+7. El modulo Recetas actualmente es local en `localStorage` y no forma parte del esquema Supabase todavia.
+8. La persistencia de Recetas debe esperar a la hidratacion inicial antes de escribir en `localStorage`, para no perder el contenido al recargar.
 
 ## Estructura propuesta
 
-- Tabla `clients`: clientes de area `vales` o `banco`.
-- Tabla `loans`: prestamos ligados a cliente; soporta folio/fuente (Vales) y nombre de prestamo/pago mensual (Banco).
-- Tabla `loan_payments`: historial con snapshot monetario (`previous_balance`, `amount_paid`, `new_balance`).
-- Tabla `personal_services`: servicios personales con periodicidad y fecha de ultimo pago.
+ - `servings` (raciones) añadido en la UI como campo opcional; no se persiste en la base de datos centralizada.
+ - La UI implementa una guardia para evitar que la rueda del ratón cambie valores numéricos accidentalmente.
 - Tabla `loan_source_settings`: configuracion por fuente.
 - Tabla `loan_rate_tables`: tabulador por fuente/monto/plazo.
 - Tabla `app_user_settings`: configuracion operativa del usuario para recordatorios.
@@ -67,6 +67,14 @@ Para este proyecto se recomienda modelo compartido:
 4. Para Banco, usar `product_type`, `term_months`, `monthly_payment_amount` y periodicidad mensual; no depende de folio/fuente.
 
 Con esto puedes operar cada apartado por separado en UI, pero sin duplicar personas ni perder trazabilidad completa.
+
+## Criterio de interfaz compartida
+
+- Leer `copilot-instructions.md` antes de copiar o crear nuevas pantallas.
+- Mantener la misma familia visual: cards blancas, bordes suaves, acciones azules y textos claros.
+- Cuando una pantalla tenga campos largos, usar `textarea` y altura vertical flexible.
+- Cuando se exporte a Word, usar `.docx` y no `.doc`.
+- En modulos locales, hidratar primero y escribir despues para no sobrescribir datos al inicio.
 
 ## Script SQL (DDL + RLS)
 
@@ -293,6 +301,28 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 
 ### File Tree Snapshot
 
+- .github/
+  - prompts/
+    - ui-ux-pro-max/
+      - data/
+        - stacks/
+        - charts.csv
+        - colors.csv
+        - icons.csv
+        - landing.csv
+        - products.csv
+        - react-performance.csv
+        - styles.csv
+        - typography.csv
+        - ui-reasoning.csv
+        - ux-guidelines.csv
+        - web-interface.csv
+      - scripts/
+        - __pycache__/
+        - core.py
+        - design_system.py
+        - search.py
+      - PROMPT.md
 - docs/
   - base-datos-supabase.md
   - especificacion-proyecto.md
@@ -309,6 +339,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - ClientEditModal.jsx
     - ClientForm.jsx
     - ConfirmModal.jsx
+    - EmptyState.jsx
     - LoanForm.jsx
     - LoansTable.jsx
     - PersonalServiceForm.jsx
@@ -331,6 +362,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - BancoPage.jsx
     - ConfiguracionPage.jsx
     - PersonalPage.jsx
+    - RecetasPage.jsx
     - ValesPage.jsx
   - services/
     - banco/
@@ -346,6 +378,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 - supabase/
   - schema.sql
 - .gitignore
+- copilot-instructions.md
 - GUIA_INSTALACION.md
 - index.html
 - INICIO_RAPIDO.md

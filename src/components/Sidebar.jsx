@@ -1,10 +1,11 @@
-import { Settings, DollarSign, X, CreditCard, Landmark, PanelLeft, CircleUserRound } from 'lucide-react'
+import { Settings, DollarSign, X, CreditCard, Landmark, CircleUserRound, BookOpen } from 'lucide-react'
 
 function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
   const menuItems = [
     { id: 'vales', label: 'Vales', icon: DollarSign },
     { id: 'banco', label: 'Banco', icon: Landmark },
     { id: 'personal', label: 'Personal', icon: CreditCard },
+    { id: 'recetas', label: 'Recetas', icon: BookOpen },
     { id: 'configuracion', label: 'Config.', icon: Settings },
   ]
 

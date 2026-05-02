@@ -1,7 +1,13 @@
 # Sistema Administrativo de Vales y Prestamos
 
-Aplicacion web para gestionar clientes, prestamos y pagos en dos modulos: Vales (quincenal) y Banco (mensual).
+Aplicacion web para gestionar clientes, prestamos, pagos y recetas en modulos: Vales (quincenal), Banco (mensual), Gestion Personal y Recetas.
 Construida con React + Vite + Tailwind CSS.
+
+## Estandares de interfaz
+
+- El archivo global de referencia es `copilot-instructions.md`.
+- El prompt especializado de UI sigue en `.github/prompts/ui-ux-pro-max/PROMPT.md`.
+- Antes de crear otra pestaña o componente, revisar ambos documentos para mantener consistencia visual y gastar menos contexto.
 
 ## Caracteristicas actuales
 
@@ -29,7 +35,9 @@ Construida con React + Vite + Tailwind CSS.
   - Servicios por periodicidad (mensual, bimestral, trimestral o personalizada).
   - Registro de pago por fecha y edicion de monto cuando el recibo varia.
   - Estado visual en Proxima Fecha: `Al corriente`, `Proximo`, `Vencido`.
-- Modulo Configuracion con:
+- Modulo Recetas con:
+ - Added `servings` (raciones) optional field next to estimated time; shown in lists and exports.
+ - Mouse wheel on focused numeric inputs is globally disabled to prevent accidental value changes.
   - Centro de recordatorios (vencidos, para hoy y proximos) usando servicios personales.
   - Resumen operativo de cartera con falta por pagar en Vales y Banco.
 
@@ -85,6 +93,7 @@ npm run context:watch
 ## Contexto compacto para IA
 
 Existe un archivo maestro llamado `PROJECT_CONTEXT.md` pensado para analisis rapido por IA sin releer toda la carpeta.
+Tambien existe `copilot-instructions.md` con los estandares compartidos de interfaz para todas las pantallas.
 
 - Generar o refrescar manualmente: `npm run context:update`
 - Mantener actualizado en tiempo real mientras trabajas: `npm run context:watch`
@@ -119,6 +128,7 @@ Notas de estructura:
 - Existe persistencia parcial opcional a Supabase para clientes (alta, edicion y eliminacion en Vales/Banco).
 - Si Supabase no esta configurado o falla, esos flujos mantienen fallback local para pruebas.
 - Aun no hay hidratacion inicial desde base de datos; por eso, los datos locales no persistidos se pierden al recargar.
+- Recetas sigue siendo un modulo local en `localStorage` y exporta a Word/PDF sin depender de Supabase.
 
 ## Flujo actual Banco
 
@@ -263,6 +273,28 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 
 ### File Tree Snapshot
 
+- .github/
+  - prompts/
+    - ui-ux-pro-max/
+      - data/
+        - stacks/
+        - charts.csv
+        - colors.csv
+        - icons.csv
+        - landing.csv
+        - products.csv
+        - react-performance.csv
+        - styles.csv
+        - typography.csv
+        - ui-reasoning.csv
+        - ux-guidelines.csv
+        - web-interface.csv
+      - scripts/
+        - __pycache__/
+        - core.py
+        - design_system.py
+        - search.py
+      - PROMPT.md
 - docs/
   - base-datos-supabase.md
   - especificacion-proyecto.md
@@ -279,6 +311,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - ClientEditModal.jsx
     - ClientForm.jsx
     - ConfirmModal.jsx
+    - EmptyState.jsx
     - LoanForm.jsx
     - LoansTable.jsx
     - PersonalServiceForm.jsx
@@ -301,6 +334,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - BancoPage.jsx
     - ConfiguracionPage.jsx
     - PersonalPage.jsx
+    - RecetasPage.jsx
     - ValesPage.jsx
   - services/
     - banco/
@@ -316,6 +350,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 - supabase/
   - schema.sql
 - .gitignore
+- copilot-instructions.md
 - GUIA_INSTALACION.md
 - index.html
 - INICIO_RAPIDO.md

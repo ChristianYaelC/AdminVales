@@ -110,6 +110,28 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 
 ### File Tree Snapshot
 
+- .github/
+  - prompts/
+    - ui-ux-pro-max/
+      - data/
+        - stacks/
+        - charts.csv
+        - colors.csv
+        - icons.csv
+        - landing.csv
+        - products.csv
+        - react-performance.csv
+        - styles.csv
+        - typography.csv
+        - ui-reasoning.csv
+        - ux-guidelines.csv
+        - web-interface.csv
+      - scripts/
+        - __pycache__/
+        - core.py
+        - design_system.py
+        - search.py
+      - PROMPT.md
 - docs/
   - base-datos-supabase.md
   - especificacion-proyecto.md
@@ -126,6 +148,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - ClientEditModal.jsx
     - ClientForm.jsx
     - ConfirmModal.jsx
+    - EmptyState.jsx
     - LoanForm.jsx
     - LoansTable.jsx
     - PersonalServiceForm.jsx
@@ -148,6 +171,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
     - BancoPage.jsx
     - ConfiguracionPage.jsx
     - PersonalPage.jsx
+    - RecetasPage.jsx
     - ValesPage.jsx
   - services/
     - banco/
@@ -163,6 +187,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
 - supabase/
   - schema.sql
 - .gitignore
+- copilot-instructions.md
 - GUIA_INSTALACION.md
 - index.html
 - INICIO_RAPIDO.md

@@ -1,15 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { ClientsProvider } from './context/ClientsContext'
 import Sidebar from './components/Sidebar'
 import ValesPage from './pages/ValesPage'
 import BancoPage from './pages/BancoPage'
 import PersonalPage from './pages/PersonalPage'
+import RecetasPage from './pages/RecetasPage'
 import ConfiguracionPage from './pages/ConfiguracionPage'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('vales')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    const stopNumberWheel = (event) => {
+      const target = event.target
+      if (target instanceof HTMLInputElement && target.type === 'number' && document.activeElement === target) {
+        event.preventDefault()
+        target.blur()
+      }
+    }
+
+    document.addEventListener('wheel', stopNumberWheel, { passive: false, capture: true })
+
+    return () => {
+      document.removeEventListener('wheel', stopNumberWheel, { capture: true })
+    }
+  }, [])
 
   const renderPage = () => {
     switch (currentPage) {
@@ -19,6 +36,8 @@ function App() {
         return <BancoPage />
       case 'personal':
         return <PersonalPage />
+      case 'recetas':
+        return <RecetasPage />
       case 'configuracion':
         return <ConfiguracionPage />
       default:

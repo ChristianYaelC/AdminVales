@@ -1,8 +1,9 @@
 -- =====================================================
 -- SUPABASE SCHEMA - VALES Y PRESTAMOS
 -- =====================================================
--- Este script crea una estructura compatible con la logica actual
--- de React para clientes, prestamos, historial de pagos y tabuladores.
+-- `servings` añadido como concepto en UI; no hay columna adicional en la BD por ahora.
+-- UI: se deshabilita la rueda del ratón sobre inputs numéricos para evitar cambios accidentales.
+-- La persistencia de Recetas debe hidratar primero desde localStorage antes de escribir cambios.
 
 create extension if not exists pgcrypto;
 
