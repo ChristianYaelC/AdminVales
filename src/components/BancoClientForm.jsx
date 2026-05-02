@@ -114,7 +114,7 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
 
   const filteredExistingClients = valesClients.filter((client) => {
     const term = existingClientSearch.toLowerCase().trim()
-    if (!term) return true
+    if (!term) return false
 
     const inName = client.name?.toLowerCase().includes(term)
     const inPhone = client.phone?.toLowerCase().includes(term)
@@ -149,11 +149,11 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center overflow-y-auto p-4 sm:p-6 z-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-xl max-h-[calc(100vh-2rem)] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Nuevo Cliente - Banco</h2>
+        <div className="flex items-center justify-between gap-4 p-4 sm:p-5 border-b border-gray-200">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">Nuevo Cliente - Banco</h2>
           <button
             onClick={onCancel}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -163,7 +163,7 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 sm:space-y-4.5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
             <button
               type="button"
@@ -212,8 +212,12 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
                 )}
               </div>
 
-              <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg bg-white">
-                {filteredExistingClients.length > 0 ? (
+              <div className="min-h-[96px] max-h-44 overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                {!existingClientSearch.trim() ? (
+                  <div className="px-3 py-3 text-sm text-gray-500">
+                    No hay coincidencias en clientes de Vales
+                  </div>
+                ) : filteredExistingClients.length > 0 ? (
                   filteredExistingClients.slice(0, 8).map((client) => (
                     <button
                       key={client.id}
@@ -230,7 +234,9 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
                     </button>
                   ))
                 ) : (
-                  <p className="px-3 py-3 text-sm text-gray-500">No hay coincidencias en clientes de Vales</p>
+                  <div className="px-3 py-3 text-sm text-gray-500">
+                    No hay coincidencias en clientes de Vales
+                  </div>
                 )}
               </div>
             </div>

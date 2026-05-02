@@ -294,19 +294,14 @@ function RecetasPage() {
   return (
     <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <p className="panel-title mb-1">Gestor culinario</p>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Recetas</h1>
-          
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 max-w-sm">
-          <div className="app-surface kpi-card px-5 py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="panel-title mb-2">Recetas</p>
-                <p className="text-3xl font-semibold text-slate-900">{recipes.length}</p>
-              </div>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="panel-title mb-1">Gestor culinario</p>
+            <div className="flex flex-wrap items-end gap-3">
+              <h1 className="text-3xl font-bold text-gray-900 leading-none">Recetas</h1>
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm">
+                {recipes.length} recetas
+              </span>
             </div>
           </div>
         </div>

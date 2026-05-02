@@ -74,25 +74,15 @@ function PersonalPage() {
     <div className="p-6 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <p className="panel-title mb-1">Servicios recurrentes</p>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Gestión Personal</h1>
-          
-        </div>
-
-        {/* Resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="app-surface p-6 kpi-card">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Servicios con falta por pagar</h3>
-            <p className="text-3xl font-bold text-gray-900">{personalServices.length}</p>
-          </div>
-          <div className="app-surface p-6 kpi-card">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Gasto Mensual Promedio</h3>
-            <p className="text-3xl font-bold text-secondary">${calculateMonthlyTotal().toFixed(2)}</p>
-          </div>
-          <div className="app-surface p-6 kpi-card">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">Gasto Anual Estimado</h3>
-            <p className="text-3xl font-bold text-green-600">${calculateYearlyTotal().toFixed(2)}</p>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="panel-title mb-1">Servicios recurrentes</p>
+            <div className="flex flex-wrap items-end gap-3">
+              <h1 className="text-3xl font-bold text-gray-900 leading-none">Gestión Personal</h1>
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm">
+                {personalServices.length} servicios
+              </span>
+            </div>
           </div>
         </div>
 
