@@ -71,10 +71,10 @@ function PersonalPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full page-enter">
+    <div className="p-5 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="panel-title mb-1">Servicios recurrentes</p>
             <div className="flex flex-wrap items-end gap-3">
@@ -87,7 +87,7 @@ function PersonalPage() {
         </div>
 
         {/* Botón Agregar */}
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-6 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">Servicios</h2>
           <button
             onClick={() => setShowAddForm(true)}

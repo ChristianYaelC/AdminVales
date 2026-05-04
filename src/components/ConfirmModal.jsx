@@ -10,6 +10,7 @@ function ConfirmModal({ isOpen, title, message, amount, type, onConfirm, onCance
       case 'deleteLoan':
       case 'deleteInsurance':
       case 'deleteService':
+      case 'deleteRecipe':
         return {
           color: 'bg-red-600 hover:bg-red-700',
           text: 'Eliminar'

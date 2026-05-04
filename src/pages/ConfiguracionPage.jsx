@@ -82,20 +82,20 @@ function ConfiguracionPage() {
 
         let status = 'future'
         let label = 'Programado'
-        let badgeClass = 'bg-gray-100 text-gray-700'
+        let badgeClass = 'bg-gray-100 text-gray-700 border border-gray-200'
 
         if (daysDiff < -graceDays) {
           status = 'overdue'
           label = 'Vencido'
-          badgeClass = 'bg-red-100 text-red-700'
+          badgeClass = 'bg-rose-50 text-rose-700 border border-rose-200'
         } else if (daysDiff <= 0) {
           status = 'today'
           label = 'Hoy'
-          badgeClass = 'bg-amber-100 text-amber-700'
+          badgeClass = 'bg-amber-50 text-amber-700 border border-amber-200'
         } else if (daysDiff <= windowDays) {
           status = 'upcoming'
           label = 'Próximo'
-          badgeClass = 'bg-blue-100 text-blue-700'
+          badgeClass = 'bg-blue-50 text-blue-700 border border-blue-200'
         }
 
         return {
@@ -120,8 +120,8 @@ function ConfiguracionPage() {
   }, [reminders])
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full page-enter">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="p-5 bg-gray-50 min-h-full page-enter">
+      <div className="max-w-6xl mx-auto space-y-5">
         <div>
           <p className="panel-title mb-1">Control operativo</p>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Configuración</h1>
@@ -130,39 +130,39 @@ function ConfiguracionPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Préstamos con falta por pagar (Vales)</p>
-            <p className="text-2xl font-bold text-secondary">{operationalSummary.activeValesLoans}</p>
+            <p className="text-2xl font-bold text-gray-900">{operationalSummary.activeValesLoans}</p>
           </div>
           <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Productos con falta por pagar (Banco)</p>
-            <p className="text-2xl font-bold text-indigo-600">{operationalSummary.activeBancoProducts}</p>
+            <p className="text-2xl font-bold text-gray-900">{operationalSummary.activeBancoProducts}</p>
           </div>
           <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Servicios personales</p>
-            <p className="text-2xl font-bold text-emerald-600">{operationalSummary.personalServicesCount}</p>
+            <p className="text-2xl font-bold text-gray-900">{operationalSummary.personalServicesCount}</p>
           </div>
           <div className="app-surface p-4 kpi-card">
             <p className="text-sm text-gray-600 mb-1">Recetas guardadas</p>
-            <p className="text-2xl font-bold text-orange-600">{recipeSummary.totalRecipes}</p>
+            <p className="text-2xl font-bold text-gray-900">{recipeSummary.totalRecipes}</p>
             <p className="mt-1 text-xs text-gray-500">{recipeSummary.totalCategories} categorías activas</p>
           </div>
         </div>
 
         <div className="app-surface p-6">
           <div className="flex items-center gap-2 mb-4">
-            <BellRing size={18} className="text-secondary" />
+            <BellRing size={18} className="text-blue-600" />
             <h2 className="text-lg font-bold text-gray-900">Centro de Recordatorios</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-              <p className="text-sm text-red-700">Vencidos</p>
-              <p className="text-2xl font-bold text-red-700">{reminderCounters.overdue}</p>
+            <div className="rounded-lg border border-rose-200 bg-rose-50/40 px-4 py-3">
+              <p className="text-sm text-rose-700">Vencidos</p>
+              <p className="text-2xl font-bold text-rose-700">{reminderCounters.overdue}</p>
             </div>
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/40 px-4 py-3">
               <p className="text-sm text-amber-700">Para hoy</p>
               <p className="text-2xl font-bold text-amber-700">{reminderCounters.today}</p>
             </div>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+            <div className="rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3">
               <p className="text-sm text-blue-700">Próximos</p>
               <p className="text-2xl font-bold text-blue-700">{reminderCounters.upcoming}</p>
             </div>

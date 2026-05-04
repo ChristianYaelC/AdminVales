@@ -37,6 +37,7 @@ Abre `http://localhost:5173/`.
 - Edicion de cliente en Vales y Banco para actualizar telefono y domicilios.
 - Registro de pago por boton (monto fijo por quincena).
 - Confirmacion antes de registrar pago.
+- Confirmacion antes de eliminar receta en modulo Recetas.
 - Estado de cuenta con saldo anterior / nuevo saldo.
 - Edicion de fecha de pago y fecha de creacion.
 - Modulo Banco con seguros y prestamos mensuales (sin folio/fuente para prestamos).
@@ -44,6 +45,7 @@ Abre `http://localhost:5173/`.
 - Modulo Gestion Personal con registro de pago, edicion de monto y estado visual de proximo pago.
 - Alta de cliente en Banco con opcion de usar cliente existente de Vales.
 - Alta de cliente con domicilio de casa y domicilio de trabajo opcional.
+- Validaciones de captura reforzadas (folio, nombre, domicilios y campos numericos clave).
 - Modulo Recetas con receta de prueba, exportacion PDF/Word y formato listo para imprimir.
 - Modulo Configuracion con centro de recordatorios.
 

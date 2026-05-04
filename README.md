@@ -13,7 +13,7 @@ Construida con React + Vite + Tailwind CSS.
 
 - Gestion de clientes en modulo Vales (nombre, telefono, domicilio de casa y domicilio de trabajo opcional).
 - Edicion de cliente en Vales y Banco (nombre, telefono, domicilio de casa y domicilio de trabajo).
-- Alta de prestamos por fuente con folio unico.
+- Alta de prestamos por fuente con folio unico y formato normalizado (mayusculas, sin caracteres invalidos).
 - Tabuladores por fuente y calculo de pago por quincena.
 - Registro de pago individual con monto fijo por quincena (boton Registrar).
 - Confirmacion modal antes de registrar cada pago.
@@ -37,6 +37,8 @@ Construida con React + Vite + Tailwind CSS.
   - Estado visual en Proxima Fecha: `Al corriente`, `Proximo`, `Vencido`.
 - Modulo Recetas con:
   - Titulo, categoria, tiempo estimado, raciones, ingredientes, pasos y notas.
+  - Validaciones de captura (titulo, limites de longitud, tiempo/raciones y estructura minima de ingredientes/pasos).
+  - Confirmacion modal antes de eliminar receta.
   - Exportacion a PDF y Word en formato de recetario listo para imprimir.
   - Demo de prueba mas larga para validar salto de pagina en PDF.
 - Mouse wheel on focused numeric inputs is globally disabled to prevent accidental value changes.
@@ -131,6 +133,7 @@ Notas de estructura:
 - Si Supabase no esta configurado o falla, esos flujos mantienen fallback local para pruebas.
 - Aun no hay hidratacion inicial desde base de datos; por eso, los datos locales no persistidos se pierden al recargar.
 - Recetas sigue siendo un modulo local en `localStorage` y exporta a Word/PDF sin depender de Supabase, aunque ya existe esquema SQL preparado para migracion futura.
+- La hidratacion de Recetas primero intenta leer datos existentes y solo usa receta demo cuando no hay datos guardados (evita sobrescritura al recargar).
 
 ## Flujo actual Banco
 

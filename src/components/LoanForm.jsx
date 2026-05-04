@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X, Plus, AlertCircle } from 'lucide-react'
-import { formatCurrencyInput } from '../utils/validators'
+import { formatCurrencyInput, normalizeFolio, validateFolio } from '../utils/validators'
 import { LOAN_TABLES, getAvailableAmounts, getAvailableTerms, getPaymentFromTable, calculateFinalPayment } from '../constants/tablesData'
 import { useClients } from '../context/ClientsContext'
 
@@ -24,7 +24,7 @@ function LoanForm({ onSubmit, onCancel }) {
   }
 
   const handleFolioChange = (e) => {
-    setFormData({ ...formData, folio: e.target.value })
+    setFormData({ ...formData, folio: normalizeFolio(e.target.value) })
     if (errors.folio) setErrors({ ...errors, folio: '' })
   }
 
@@ -85,9 +85,10 @@ function LoanForm({ onSubmit, onCancel }) {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.folio.trim()) {
-      newErrors.folio = 'El folio del préstamo es requerido'
-    } else if (!isFolioUnique(formData.folio)) {
+    const folioValidation = validateFolio(formData.folio)
+    if (!folioValidation.valid) {
+      newErrors.folio = folioValidation.error
+    } else if (!isFolioUnique(formData.folio.trim())) {
       newErrors.folio = 'Este folio ya existe. Por favor ingresa un folio único'
     }
 
@@ -132,7 +133,7 @@ function LoanForm({ onSubmit, onCancel }) {
       const finalPayment = calculateFinalPayment(basePayment, insurance, term, sourceData.insuranceType)
 
       onSubmit({
-        folio: formData.folio,
+        folio: formData.folio.trim(),
         amount: amount,
         term: term,
         source: formData.source,

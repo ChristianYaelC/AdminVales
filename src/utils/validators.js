@@ -39,8 +39,14 @@ export const validateName = (name) => {
   if (/\d/.test(name)) {
     return { valid: false, error: 'El nombre no puede contener números' }
   }
+  if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ.,'\-\s]+$/.test(name.trim())) {
+    return { valid: false, error: 'El nombre solo puede contener letras y signos básicos' }
+  }
   if (name.trim().length < 2) {
     return { valid: false, error: 'El nombre debe tener al menos 2 caracteres' }
+  }
+  if (name.trim().length > 120) {
+    return { valid: false, error: 'El nombre no puede exceder 120 caracteres' }
   }
   return { valid: true, error: '' }
 }
@@ -63,6 +69,37 @@ export const validateAddress = (address) => {
   if (address.trim().length < 5) {
     return { valid: false, error: 'El domicilio debe tener al menos 5 caracteres' }
   }
+  if (address.trim().length > 200) {
+    return { valid: false, error: 'El domicilio no puede exceder 200 caracteres' }
+  }
+  return { valid: true, error: '' }
+}
+
+export const normalizeFolio = (folio) => {
+  if (folio === undefined || folio === null) return ''
+  return String(folio)
+    .toUpperCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^A-Z0-9-_/]/g, '')
+    .replace(/-+/g, '-')
+    .slice(0, 40)
+}
+
+export const validateFolio = (folio) => {
+  const normalized = normalizeFolio(folio)
+
+  if (!normalized) {
+    return { valid: false, error: 'El folio es requerido' }
+  }
+
+  if (normalized.length < 3) {
+    return { valid: false, error: 'El folio debe tener al menos 3 caracteres' }
+  }
+
+  if (!/^[A-Z0-9][A-Z0-9-_/]*$/.test(normalized)) {
+    return { valid: false, error: 'El folio contiene caracteres no válidos' }
+  }
+
   return { valid: true, error: '' }
 }
 

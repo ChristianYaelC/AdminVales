@@ -341,10 +341,10 @@ function ValesPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full page-enter">
+    <div className="p-5 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <p className="panel-title mb-1">Operacion de prestamos</p>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">Gestión de Vales</h1>
           
@@ -360,7 +360,7 @@ function ValesPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="app-surface p-5 kpi-card">
             <p className="panel-title">Clientes activos</p>
             <p className="mt-2 text-3xl font-bold text-primary">{valesClients.length}</p>
@@ -381,7 +381,7 @@ function ValesPage() {
         </div>
 
         {/* Buscador y botón agregar */}
-        <div className="mb-8 flex gap-4 flex-col sm:flex-row">
+        <div className="mb-6 flex gap-4 flex-col sm:flex-row">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -426,7 +426,7 @@ function ValesPage() {
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Lista de clientes */}
           <div className="lg:col-span-1">
             <div className="app-surface">

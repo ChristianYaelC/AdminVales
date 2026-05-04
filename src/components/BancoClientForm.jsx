@@ -68,6 +68,14 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
     }))
   }
 
+  const getErrorList = () => {
+    const errorMessages = []
+    Object.values(errors).forEach(error => {
+      if (error) errorMessages.push(error)
+    })
+    return errorMessages
+  }
+
   const validateForm = () => {
     const newErrors = {}
 
@@ -164,6 +172,20 @@ export default function BancoClientForm({ valesClients = [], onSubmit, onCancel 
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 sm:space-y-4.5">
+          {getErrorList().length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-semibold mb-2 inline-flex items-center gap-2">
+                <AlertCircle size={16} />
+                Corrige lo siguiente para continuar:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {getErrorList().map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
             <button
               type="button"

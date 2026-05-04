@@ -47,6 +47,14 @@ function ClientForm({ onSubmit, onCancel }) {
     })
   }
 
+  const getErrorList = () => {
+    const errorMessages = []
+    Object.values(errors).forEach(error => {
+      if (error) errorMessages.push(error)
+    })
+    return errorMessages
+  }
+
   const validateForm = () => {
     const newErrors = {}
 
@@ -63,6 +71,14 @@ function ClientForm({ onSubmit, onCancel }) {
     const addressValidation = validateAddress(formData.address)
     if (!addressValidation.valid) {
       newErrors.address = addressValidation.error
+    }
+
+    if (formData.workAddress.trim() && formData.workAddress.trim().length < 5) {
+      newErrors.workAddress = 'El domicilio de trabajo debe tener al menos 5 caracteres'
+    }
+
+    if (formData.workAddress.trim().length > 200) {
+      newErrors.workAddress = 'El domicilio de trabajo no puede exceder 200 caracteres'
     }
 
     setErrors(newErrors)
@@ -97,6 +113,20 @@ function ClientForm({ onSubmit, onCancel }) {
 
         {/* Contenido */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {getErrorList().length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-semibold mb-2 inline-flex items-center gap-2">
+                <AlertCircle size={16} />
+                Corrige lo siguiente para continuar:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {getErrorList().map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Campo Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

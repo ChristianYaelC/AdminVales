@@ -283,6 +283,49 @@ begin
         )
       ) not valid;
   end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'clients_name_length'
+  ) then
+    alter table public.clients
+      add constraint clients_name_length
+      check (char_length(trim(name)) between 2 and 120) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'clients_address_length'
+  ) then
+    alter table public.clients
+      add constraint clients_address_length
+      check (address is null or char_length(trim(address)) between 5 and 200) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'clients_work_address_length'
+  ) then
+    alter table public.clients
+      add constraint clients_work_address_length
+      check (work_address is null or char_length(trim(work_address)) between 5 and 200) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'loans_folio_format_vales'
+  ) then
+    alter table public.loans
+      add constraint loans_folio_format_vales
+      check (
+        area <> 'vales'
+        or (folio ~ '^[A-Z0-9][A-Z0-9\-_/]{2,39}$')
+      ) not valid;
+  end if;
 end
 $$;
 
@@ -380,6 +423,51 @@ create table if not exists public.recipe_steps (
 
 create index if not exists recipe_steps_recipe_idx on public.recipe_steps(recipe_id, position);
 create index if not exists recipe_steps_owner_idx on public.recipe_steps(owner_id);
+
+-- Reglas adicionales para recetas (como NOT VALID para no bloquear datos históricos).
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'recipes_title_length'
+  ) then
+    alter table public.recipes
+      add constraint recipes_title_length
+      check (char_length(trim(title)) between 2 and 120) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'recipes_category_length'
+  ) then
+    alter table public.recipes
+      add constraint recipes_category_length
+      check (category is null or char_length(trim(category)) <= 80) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'recipe_ingredients_name_length'
+  ) then
+    alter table public.recipe_ingredients
+      add constraint recipe_ingredients_name_length
+      check (char_length(trim(name)) between 1 and 120) not valid;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'recipe_steps_text_length'
+  ) then
+    alter table public.recipe_steps
+      add constraint recipe_steps_text_length
+      check (char_length(trim(text)) between 1 and 2000) not valid;
+  end if;
+end
+$$;
 
 -- =====================================================
 -- FUNCIONES DE MANTENIMIENTO

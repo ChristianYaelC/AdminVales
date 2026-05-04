@@ -21,11 +21,12 @@ Estado vigente:
 6. En Gestion Personal, se requiere guardar fechas en formato ISO (`YYYY-MM-DD`) para evitar desfases por zona horaria en UI.
 7. El modulo Recetas sigue operando en `localStorage` en la UI actual, pero ya existe esquema Supabase preparado para migracion futura.
 8. La persistencia de Recetas debe esperar a la hidratacion inicial antes de escribir en `localStorage`, para no perder el contenido al recargar.
+9. Se agregaron constraints de validacion (`NOT VALID`) para reforzar integridad sin bloquear historicos: longitudes de cliente, formato de folio en Vales y limites de campos de Recetas.
 
 ## Estructura propuesta
 
- - `servings` (raciones) añadido en la UI como campo opcional; no se persiste en la base de datos centralizada.
- - La UI implementa una guardia para evitar que la rueda del ratón cambie valores numéricos accidentalmente.
+- `servings` (raciones) añadido en la UI como campo opcional; no se persiste en la base de datos centralizada.
+- La UI implementa una guardia para evitar que la rueda del ratón cambie valores numéricos accidentalmente.
 - Tabla `loan_source_settings`: configuracion por fuente.
 - Tabla `loan_rate_tables`: tabulador por fuente/monto/plazo.
 - Tabla `app_user_settings`: configuracion operativa del usuario para recordatorios.
@@ -65,6 +66,7 @@ Campos clave en `recipes`:
 3. `cook_time_minutes`.
 4. `servings`.
 5. `notes`.
+6. Reglas de validacion adicionales: `title` entre 2 y 120 caracteres, `category` hasta 80 caracteres.
 
 Campos clave en `recipe_ingredients`:
 
@@ -72,12 +74,14 @@ Campos clave en `recipe_ingredients`:
 2. `position`.
 3. `name`.
 4. `quantity`, `unit`, `cost`, `note`.
+5. Reglas de validacion adicionales: nombre de ingrediente entre 1 y 120 caracteres.
 
 Campos clave en `recipe_steps`:
 
 1. `recipe_id`.
 2. `position`.
 3. `text`.
+4. Reglas de validacion adicionales: texto de paso entre 1 y 2000 caracteres.
 
 ## Criterio Vales + Banco
 

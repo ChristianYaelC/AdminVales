@@ -32,6 +32,14 @@ function BancoLoanForm({ onClose, onSubmit }) {
     }
   }
 
+  const getErrorList = () => {
+    const errorMessages = []
+    Object.values(errors).forEach(error => {
+      if (error) errorMessages.push(error)
+    })
+    return errorMessages
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     const newErrors = {}
@@ -76,6 +84,20 @@ function BancoLoanForm({ onClose, onSubmit }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {getErrorList().length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-semibold mb-2 inline-flex items-center gap-2">
+                <AlertCircle size={16} />
+                Corrige lo siguiente para guardar:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {getErrorList().map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Monto del préstamo ($) *

@@ -41,6 +41,14 @@ function ClientEditModal({ client, title = 'Editar Cliente', onSubmit, onCancel 
     setFormData(prev => ({ ...prev, workAddress: value }))
   }
 
+  const getErrorList = () => {
+    const errorMessages = []
+    Object.values(errors).forEach(error => {
+      if (error) errorMessages.push(error)
+    })
+    return errorMessages
+  }
+
   const validateForm = () => {
     const newErrors = {}
 
@@ -61,6 +69,10 @@ function ClientEditModal({ client, title = 'Editar Cliente', onSubmit, onCancel 
 
     if (formData.workAddress.trim() && formData.workAddress.trim().length < 5) {
       newErrors.workAddress = 'El domicilio de trabajo debe tener al menos 5 caracteres'
+    }
+
+    if (formData.workAddress.trim().length > 200) {
+      newErrors.workAddress = 'El domicilio de trabajo no puede exceder 200 caracteres'
     }
 
     setErrors(newErrors)
@@ -93,6 +105,20 @@ function ClientEditModal({ client, title = 'Editar Cliente', onSubmit, onCancel 
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {getErrorList().length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p className="font-semibold mb-2 inline-flex items-center gap-2">
+                <AlertCircle size={16} />
+                Corrige lo siguiente para continuar:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {getErrorList().map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Nombre del Cliente *</label>
             <input

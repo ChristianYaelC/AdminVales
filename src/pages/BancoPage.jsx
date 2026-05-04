@@ -420,7 +420,7 @@ function BancoPage() {
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-5 space-y-5">
             {/* Seguros */}
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-4">Seguros</h3>
@@ -583,10 +583,10 @@ function BancoPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full page-enter">
+    <div className="p-5 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <p className="panel-title mb-1">Monitoreo bancario</p>
             <h1 className="text-3xl font-bold text-gray-900 mb-3">Banco</h1>
           </div>
@@ -602,7 +602,7 @@ function BancoPage() {
         )}
 
         {/* Búsqueda y Botón */}
-        <div className="mb-8 flex gap-4 flex-col sm:flex-row">
+        <div className="mb-6 flex gap-4 flex-col sm:flex-row">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -623,7 +623,7 @@ function BancoPage() {
         </div>
 
         {/* Grid Principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Lista de clientes */}
           <div className="lg:col-span-1">
             <div className="app-surface">

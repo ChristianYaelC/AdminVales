@@ -46,16 +46,16 @@ Sistema administrativo para:
 
 ### RECETAS
 
- - `servings` (opcional): raciones; aparece junto al tiempo estimado y se incluye en exportaciones.
- - `title`, `category`, `timeMinutes`, `notes`.
- - `ingredients` y `steps` se exportan en flujo vertical de una sola columna.
- - UX: rueda del ratón deshabilitada globalmente para inputs numéricos para evitar cambios accidentales.
- - Exportacion a PDF y Word lista para imprimir.
+- `servings` (opcional): raciones; aparece junto al tiempo estimado y se incluye en exportaciones.
+- `title`, `category`, `timeMinutes`, `notes`.
+- `ingredients` y `steps` se exportan en flujo vertical de una sola columna.
+- UX: rueda del ratón deshabilitada globalmente para inputs numéricos para evitar cambios accidentales.
+- Exportacion a PDF y Word lista para imprimir.
+- Validaciones de entrada para evitar datos incompatibles con base de datos: longitudes de titulo/categoria y numeros enteros en tiempo/raciones.
 
 ### ESTANDARES DE INTERFAZ
 
 - Mantener el mismo lenguaje visual de las pantallas actuales: panel-title arriba, h1 compacto debajo, tarjetas blancas y acciones azules.
-
 
 ### CONFIGURACION OPERATIVA
 
@@ -66,7 +66,7 @@ Sistema administrativo para:
 
 ## 4) Reglas de negocio detectadas
 
-1. Un folio debe ser unico en VALES.
+1. Un folio debe ser unico en VALES y cumplir formato controlado (`A-Z`, `0-9`, `-`, `_`, `/`, longitud 3..40).
 1. Edicion de cliente modifica solo datos de contacto/domicilio; no altera historial de prestamos/pagos.
 1. Cada fuente define montos/plazos validos por tabulador.
 1. Seguro: `global` se divide entre quincenas y `perQuincena` se suma directo al pago.
@@ -77,6 +77,8 @@ Sistema administrativo para:
 1. Regla Banco mensual: no usa folio ni fuente; el pago mensual se calcula como `monto / termMonths` y la tabla mensual controla pagos por mes.
 1. Regla Gestion Personal: la proxima fecha se calcula desde `lastPaymentDate` cuando existe pago registrado; sin pago, se calcula desde el ciclo actual.
 1. Etiquetado UX actual: cuando `status='active'` se muestra como `Falta por pagar` en pantallas operativas.
+1. En Recetas, eliminar registro requiere confirmacion modal explicita.
+1. En Recetas, para guardar se exige estructura minima: al menos 1 ingrediente con nombre y al menos 1 paso con texto.
 
 ## 5) Riesgos a vigilar antes de migracion
 

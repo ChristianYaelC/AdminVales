@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BookOpen, Edit2, FileDown, FileText, Plus, Search, Trash2 } from 'lucide-react'
+import { AlertCircle, Edit2, FileDown, FileText, Plus, Search, Trash2 } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
+import ConfirmModal from '../components/ConfirmModal'
 import { exportCookbookPDF, exportCookbookWord, exportSingleRecipePDF, exportSingleRecipeWord } from '../recipeExport'
 
 const STORAGE_KEY = 'vales_recetas'
@@ -128,11 +129,29 @@ function RecetasPage() {
   const [editingId, setEditingId] = useState(null)
   const [formData, setFormData] = useState({ ...emptyRecipeForm })
   const [isHydrated, setIsHydrated] = useState(false)
+  const [formErrors, setFormErrors] = useState([])
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [recipeToDelete, setRecipeToDelete] = useState(null)
 
   useEffect(() => {
-    const parsedRecipes = [normalizeRecipe(demoRecipe)]
+    let parsedRecipes = []
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedRecipes))
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          parsedRecipes = parsed.map(normalizeRecipe)
+        }
+      }
+    } catch {
+      parsedRecipes = []
+    }
+
+    if (!parsedRecipes.length) {
+      parsedRecipes = [normalizeRecipe(demoRecipe)]
+    }
+
     setRecipes(parsedRecipes)
     setSelectedRecipeId(parsedRecipes[0]?.id || null)
     setIsHydrated(true)
@@ -156,6 +175,7 @@ function RecetasPage() {
   const resetForm = () => {
     setFormData({ ...emptyRecipeForm })
     setEditingId(null)
+    setFormErrors([])
   }
 
   const openNewForm = () => {
@@ -165,6 +185,7 @@ function RecetasPage() {
   }
 
   const openEditForm = (recipe) => {
+    setFormErrors([])
     setFormData({
       title: recipe.title || '',
       category: recipe.category || '',
@@ -213,10 +234,14 @@ function RecetasPage() {
   }
 
   const removeIngredient = (id) => {
-    setFormData((prev) => ({
-      ...prev,
-      ingredients: prev.ingredients.filter((ingredient) => ingredient.id !== id)
-    }))
+    setFormData((prev) => {
+      if (prev.ingredients.length <= 1) return prev
+
+      return {
+        ...prev,
+        ingredients: prev.ingredients.filter((ingredient) => ingredient.id !== id)
+      }
+    })
   }
 
   const addStep = () => {
@@ -230,10 +255,55 @@ function RecetasPage() {
   }
 
   const removeStep = (id) => {
-    setFormData((prev) => ({
-      ...prev,
-      steps: prev.steps.filter((step) => step.id !== id)
-    }))
+    setFormData((prev) => {
+      if (prev.steps.length <= 1) return prev
+
+      return {
+        ...prev,
+        steps: prev.steps.filter((step) => step.id !== id)
+      }
+    })
+  }
+
+  const validateRecipePayload = (recipePayload) => {
+    const nextErrors = []
+
+    if (!recipePayload.title || recipePayload.title.length < 2) {
+      nextErrors.push('El título debe tener al menos 2 caracteres.')
+    }
+
+    if (recipePayload.title.length > 120) {
+      nextErrors.push('El título no puede exceder 120 caracteres.')
+    }
+
+    if (recipePayload.category && recipePayload.category.length > 80) {
+      nextErrors.push('La categoría no puede exceder 80 caracteres.')
+    }
+
+    if (recipePayload.timeMinutes !== '' && (!Number.isInteger(recipePayload.timeMinutes) || recipePayload.timeMinutes < 1 || recipePayload.timeMinutes > 1440)) {
+      nextErrors.push('El tiempo estimado debe ser un número entero entre 1 y 1440 minutos.')
+    }
+
+    if (recipePayload.servings !== '' && (!Number.isInteger(recipePayload.servings) || recipePayload.servings < 1 || recipePayload.servings > 1000)) {
+      nextErrors.push('Las raciones deben ser un número entero entre 1 y 1000.')
+    }
+
+    const validIngredients = recipePayload.ingredients.filter((item) => item.name)
+    if (validIngredients.length === 0) {
+      nextErrors.push('Agrega al menos un ingrediente con nombre.')
+    }
+
+    const invalidCosts = recipePayload.ingredients.some((item) => item.cost && Number.isNaN(Number(item.cost)))
+    if (invalidCosts) {
+      nextErrors.push('Los costos deben ser numéricos si se capturan.')
+    }
+
+    const validSteps = recipePayload.steps.filter((step) => step.text)
+    if (validSteps.length === 0) {
+      nextErrors.push('Agrega al menos un paso en el proceso.')
+    }
+
+    return nextErrors
   }
 
   const handleSaveRecipe = (event) => {
@@ -250,24 +320,42 @@ function RecetasPage() {
       notes: formData.notes
     })
 
+    const nextErrors = validateRecipePayload(recipePayload)
+    if (nextErrors.length) {
+      setFormErrors(nextErrors)
+      return
+    }
+
+    setFormErrors([])
+
     if (editingId) {
       setRecipes((prev) => prev.map((recipe) => (recipe.id === editingId ? recipePayload : recipe)))
       setSelectedRecipeId(editingId)
     } else {
       setRecipes((prev) => [recipePayload, ...prev])
-      setSelectedRecipeId(null)
+      setSelectedRecipeId(recipePayload.id)
     }
 
     setShowForm(false)
     setEditingId(null)
   }
 
-  const handleDeleteRecipe = (id) => {
-    const remaining = recipes.filter((recipe) => recipe.id !== id)
+  const requestDeleteRecipe = (recipe) => {
+    setRecipeToDelete(recipe)
+    setIsConfirmModalOpen(true)
+  }
+
+  const handleConfirmDeleteRecipe = () => {
+    if (!recipeToDelete) return
+
+    const remaining = recipes.filter((recipe) => recipe.id !== recipeToDelete.id)
     setRecipes(remaining)
-    if (selectedRecipeId === id) {
+    if (selectedRecipeId === recipeToDelete.id) {
       setSelectedRecipeId(remaining[0]?.id || null)
     }
+
+    setIsConfirmModalOpen(false)
+    setRecipeToDelete(null)
   }
 
   const handleDownloadRecipeWord = (recipe) => {
@@ -292,9 +380,9 @@ function RecetasPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full page-enter">
+    <div className="p-5 bg-gray-50 min-h-full page-enter">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="panel-title mb-1">Gestor culinario</p>
             <div className="flex flex-wrap items-end gap-3">
@@ -306,7 +394,7 @@ function RecetasPage() {
           </div>
         </div>
 
-        <div className="app-surface p-5 sm:p-6 mb-8">
+        <div className="app-surface p-5 sm:p-5 mb-6">
           <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
             <div className="flex-1 max-w-2xl">
               <label className="block text-sm font-medium text-gray-700 mb-2">Buscar receta</label>
@@ -332,7 +420,7 @@ function RecetasPage() {
                   <button
                     onClick={handleDownloadAllWord}
                     disabled={!recipes.length}
-                    className="btn-neutral px-3 py-2 text-xs"
+                    className="btn-primary px-3 py-2 text-xs"
                     title="Descargar en formato Word .docx"
                   >
                     <FileText size={14} />
@@ -353,7 +441,7 @@ function RecetasPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-5">
           <div className="space-y-4">
             {filteredRecipes.length === 0 ? (
               <EmptyState
@@ -380,7 +468,7 @@ function RecetasPage() {
             )}
           </div>
 
-          <div className="space-y-6 min-w-0">
+          <div className="space-y-5 min-w-0">
             {showForm ? (
               <div className="app-surface p-5 sm:p-6">
                 <div className="flex items-start justify-between mb-6">
@@ -401,6 +489,20 @@ function RecetasPage() {
                 </div>
 
                 <form onSubmit={handleSaveRecipe} className="space-y-5">
+                  {formErrors.length > 0 && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      <p className="font-semibold mb-2 inline-flex items-center gap-2">
+                        <AlertCircle size={16} />
+                        Corrige lo siguiente para guardar:
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        {formErrors.map((error) => (
+                          <li key={error}>{error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div className="lg:col-span-7">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Titulo de la receta</label>
@@ -601,7 +703,7 @@ function RecetasPage() {
                 </form>
               </div>
             ) : selectedRecipe ? (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="app-surface p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -618,7 +720,7 @@ function RecetasPage() {
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDeleteRecipe(selectedRecipe.id)}
+                        onClick={() => requestDeleteRecipe(selectedRecipe)}
                         className="btn-danger px-3 py-2 text-sm"
                       >
                         <Trash2 size={16} />
@@ -645,7 +747,6 @@ function RecetasPage() {
 
                 <div className="app-surface p-5 sm:p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <BookOpen size={18} className="text-blue-600" />
                     <h3 className="text-lg font-semibold text-gray-900">Ingredientes</h3>
                   </div>
 
@@ -713,7 +814,7 @@ function RecetasPage() {
                       title="Descargar en formato Word .docx"
                     >
                       <FileText size={16} />
-                      Word (.docx)
+                      Word
                     </button>
                     <button
                       onClick={() => handleDownloadRecipePdf(selectedRecipe)}
@@ -735,6 +836,18 @@ function RecetasPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        title="Eliminar receta"
+        message={recipeToDelete ? `¿Deseas eliminar "${recipeToDelete.title || 'esta receta'}"? No se puede deshacer.` : ''}
+        type="deleteRecipe"
+        onConfirm={handleConfirmDeleteRecipe}
+        onCancel={() => {
+          setIsConfirmModalOpen(false)
+          setRecipeToDelete(null)
+        }}
+      />
     </div>
   )
 }

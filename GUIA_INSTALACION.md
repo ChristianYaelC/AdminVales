@@ -102,6 +102,7 @@ Ya con la aplicacion ejecutandose, puedes:
 - Usar Recetas:
   - Revisar la receta de prueba extendida.
   - Exportar a PDF y Word para comprobar el formato de impresion.
+  - Al eliminar receta, ahora se solicita confirmacion.
 - Usar Configuracion:
   - Revisar Centro de Recordatorios (vencidos/hoy/proximos).
 
@@ -218,6 +219,8 @@ Una vez que tengas la aplicacion ejecutandose:
 
 Nota: actualmente la app funciona en modo local para pruebas y ya tiene persistencia parcial opcional a Supabase en clientes (Vales/Banco). Recetas sigue local, pero el esquema SQL ya queda preparado para migracion futura.
 
+Nota de validaciones: los formularios incluyen reglas de tipo y formato (por ejemplo folio en Vales y estructura minima de Recetas) para reducir errores al migrar o sincronizar con base de datos.
+
 ## Documentacion complementaria
 
 1. Especificacion funcional y arquitectura: `docs/especificacion-proyecto.md`.
@@ -277,7 +280,7 @@ Este bloque se actualiza automaticamente desde PROJECT_CONTEXT.md.
         - ux-guidelines.csv
         - web-interface.csv
       - scripts/
-        - __pycache__/
+        - \_\_pycache\_\_/
         - core.py
         - design_system.py
         - search.py
