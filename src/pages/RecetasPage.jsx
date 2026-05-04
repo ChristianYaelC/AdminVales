@@ -306,8 +306,8 @@ function RecetasPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 mb-8">
-          <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4">
+        <div className="app-surface p-5 sm:p-6 mb-8">
+          <div className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
             <div className="flex-1 max-w-2xl">
               <label className="block text-sm font-medium text-gray-700 mb-2">Buscar receta</label>
               <div className="relative">
@@ -317,25 +317,22 @@ function RecetasPage() {
                   placeholder="Por titulo o categoria"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition shadow-sm"
                 />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 xl:gap-4">
-              <button
-                onClick={openNewForm}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-secondary text-white font-medium shadow hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-all"
-              >
+              <button onClick={openNewForm} className="btn-primary">
                 <Plus size={18} />
                 <span>Nueva receta</span>
               </button>
-              <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold text-gray-600 mb-2">Exportar recetario</p>
+              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <p className="panel-title mb-2">Exportar recetario</p>
                 <div className="flex gap-2">
                   <button
                     onClick={handleDownloadAllWord}
                     disabled={!recipes.length}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-white text-xs bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="btn-neutral px-3 py-2 text-xs"
                     title="Descargar en formato Word .docx"
                   >
                     <FileText size={14} />
@@ -344,7 +341,7 @@ function RecetasPage() {
                   <button
                     onClick={handleDownloadAllPdf}
                     disabled={!recipes.length}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-white text-xs bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="btn-danger px-3 py-2 text-xs"
                     title="Descargar en formato PDF"
                   >
                     <FileDown size={14} />
@@ -368,7 +365,7 @@ function RecetasPage() {
                 <button
                   key={recipe.id}
                   onClick={() => setSelectedRecipeId(recipe.id)}
-                  className={`w-full text-left rounded-xl border px-4 py-3 transition ${selectedRecipeId === recipe.id ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-200'}`}
+                  className={`w-full text-left app-surface px-4 py-3 transition ${selectedRecipeId === recipe.id ? 'border-blue-300 bg-blue-50' : 'hover:border-blue-200'}`}
                 >
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{recipe.title || 'Receta sin titulo'}</p>
@@ -385,10 +382,10 @@ function RecetasPage() {
 
           <div className="space-y-6 min-w-0">
             {showForm ? (
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="app-surface p-5 sm:p-6">
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-gray-500 font-medium">Crear nueva</p>
+                    <p className="panel-title mb-1">Crear nueva</p>
                     <h2 className="text-xl font-bold text-gray-900 mt-1">{editingId ? 'Editar receta' : 'Nueva receta'}</h2>
                     <p className="mt-3 text-sm text-gray-600">Los cambios se guardan localmente en este dispositivo.</p>
                   </div>
@@ -449,7 +446,7 @@ function RecetasPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-5">
+                  <div className="border-t border-slate-200 pt-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-semibold text-gray-900">Ingredientes</h3>
                       <button
@@ -464,7 +461,7 @@ function RecetasPage() {
 
                     <div className="space-y-3">
                       {formData.ingredients.map((ingredient) => (
-                        <div key={ingredient.id} className="rounded-xl border border-gray-200 bg-gray-50/70 p-3">
+                        <div key={ingredient.id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[2fr_0.7fr_0.7fr_0.8fr_28px] gap-3">
                             <div className="space-y-2">
                               <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500 leading-none">Ingrediente</label>
@@ -534,10 +531,10 @@ function RecetasPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="mt-3 text-xs text-gray-500">💡 Costo y nota son opcionales. Útiles para compras o recordatorios.</p>
+                    <p className="mt-3 text-xs text-gray-500">Costo y nota son opcionales. Útiles para compras o recordatorios.</p>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-5">
+                  <div className="border-t border-slate-200 pt-5">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-semibold text-gray-900">Proceso</h3>
                       <button
@@ -573,7 +570,7 @@ function RecetasPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-5">
+                  <div className="border-t border-slate-200 pt-5">
                     <label className="block text-sm font-semibold text-gray-900 mb-2">Recomendaciones y notas</label>
                     <textarea
                       value={formData.notes}
@@ -583,20 +580,20 @@ function RecetasPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-200">
+                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-200">
                     <button
                       type="button"
                       onClick={() => {
                         setShowForm(false)
                         resetForm()
                       }}
-                      className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition"
+                      className="btn-neutral"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition shadow-sm"
+                      className="btn-primary"
                     >
                       {editingId ? 'Guardar cambios' : 'Crear receta'}
                     </button>
@@ -605,24 +602,24 @@ function RecetasPage() {
               </div>
             ) : selectedRecipe ? (
               <div className="space-y-6">
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <div className="app-surface p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Receta seleccionada</p>
+                      <p className="panel-title mb-1">Receta seleccionada</p>
                       <h2 className="text-2xl font-semibold text-gray-900 mt-1">{selectedRecipe.title || 'Receta sin titulo'}</h2>
                       <p className="text-sm text-gray-500 mt-2">{selectedRecipe.category || 'Sin categoria'} · {[selectedRecipe.timeMinutes ? `${selectedRecipe.timeMinutes} min` : null, selectedRecipe.servings ? `Raciones: ${selectedRecipe.servings}` : null].filter(Boolean).join(' · ') || 'Tiempo libre'}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEditForm(selectedRecipe)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 text-sm text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-200 transition"
+                        className="btn-primary px-3 py-2 text-sm"
                       >
                         <Edit2 size={16} />
                         Editar
                       </button>
                       <button
                         onClick={() => handleDeleteRecipe(selectedRecipe.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm text-red-600 hover:bg-red-100 focus:ring-2 focus:ring-red-200 transition"
+                        className="btn-danger px-3 py-2 text-sm"
                       >
                         <Trash2 size={16} />
                         Eliminar
@@ -631,22 +628,22 @@ function RecetasPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                      <p className="text-xs text-gray-500">Ingredientes</p>
+                    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                      <p className="panel-title mb-1">Ingredientes</p>
                       <p className="text-sm font-semibold text-gray-900">{selectedRecipe.ingredients.length}</p>
                     </div>
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                      <p className="text-xs text-gray-500">Pasos</p>
+                    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                      <p className="panel-title mb-1">Pasos</p>
                       <p className="text-sm font-semibold text-gray-900">{selectedRecipe.steps.length}</p>
                     </div>
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                      <p className="text-xs text-gray-500">Tiempo</p>
+                    <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                      <p className="panel-title mb-1">Tiempo</p>
                       <p className="text-sm font-semibold text-gray-900">{selectedRecipe.timeMinutes ? `${selectedRecipe.timeMinutes} min` : 'Libre'}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <div className="app-surface p-5 sm:p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <BookOpen size={18} className="text-blue-600" />
                     <h3 className="text-lg font-semibold text-gray-900">Ingredientes</h3>
@@ -655,7 +652,7 @@ function RecetasPage() {
                   {selectedRecipe.ingredients.length === 0 ? (
                     <EmptyState title="Sin ingredientes" description="Agrega ingredientes para ver el detalle." />
                   ) : (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto stable-scroll-x">
                       <table className="min-w-full text-sm">
                         <thead className="text-xs uppercase text-gray-500 border-b">
                           <tr>
@@ -682,7 +679,7 @@ function RecetasPage() {
                   )}
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <div className="app-surface p-5 sm:p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Proceso</h3>
                   {selectedRecipe.steps.length === 0 ? (
                     <EmptyState title="Sin pasos" description="Agrega el proceso para completar la receta." />
@@ -701,18 +698,18 @@ function RecetasPage() {
                 </div>
 
                 {selectedRecipe.notes && (
-                  <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <div className="app-surface p-5 sm:p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Recomendaciones</h3>
                     <p className="text-sm text-gray-600">{selectedRecipe.notes}</p>
                   </div>
                 )}
 
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <div className="app-surface p-5 sm:p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Exportar esta receta</h3>
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => handleDownloadRecipeWord(selectedRecipe)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-300 transition-colors shadow-sm"
+                      className="btn-primary px-4 py-2 text-sm"
                       title="Descargar en formato Word .docx"
                     >
                       <FileText size={16} />
@@ -720,7 +717,7 @@ function RecetasPage() {
                     </button>
                     <button
                       onClick={() => handleDownloadRecipePdf(selectedRecipe)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white text-sm bg-red-500 hover:bg-red-600 focus:ring-2 focus:ring-red-300 transition-colors shadow-sm"
+                      className="btn-danger px-4 py-2 text-sm"
                       title="Descargar en formato PDF"
                     >
                       <FileDown size={16} />

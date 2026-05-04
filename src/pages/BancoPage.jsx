@@ -439,7 +439,7 @@ function BancoPage() {
                         setSelectedProductId(insurance.id)
                         setSelectedProductType('insurance')
                       }}
-                      className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                      className="app-surface p-4 hover:border-blue-200 transition-colors text-left"
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -480,7 +480,7 @@ function BancoPage() {
                           setSelectedProductId(loan.id)
                           setSelectedProductType('loan')
                         }}
-                        className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                        className="app-surface p-4 hover:border-blue-200 transition-colors text-left"
                       >
                         <div className="flex items-center justify-between">
                           <div>
@@ -511,8 +511,8 @@ function BancoPage() {
       if (!insurance) return null
 
       return (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
+        <div className="app-surface">
+          <div className="p-6 border-b border-slate-200">
             <button
               onClick={() => {
                 setSelectedProductId(null)
@@ -553,8 +553,8 @@ function BancoPage() {
       }
 
       return (
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
+        <div className="app-surface">
+          <div className="p-6 border-b border-slate-200">
             <button
               onClick={() => {
                 setSelectedProductId(null)

@@ -1,283 +1,127 @@
 ---
 name: ui-ux-pro-max
-description: "Comprehensive design guide for web applications. Contains 67 styles, 161 color palettes, 57 font pairings, 99 UX guidelines, and 25 chart types. Adapted for the vales-y-prestamos project: React 18 + Vite + Tailwind CSS + Supabase."
+description: "Design guide for the current vales-y-prestamos app: React 18 + Vite + Tailwind CSS + Supabase. Use this prompt for UI updates, responsive fixes, and page-level layout decisions."
 ---
 
 # ui-ux-pro-max — vales-y-prestamos
 
-Comprehensive design guide for web applications. Contains 67 styles, 161 color palettes, 57 font pairings, 99 UX guidelines, and 25 chart types. Searchable database with priority-based recommendations.
-
----
+Use this prompt when working on the current internal management app.
 
 ## Project Context
 
-**App:** Sistema de Vales y Préstamos (internal management tool)
-**Type:** Productivity / Tool — financial management dashboard
-**Target audience:** Internal staff managing loans, vouchers, bank accounts, and personal services
+**App:** Sistema de Vales y Préstamos
+**Type:** Productivity tool / financial management dashboard
+**Audience:** Internal staff managing loans, vouchers, bank accounts, personal services, and recipes
 **Style keywords:** professional, minimal, clean, data-dense, functional
-**Primary colors:** `primary: #1f2937` (dark gray), `secondary: #3b82f6` (blue)
+**Primary colors:** dark gray for surfaces and blue for actions
 
-### Tech Stack (Fixed)
-- **Framework:** React 18 + Vite
-- **Styling:** Tailwind CSS 3 (with custom `primary` and `secondary` tokens)
-- **Icons:** lucide-react
-- **Backend:** Supabase (PostgreSQL + Auth)
-- **Testing:** Vitest
+### Tech Stack
 
-### Pages & Components
-- `ValesPage` — voucher management
-- `BancoPage` — bank/loan management
-- `PersonalPage` — personal services
-- `ConfiguracionPage` — settings
-- Shared: `Sidebar`, `ClientForm`, `LoanForm`, `LoansTable`, `ConfirmModal`, `ClientEditModal`
+- React 18 + Vite
+- Tailwind CSS 3
+- lucide-react
+- Supabase (PostgreSQL + Auth)
+- Vitest
 
----
+### Pages
 
-## Prerequisites
+- `ValesPage` for voucher management
+- `BancoPage` for bank and monthly product management
+- `PersonalPage` for recurring personal services
+- `RecetasPage` for printable recipes and exports
+- `ConfiguracionPage` for operational settings
 
-Check if Python is installed:
+### Shared Components
 
-```bash
-python3 --version || python --version
-```
+- `Sidebar`
+- `ClientForm`
+- `LoanForm`
+- `LoansTable`
+- `ConfirmModal`
+- `ClientEditModal`
+- `BancoClientForm`
+- `BancoLoanForm`
+- `BancoInsuranceForm`
+- `BancoInsuranceTable`
+- `PersonalServiceForm`
+- `PersonalServiceTable`
+- `recipeExport`
 
----
+## Current UI Rules
 
-## How to Use This Workflow
+- Keep page headers compact.
+- Use a small section label above the main `h1`.
+- Keep the `h1` visually dominant, but do not let it float alone without nearby context.
+- If a page feels empty, place a count badge inline with the title instead of a detached card.
+- `RecetasPage` should keep the recipe count close to the title.
+- `PersonalPage` should keep only the service count near the title.
+- Avoid extra KPI cards when they make the page feel disconnected.
+- Keep cards white, bordered, and lightly shadowed.
+- Keep action buttons blue for primary actions and neutral for secondary actions.
+- Keep typography consistent across all pages: same compact label, same `h1` scale, same card radius, same spacing rhythm.
+- `RecetasPage` may feel a little more editorial because of ingredients and steps, but it must still look like part of the same app shell.
+- Do not give `RecetasPage` a completely different visual language, font family, or decorative cookbook style.
+- `RecetasPage` should feel fresh through structure and hierarchy, not through a new theme.
+- `BancoPage` and its modals should stay stable on laptop sizes; avoid fixed blocks that crop when the content changes.
+- In `BancoClientForm`, the existing-client search should stay empty until the user types, then show matches with a fixed-height results area.
 
-Reference this prompt (`#ui-ux-pro-max`) in Copilot Chat when working on any UI task:
+## Responsive Modals and Forms
 
-| Scenario | Trigger Examples | Start From |
-|----------|-----------------|------------|
-| **New page / view** | "Build a dashboard for loans" | Step 1 → Step 2 |
-| **New component** | "Create a payment card" | Step 3 (domain: style, ux) |
-| **Choose style / color** | "What palette fits a finance tool?" | Step 2 (design system) |
-| **Review existing UI** | "Review LoanForm for UX issues" | Quick Reference checklist |
-| **Fix a UI bug** | "Table overflows on mobile" | Quick Reference → layout |
-| **Improve / optimize** | "Make this form cleaner" | Step 3 (domain: ux) |
-| **Add charts / data viz** | "Add a loans overview chart" | Step 3 (domain: chart) |
-| **Stack best practices** | "React performance tips for tables" | Step 4 (stack search) |
+- Modal content must stay usable on laptop screens.
+- Prefer scrollable modal bodies over fixed-height layouts that crop content.
+- Use `max-h` plus `overflow-y-auto` for long forms.
+- Avoid helper callouts that add visual noise if the layout already feels dense.
+- In Banco, the "Usar cliente existente" flow should not open with a full client list.
+- Show matches only after the user types a name or phone number.
+- Keep the search results area at a stable height to avoid layout jumps while typing.
 
----
-
-## Step 1: Analyze Requirements
-
-Extract key information from the request:
-- **Product type:** Productivity / Tool (financial management)
-- **Style keywords:** professional, minimal, data-dense, functional
-- **Stack:** React + Tailwind CSS (this project's fixed stack)
-- **Existing tokens:** `bg-primary` (`#1f2937`), `bg-secondary` / `text-secondary` (`#3b82f6`), `bg-gray-100` (page background), `bg-white` (cards/panels)
-
----
-
-## Step 2: Generate Design System (REQUIRED)
-
-Run this in your terminal and paste the output into Copilot Chat:
-
-```bash
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "financial tool productivity management minimal professional" \
-  --design-system -p "Vales y Préstamos"
-```
-
-To persist the design system for later sessions:
-
-```bash
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "financial tool productivity management minimal professional" \
-  --design-system --persist -p "Vales y Préstamos"
-```
-
-This creates `design-system/MASTER.md`. For page-specific rules:
-
-```bash
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "loan table data-dense management" \
-  --design-system --persist -p "Vales y Préstamos" --page "vales"
-```
-
-**Context-aware retrieval prompt for Copilot:**
-```
-I am building the [Page Name] page. Read design-system/MASTER.md.
-Check if design-system/pages/[page-name].md exists.
-If the page file exists, prioritize its rules. Otherwise use MASTER only.
-```
-
----
-
-## Step 3: Supplement with Detailed Searches
-
-After getting the design system, use domain searches for more detail:
-
-```bash
-# UI styles that fit this app
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "minimalism professional financial" --domain style
-
-# Color palettes for productivity tools
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "productivity saas tool neutral blue" --domain color
-
-# Typography for data-dense interfaces
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "professional readable data-dense" --domain typography
-
-# Chart recommendations for financial data
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "loans financial summary trend comparison" --domain chart
-
-# UX best practices for forms and tables
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "form validation table accessibility loading" --domain ux
-
-# Landing/layout structure
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "dashboard sidebar navigation admin" --domain landing
-```
-
----
-
-## Step 4: Stack Guidelines (React + Tailwind)
-
-Get React implementation-specific best practices:
-
-```bash
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "table list performance memo rerender" --stack react
-
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "form accessibility keyboard validation" --stack html-tailwind
-
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "components theming tokens" --stack shadcn
-```
-
----
-
-## Tailwind Conventions for This Project
-
-Always follow these project-specific rules when generating code:
+## Tailwind Conventions
 
 ```jsx
-// ✅ Use project tokens
-<div className="bg-primary text-white">       // dark header/sidebar
-<button className="bg-secondary text-white">  // primary actions (blue)
+<div className="bg-primary text-white">       // dark header or sidebar
+<button className="bg-secondary text-white">  // primary blue action
 <div className="bg-gray-100">                 // page background
-<div className="bg-white rounded-lg shadow">  // card/panel
-
-// ✅ Standard spacing rhythm (4/8px system)
-className="p-4 gap-4"     // 16px
-className="p-6 gap-6"     // 24px
-className="mb-8"          // section spacing
-
-// ✅ Table pattern used in this project
-<table className="w-full table-striped">
-<thead className="bg-gray-50 text-left text-sm text-gray-600">
-<tbody className="divide-y divide-gray-200">
-
-// ✅ Modal/overlay
-<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-<div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg">
-
-// ❌ Never hardcode hex values — use Tailwind classes or CSS vars
+<div className="bg-white rounded-lg shadow">  // card or panel
 ```
 
----
-
-## Search Reference
-
-| Domain | Use For |
-|--------|---------|
-| `product` | Product type patterns (tool, SaaS, productivity) |
-| `style` | UI styles (minimalism, flat, professional) |
-| `typography` | Font pairings, size scales |
-| `color` | Color palettes by product type |
-| `landing` | Page layout, navigation patterns |
-| `chart` | Chart types for financial data |
-| `ux` | Best practices, accessibility, forms |
-| `prompt` | AI prompts and CSS keyword hints |
-
-| Stack | Focus |
-|-------|-------|
-| `react` | Components, hooks, performance |
-| `html-tailwind` | Utility-first patterns, forms |
-| `shadcn` | Component library best practices |
-
----
-
-## Pre-Delivery Checklist (Web / Desktop)
-
-Before delivering any UI code for this project:
-
-### Visual Quality
-- [ ] Colors only from Tailwind classes (no raw hex in JSX)
-- [ ] Uses `primary` / `secondary` tokens for brand colors
-- [ ] Icons from `lucide-react` only (no emojis as icons)
-- [ ] Consistent icon sizes (`size={16}`, `size={20}`, `size={24}`)
-- [ ] Cards use `bg-white rounded-lg shadow` pattern
-
-### Interaction
-- [ ] Buttons have `hover:` and `focus:` states
-- [ ] Loading states on async operations (disable + spinner)
-- [ ] Form errors shown inline near the field
-- [ ] Modals closeable via Escape key and backdrop click
-
-### Accessibility
-- [ ] Form inputs have visible `<label>` elements
-- [ ] Interactive elements keyboard-navigable
-- [ ] Color not the only indicator (add icons or text for status)
-- [ ] WCAG contrast 4.5:1 for body text
-
-### Layout
-- [ ] Responsive: works at `md:` (768px) and below
-- [ ] Tables scroll horizontally on mobile (`overflow-x-auto`)
-- [ ] Sidebar collapses on mobile (already implemented in `App.jsx`)
-- [ ] No horizontal scrollbar on main content
-
----
-
-## Example Workflow
-
-**Request:** "Add a summary card showing total loans and monthly payments to ValesPage."
-
-### Step 1: Analyze
-- Product: financial productivity tool
-- Component: summary stat card (data visualization)
-- Stack: React + Tailwind
-
-### Step 2: Generate Design System
-```bash
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "financial dashboard stat card summary" --design-system -p "Vales y Préstamos"
+```jsx
+// Standard spacing rhythm
+className="p-4 gap-4"
+className="p-6 gap-6"
+className="mb-8"
 ```
 
-### Step 3: Supplement
-```bash
-# Chart recommendations for summary stats
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "kpi stat card trend" --domain chart
-
-# UX for data cards
-python3 .github/prompts/ui-ux-pro-max/scripts/search.py \
-  "data-dense card layout hierarchy" --domain ux
+```jsx
+// Modal pattern for this app
+<div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center overflow-y-auto p-4 sm:p-6 z-50">
+<div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 w-full max-w-xl max-h-[calc(100vh-2rem)] overflow-y-auto">
 ```
 
-### Step 4: Implement
-Paste the output into Copilot Chat and ask it to generate the component following the design system recommendations and the Tailwind conventions above.
+## Pre-Delivery Checklist
 
----
+- Colors come from Tailwind classes.
+- Buttons have hover and focus states.
+- Inputs have visible labels.
+- Errors appear inline near the field.
+- Modals can be closed with the backdrop or Escape when supported.
+- Layout works at `md:` and below.
+- Tables scroll horizontally on small screens.
+- No horizontal scrollbar on the main content.
+- Search result panels keep stable height while typing.
+- Modal content never gets cropped on laptop screens.
 
-## Tips for Better Results
+## Practical Notes
 
-- Use **multi-dimensional keywords**: `"financial tool minimal data-dense"` not just `"app"`
-- Always run `--design-system` first for full recommendations
-- For implementation, add `--stack react` or `--stack html-tailwind`
-- For dark mode support, search: `--domain style "dark mode professional"`
+- `BancoPage` uses monthly products and a compact, responsive client selector.
+- `RecetasPage` exports recipes to PDF and Word, and the demo recipe is intentionally long enough to test pagination.
+- `PersonalPage` is simplified: one count badge near the title and no extra KPI cards.
+- `RecetasPage` now uses the same title rhythm as the rest of the app, with the count badge inline so it does not feel isolated.
+- Keep the recipe form and export UI clean, readable, and slightly more expressive than the rest, but still grounded in the same design system.
+- Keep the design language consistent with the app current state, not the older version.
 
-| Problem | What to Do |
-|---------|------------|
-| Can't decide on layout | Run `--design-system` with product + style keywords |
-| Form UX is poor | `--domain ux "inline-validation error-clarity focus-management"` |
-| Table feels cluttered | `--domain ux "data-dense table spacing hierarchy"` |
-| Colors feel off | `--domain color "productivity neutral blue"` |
-| Need chart recommendations | `--domain chart "financial comparison summary"` |
+## When in Doubt
+
+- Favor compact headers.
+- Favor stable layouts over decorative blocks.
+- Favor responsive scrollable panels over fixed sizes.
+- Favor clarity over extra text.
