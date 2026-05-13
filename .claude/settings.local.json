@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path . -Depth 2 -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}

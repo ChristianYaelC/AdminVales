@@ -13,7 +13,7 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
     <>
       {/* Overlay para móvil */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/10 md:hidden z-40"
           onClick={onToggle}
         />
@@ -23,18 +23,16 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
       <aside className={`${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } fixed top-0 left-0 md:relative md:translate-x-0 w-72 h-screen transition-transform duration-300 z-50 md:z-auto flex flex-col border-r border-slate-200 bg-white text-slate-900 shadow-sm`}>
-        
+
         {/* Header del Sidebar */}
         <div className="border-b border-slate-200 p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Panel administrativo</p>
               <h1 className="mt-1 text-xl font-semibold tracking-tight">Gestión Integral</h1>
-              
             </div>
-            {/* Icono removido: era decorativo y no funcionaba */}
           </div>
-          <button 
+          <button
             onClick={onToggle}
             className="absolute right-4 top-4 md:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
             aria-label="Cerrar menu lateral"
@@ -73,7 +71,7 @@ function Sidebar({ currentPage, onPageChange, isOpen, onToggle }) {
             <CircleUserRound size={18} className="text-slate-500" />
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Panel principal</p>
-              <p className="truncate text-sm text-slate-700">v1.0.0</p>
+              <p className="truncate text-sm text-slate-700">v1.8.6.7</p>
             </div>
           </div>
         </div>

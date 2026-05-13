@@ -1,0 +1,28 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Runs every 48 hours (Sun, Tue, Thu, Sat at 06:00 UTC)
+    - cron: '0 6 */2 * *'
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+jobs:
+  ping:
+    name: Ping Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}")
+
+          echo "Supabase responded with HTTP $STATUS"
+
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 500 ]; then
+            echo "Unexpected status — project may be paused or unreachable."
+            exit 1
+          fi
+
+          echo "Project is alive."

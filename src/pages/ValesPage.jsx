@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Search, Plus, X, Trash2, Edit2 } from 'lucide-react'
+import { Search, Plus, X, Trash2, Edit2, Users, AlertCircle, Wallet } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
+import { useToast } from '../context/ToastContext'
 import ClientForm from '../components/ClientForm'
 import ClientEditModal from '../components/ClientEditModal'
 import LoanForm from '../components/LoanForm'
@@ -19,6 +20,7 @@ import {
 
 function ValesPage() {
   const { valesClients, setValesClients } = useClients()
+  const { showToast } = useToast()
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditClientForm, setShowEditClientForm] = useState(false)
   const [showLoanForm, setShowLoanForm] = useState(false)
@@ -32,12 +34,6 @@ function ValesPage() {
   const [loanStatusFilter, setLoanStatusFilter] = useState('all')
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingPayment, setPendingPayment] = useState(null)
-  const [feedback, setFeedback] = useState(null)
-
-  const showFeedback = (message, kind = 'success') => {
-    setFeedback({ message, kind })
-    setTimeout(() => setFeedback(null), 2500)
-  }
 
   const generateLocalId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -93,7 +89,7 @@ function ValesPage() {
     setValesClients([...valesClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
-    showFeedback('Cliente guardado correctamente')
+    showToast('Cliente guardado correctamente')
   }
 
   // Agregar nuevo préstamo (usando tabuladores)
@@ -128,7 +124,7 @@ function ValesPage() {
 
     setValesClients(updatedClients)
     setShowLoanForm(false)
-    showFeedback('Préstamo creado correctamente')
+    showToast('Préstamo creado correctamente')
   }
 
   // Actualizar cliente
@@ -164,7 +160,7 @@ function ValesPage() {
     }
 
     setShowEditClientForm(false)
-    showFeedback('Cliente actualizado correctamente')
+    showToast('Cliente actualizado correctamente')
   }
 
   // Eliminar cliente
@@ -316,19 +312,19 @@ function ValesPage() {
         setSelectedClientId(null)
         setSelectedLoanId(null)
       }
-      showFeedback('Cliente eliminado correctamente')
+      showToast('Cliente eliminado correctamente')
     } else if (pendingPayment.type === 'deleteLoan') {
       performDeleteLoan(pendingPayment.loanId)
-      showFeedback('Préstamo eliminado correctamente')
+      showToast('Préstamo eliminado correctamente')
     } else if (pendingPayment.type === 'registerLoanPayment') {
       handleRegisterPayment(pendingPayment.loanId)
-      showFeedback('Pago registrado correctamente')
+      showToast('Pago registrado correctamente')
     } else if (pendingPayment.type === 'paySourceQuincena') {
       handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
-      showFeedback('Quincena pagada correctamente')
+      showToast('Quincena pagada correctamente')
     } else if (pendingPayment.type === 'payAllSources') {
       handlePayAllSources()
-      showFeedback('Se registraron los pagos de todas las fuentes')
+      showToast('Se registraron los pagos de todas las fuentes')
     }
 
     setIsConfirmModalOpen(false)
@@ -350,46 +346,51 @@ function ValesPage() {
           
         </div>
 
-        {feedback && (
-          <div className={`mb-4 rounded-lg border px-4 py-3 text-sm font-medium ${
-            feedback.kind === 'error'
-              ? 'bg-red-50 border-red-200 text-red-700'
-              : 'bg-green-50 border-green-200 text-green-700'
-          }`}>
-            {feedback.message}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="app-surface p-5 kpi-card">
-            <p className="panel-title">Clientes activos</p>
-            <p className="mt-2 text-3xl font-bold text-primary">{valesClients.length}</p>
-            <p className="mt-1 text-sm text-gray-500">Base total registrada</p>
+          <div className="app-surface p-5 kpi-card flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <Users size={22} />
+            </span>
+            <div>
+              <p className="panel-title">Clientes registrados</p>
+              <p className="mt-1 text-3xl font-bold text-slate-900">{valesClients.length}</p>
+              <p className="mt-1 text-sm text-gray-500">Base total registrada</p>
+            </div>
           </div>
-          <div className="app-surface p-5 kpi-card">
-            <p className="panel-title">Prestamos con falta por pagar</p>
-            <p className="mt-2 text-3xl font-bold text-secondary">{activeLoansGlobal}</p>
-            <p className="mt-1 text-sm text-gray-500">Quincenas pendientes por procesar</p>
+          <div className="app-surface p-5 kpi-card flex items-start gap-4">
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${activeLoansGlobal > 0 ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'}`}>
+              <AlertCircle size={22} />
+            </span>
+            <div>
+              <p className="panel-title">Préstamos pendientes</p>
+              <p className={`mt-1 text-3xl font-bold ${activeLoansGlobal > 0 ? 'text-amber-600' : 'text-green-600'}`}>{activeLoansGlobal}</p>
+              <p className="mt-1 text-sm text-gray-500">Quincenas por procesar</p>
+            </div>
           </div>
-          <div className="app-surface p-5 kpi-card">
-            <p className="panel-title">Total pendiente global</p>
-            <p className="mt-2 text-3xl font-bold text-primary">
-              ${totalRemainingGlobal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-            </p>
-            <p className="mt-1 text-sm text-gray-500">Suma de todos los saldos</p>
+          <div className="app-surface p-5 kpi-card flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              <Wallet size={22} />
+            </span>
+            <div>
+              <p className="panel-title">Total pendiente global</p>
+              <p className="mt-1 text-3xl font-bold text-slate-900">
+                ${totalRemainingGlobal.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+              </p>
+              <p className="mt-1 text-sm text-gray-500">Suma de todos los saldos</p>
+            </div>
           </div>
         </div>
 
         {/* Buscador y botón agregar */}
         <div className="mb-6 flex gap-4 flex-col sm:flex-row">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input
               type="text"
               placeholder="Buscar cliente por nombre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             />
           </div>
           <button
@@ -764,13 +765,13 @@ function ValesPage() {
                               
                               {/* Búsqueda por folio */}
                               <div className="mb-4 relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
                                   type="text"
                                   placeholder="Buscar por folio..."
                                   value={searchFolioTerm}
                                   onChange={(e) => setSearchFolioTerm(e.target.value)}
-                                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
+                                  className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition"
                                 />
                               </div>
 

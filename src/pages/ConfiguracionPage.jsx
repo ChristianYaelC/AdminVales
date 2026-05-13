@@ -1,32 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BellRing } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
-import { calculateNextPaymentDate } from '../domain/personal/paymentDates'
 
-const STORAGE_KEY = 'vales_app_settings'
 const RECIPES_STORAGE_KEY = 'vales_recetas'
-
-const defaultSettings = {
-  upcomingWindowDays: '7',
-  graceDays: '0'
-}
 
 function ConfiguracionPage() {
   const { valesClients, bancoClients, personalServices } = useClients()
-  const [settings, setSettings] = useState(defaultSettings)
   const [recipeSummary, setRecipeSummary] = useState({ totalRecipes: 0, totalCategories: 0 })
-
-  useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-
-    try {
-      const parsed = JSON.parse(raw)
-      setSettings(prev => ({ ...prev, ...parsed }))
-    } catch {
-      setSettings(defaultSettings)
-    }
-  }, [])
 
   useEffect(() => {
     const raw = localStorage.getItem(RECIPES_STORAGE_KEY)
@@ -34,7 +13,11 @@ function ConfiguracionPage() {
 
     try {
       const parsedRecipes = JSON.parse(raw)
-      const categories = new Set((Array.isArray(parsedRecipes) ? parsedRecipes : []).map((recipe) => recipe.category).filter(Boolean))
+      const categories = new Set(
+        (Array.isArray(parsedRecipes) ? parsedRecipes : [])
+          .map((recipe) => recipe.category)
+          .filter(Boolean)
+      )
       setRecipeSummary({
         totalRecipes: Array.isArray(parsedRecipes) ? parsedRecipes.length : 0,
         totalCategories: categories.size
@@ -67,58 +50,6 @@ function ConfiguracionPage() {
     }
   }, [bancoClients, personalServices, valesClients])
 
-  const reminders = useMemo(() => {
-    const today = new Date()
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const windowDays = Number(settings.upcomingWindowDays) || 7
-    const graceDays = Number(settings.graceDays) || 0
-
-    return personalServices
-      .map(service => {
-        const nextDate = calculateNextPaymentDate(service)
-        const nextStart = new Date(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate())
-        const msPerDay = 1000 * 60 * 60 * 24
-        const daysDiff = Math.ceil((nextStart - todayStart) / msPerDay)
-
-        let status = 'future'
-        let label = 'Programado'
-        let badgeClass = 'bg-gray-100 text-gray-700 border border-gray-200'
-
-        if (daysDiff < -graceDays) {
-          status = 'overdue'
-          label = 'Vencido'
-          badgeClass = 'bg-rose-50 text-rose-700 border border-rose-200'
-        } else if (daysDiff <= 0) {
-          status = 'today'
-          label = 'Hoy'
-          badgeClass = 'bg-amber-50 text-amber-700 border border-amber-200'
-        } else if (daysDiff <= windowDays) {
-          status = 'upcoming'
-          label = 'Próximo'
-          badgeClass = 'bg-blue-50 text-blue-700 border border-blue-200'
-        }
-
-        return {
-          ...service,
-          nextDate,
-          daysDiff,
-          status,
-          label,
-          badgeClass
-        }
-      })
-      .filter(item => item.status !== 'future')
-      .sort((a, b) => a.daysDiff - b.daysDiff)
-  }, [personalServices, settings.graceDays, settings.upcomingWindowDays])
-
-  const reminderCounters = useMemo(() => {
-    return {
-      overdue: reminders.filter(item => item.status === 'overdue').length,
-      today: reminders.filter(item => item.status === 'today').length,
-      upcoming: reminders.filter(item => item.status === 'upcoming').length
-    }
-  }, [reminders])
-
   return (
     <div className="p-5 bg-gray-50 min-h-full page-enter">
       <div className="max-w-6xl mx-auto space-y-5">
@@ -146,60 +77,6 @@ function ConfiguracionPage() {
             <p className="mt-1 text-xs text-gray-500">{recipeSummary.totalCategories} categorías activas</p>
           </div>
         </div>
-
-        <div className="app-surface p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <BellRing size={18} className="text-blue-600" />
-            <h2 className="text-lg font-bold text-gray-900">Centro de Recordatorios</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-            <div className="rounded-lg border border-rose-200 bg-rose-50/40 px-4 py-3">
-              <p className="text-sm text-rose-700">Vencidos</p>
-              <p className="text-2xl font-bold text-rose-700">{reminderCounters.overdue}</p>
-            </div>
-            <div className="rounded-lg border border-amber-200 bg-amber-50/40 px-4 py-3">
-              <p className="text-sm text-amber-700">Para hoy</p>
-              <p className="text-2xl font-bold text-amber-700">{reminderCounters.today}</p>
-            </div>
-            <div className="rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3">
-              <p className="text-sm text-blue-700">Próximos</p>
-              <p className="text-2xl font-bold text-blue-700">{reminderCounters.upcoming}</p>
-            </div>
-          </div>
-
-          {reminders.length === 0 ? (
-            <p className="text-sm text-gray-500">No hay servicios en riesgo dentro de la ventana configurada.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Servicio</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Monto</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Próxima fecha</th>
-                    <th className="px-3 py-2 text-left font-semibold text-gray-700">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {reminders.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-gray-900 font-medium">{item.name}</td>
-                      <td className="px-3 py-2 text-gray-700">${Number(item.amount).toFixed(2)}</td>
-                      <td className="px-3 py-2 text-gray-700">{item.nextDate.toLocaleDateString('es-MX')}</td>
-                      <td className="px-3 py-2">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${item.badgeClass}`}>
-                          {item.label}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   )

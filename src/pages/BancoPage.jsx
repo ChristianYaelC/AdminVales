@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react'
 import { Search, Plus, Trash2, Edit2 } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
+import { useToast } from '../context/ToastContext'
 import BancoClientForm from '../components/BancoClientForm'
 import ClientEditModal from '../components/ClientEditModal'
 import BancoLoanForm from '../components/BancoLoanForm'
@@ -10,6 +11,7 @@ import ConfirmModal from '../components/ConfirmModal'
 
 function BancoPage() {
   const { valesClients, bancoClients, setBancoClients } = useClients()
+  const { showToast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedClientId, setSelectedClientId] = useState(null)
   const [selectedProductId, setSelectedProductId] = useState(null)
@@ -20,12 +22,6 @@ function BancoPage() {
   const [showLoanForm, setShowLoanForm] = useState(false)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState(null)
-  const [feedback, setFeedback] = useState(null)
-
-  const showFeedback = (message, kind = 'success') => {
-    setFeedback({ message, kind })
-    setTimeout(() => setFeedback(null), 2500)
-  }
 
   const selectedClient = bancoClients.find(client => client.id === selectedClientId)
   const filteredClients = bancoClients.filter(client =>
@@ -63,7 +59,7 @@ function BancoPage() {
     setBancoClients([...bancoClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
-    showFeedback('Cliente guardado correctamente')
+    showToast('Cliente guardado correctamente')
   }
 
   const handleAddInsurance = (insuranceData) => {
@@ -92,7 +88,7 @@ function BancoPage() {
 
     setBancoClients(updatedClients)
     setShowInsuranceForm(false)
-    showFeedback('Seguro creado correctamente')
+    showToast('Seguro creado correctamente')
   }
 
   const handleAddLoan = (loanData) => {
@@ -121,7 +117,7 @@ function BancoPage() {
 
     setBancoClients(updatedClients)
     setShowLoanForm(false)
-    showFeedback('Préstamo creado correctamente')
+    showToast('Préstamo creado correctamente')
   }
 
   const handleRegisterInsurancePayment = (insuranceId, paymentData) => {
@@ -152,7 +148,7 @@ function BancoPage() {
     })
 
     setBancoClients(updatedClients)
-    showFeedback('Pago de seguro registrado correctamente')
+    showToast('Pago de seguro registrado correctamente')
   }
 
   const handleRegisterLoanPayment = (loanId, paymentData) => {
@@ -184,7 +180,7 @@ function BancoPage() {
     })
 
     setBancoClients(updatedClients)
-    showFeedback('Pago de préstamo registrado correctamente')
+    showToast('Pago de préstamo registrado correctamente')
   }
 
   const handleDeleteClient = (clientId) => {
@@ -258,7 +254,7 @@ function BancoPage() {
     }
 
     setShowEditClientForm(false)
-    showFeedback('Cliente actualizado correctamente')
+    showToast('Cliente actualizado correctamente')
   }
 
   const handleConfirmAction = async () => {
@@ -280,7 +276,7 @@ function BancoPage() {
         setSelectedClientId(null)
         setSelectedProductId(null)
       }
-      showFeedback('Cliente eliminado correctamente')
+      showToast('Cliente eliminado correctamente')
     } else if (pendingAction?.type === 'deleteInsurance' && selectedClientId) {
       const updatedClients = bancoClients.map(client => {
         if (client.id !== selectedClientId) return client
@@ -294,7 +290,7 @@ function BancoPage() {
         setSelectedProductId(null)
         setSelectedProductType(null)
       }
-      showFeedback('Seguro eliminado correctamente')
+      showToast('Seguro eliminado correctamente')
     } else if (pendingAction?.type === 'deleteLoan' && selectedClientId) {
       const updatedClients = bancoClients.map(client => {
         if (client.id !== selectedClientId) return client
@@ -308,7 +304,7 @@ function BancoPage() {
         setSelectedProductId(null)
         setSelectedProductType(null)
       }
-      showFeedback('Préstamo eliminado correctamente')
+      showToast('Préstamo eliminado correctamente')
     }
 
     setIsConfirmModalOpen(false)
@@ -590,16 +586,6 @@ function BancoPage() {
             <p className="panel-title mb-1">Monitoreo bancario</p>
             <h1 className="text-3xl font-bold text-gray-900 mb-3">Banco</h1>
           </div>
-
-        {feedback && (
-          <div className={`mb-4 rounded-lg border px-4 py-3 text-sm font-medium ${
-            feedback.kind === 'error'
-              ? 'bg-red-50 border-red-200 text-red-700'
-              : 'bg-green-50 border-green-200 text-green-700'
-          }`}>
-            {feedback.message}
-          </div>
-        )}
 
         {/* Búsqueda y Botón */}
         <div className="mb-6 flex gap-4 flex-col sm:flex-row">
