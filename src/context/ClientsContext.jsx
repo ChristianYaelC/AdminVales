@@ -1,16 +1,32 @@
-import { createContext, useState, useContext } from 'react'
+import { createContext, useState, useContext, useEffect } from 'react'
 
 const ClientsContext = createContext()
 
+function loadFromStorage(key) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
 export function ClientsProvider({ children }) {
-  // Clientes del apartado VALES (con múltiples fuentes)
-  const [valesClients, setValesClients] = useState([])
+  const [valesClients, setValesClients] = useState(() => loadFromStorage('vales_clients'))
+  const [bancoClients, setBancoClients] = useState(() => loadFromStorage('banco_clients'))
+  const [personalServices, setPersonalServices] = useState(() => loadFromStorage('personal_services'))
 
-  // Clientes del apartado BANCO (seguros y préstamos)
-  const [bancoClients, setBancoClients] = useState([])
+  useEffect(() => {
+    localStorage.setItem('vales_clients', JSON.stringify(valesClients))
+  }, [valesClients])
 
-  // Servicios personales (luz, internet, etc.)
-  const [personalServices, setPersonalServices] = useState([])
+  useEffect(() => {
+    localStorage.setItem('banco_clients', JSON.stringify(bancoClients))
+  }, [bancoClients])
+
+  useEffect(() => {
+    localStorage.setItem('personal_services', JSON.stringify(personalServices))
+  }, [personalServices])
 
   // Función para validar que un folio sea único globalmente
   const isFolioUnique = (folio) => {
