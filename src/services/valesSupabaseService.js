@@ -156,6 +156,12 @@ export async function updateLoanCreatedAt(loanId, isoDate) {
   return data
 }
 
+export async function deleteValesLoan(loanId) {
+  const { error } = await supabase.from('loans').delete().eq('id', loanId)
+  if (error) throw error
+  return true
+}
+
 export async function updatePaymentDate(paymentId, isoDate) {
   const { data, error } = await supabase
     .from('loan_payments')

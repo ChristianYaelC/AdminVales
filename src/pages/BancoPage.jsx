@@ -62,14 +62,28 @@ function BancoPage() {
     showToast('Cliente guardado correctamente')
   }
 
-  const handleAddInsurance = (insuranceData) => {
+  const handleAddInsurance = async (insuranceData) => {
     if (!selectedClientId) return
 
+    let newId = generateLocalId()
+
+    try {
+      const { createBancoLoan } = await import('../services/banco/bancoSupabaseService')
+      const persisted = await createBancoLoan({
+        clientId: selectedClientId,
+        name: insuranceData.name,
+        amount: insuranceData.amount,
+        termMonths: insuranceData.termMonths,
+        monthlyPayment: insuranceData.monthlyPayment,
+        productType: 'insurance'
+      })
+      if (persisted) newId = persisted.id
+    } catch (error) {
+      console.warn('No se pudo persistir seguro en Supabase:', error?.message || error)
+    }
+
     const newInsurance = {
-      id: Math.max(
-        ...bancoClients.flatMap(c => c.insurance || []).map(l => l.id),
-        0
-      ) + 1,
+      id: newId,
       ...insuranceData,
       payments: [],
       status: 'active',
@@ -78,10 +92,7 @@ function BancoPage() {
 
     const updatedClients = bancoClients.map(client => {
       if (client.id === selectedClientId) {
-        return {
-          ...client,
-          insurance: [...(client.insurance || []), newInsurance]
-        }
+        return { ...client, insurance: [...(client.insurance || []), newInsurance] }
       }
       return client
     })
@@ -91,14 +102,28 @@ function BancoPage() {
     showToast('Seguro creado correctamente')
   }
 
-  const handleAddLoan = (loanData) => {
+  const handleAddLoan = async (loanData) => {
     if (!selectedClientId) return
 
+    let newId = generateLocalId()
+
+    try {
+      const { createBancoLoan } = await import('../services/banco/bancoSupabaseService')
+      const persisted = await createBancoLoan({
+        clientId: selectedClientId,
+        name: null,
+        amount: loanData.amount,
+        termMonths: loanData.termMonths,
+        monthlyPayment: loanData.monthlyPayment,
+        productType: 'loan'
+      })
+      if (persisted) newId = persisted.id
+    } catch (error) {
+      console.warn('No se pudo persistir préstamo en Supabase:', error?.message || error)
+    }
+
     const newLoan = {
-      id: Math.max(
-        ...bancoClients.flatMap(c => c.loans || []).map(l => l.id),
-        0
-      ) + 1,
+      id: newId,
       ...loanData,
       payments: [],
       status: 'active',
@@ -107,10 +132,7 @@ function BancoPage() {
 
     const updatedClients = bancoClients.map(client => {
       if (client.id === selectedClientId) {
-        return {
-          ...client,
-          loans: [...(client.loans || []), newLoan]
-        }
+        return { ...client, loans: [...(client.loans || []), newLoan] }
       }
       return client
     })
@@ -120,67 +142,83 @@ function BancoPage() {
     showToast('Préstamo creado correctamente')
   }
 
-  const handleRegisterInsurancePayment = (insuranceId, paymentData) => {
+  const handleRegisterInsurancePayment = async (insuranceId, paymentData) => {
     if (!selectedClientId) return
+
+    const insurance = selectedClient?.insurance?.find(i => i.id === insuranceId)
+    const paymentNumber = (insurance?.payments || []).length + 1
+    const totalPaidSoFar = (insurance?.payments || []).reduce((sum, p) => sum + Number(p.amount || 0), 0)
+    const previousBalance = Number((Number(insurance?.amount || 0) - totalPaidSoFar).toFixed(2))
 
     const updatedClients = bancoClients.map(client => {
       if (client.id !== selectedClientId) return client
-
-      const updatedInsurance = (client.insurance || []).map(insurance => {
-        if (insurance.id === insuranceId) {
-          const payments = [...(insurance.payments || []), paymentData]
+      const updatedInsurance = (client.insurance || []).map(ins => {
+        if (ins.id === insuranceId) {
+          const payments = [...(ins.payments || []), paymentData]
           const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0)
-          const status = totalPaid >= insurance.amount ? 'completed' : 'active'
-
-          return {
-            ...insurance,
-            payments,
-            status
-          }
+          const status = totalPaid >= ins.amount ? 'completed' : 'active'
+          return { ...ins, payments, status }
         }
-        return insurance
+        return ins
       })
-
-      return {
-        ...client,
-        insurance: updatedInsurance
-      }
+      return { ...client, insurance: updatedInsurance }
     })
-
     setBancoClients(updatedClients)
     showToast('Pago de seguro registrado correctamente')
+
+    if (!String(insuranceId).startsWith('local-')) {
+      try {
+        const { registerBancoPayment } = await import('../services/banco/bancoSupabaseService')
+        await registerBancoPayment({
+          loanId: insuranceId,
+          paymentNumber,
+          amountPaid: paymentData.amount,
+          previousBalance
+        })
+      } catch (error) {
+        console.warn('No se pudo registrar pago de seguro en Supabase:', error?.message || error)
+      }
+    }
   }
 
-  const handleRegisterLoanPayment = (loanId, paymentData) => {
+  const handleRegisterLoanPayment = async (loanId, paymentData) => {
     if (!selectedClientId) return
+
+    const loan = selectedClient?.loans?.find(l => l.id === loanId)
+    const paymentNumber = (loan?.payments || []).length + 1
+    const totalPaidSoFar = (loan?.payments || []).reduce((sum, p) => sum + Number(p.amount || 0), 0)
+    const previousBalance = Number((Number(loan?.amount || 0) - totalPaidSoFar).toFixed(2))
 
     const updatedClients = bancoClients.map(client => {
       if (client.id !== selectedClientId) return client
-
-      const updatedLoans = (client.loans || []).map(loan => {
-        if (loan.id === loanId && loan.status !== 'completed') {
-          const payments = [...(loan.payments || []), paymentData]
+      const updatedLoans = (client.loans || []).map(l => {
+        if (l.id === loanId && l.status !== 'completed') {
+          const payments = [...(l.payments || []), paymentData]
           const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0)
-          const totalMonths = loan.termMonths || loan.term || 1
-          const status = totalPaid >= loan.amount || payments.length >= totalMonths ? 'completed' : 'active'
-
-          return {
-            ...loan,
-            payments,
-            status
-          }
+          const totalMonths = l.termMonths || l.term || 1
+          const status = totalPaid >= l.amount || payments.length >= totalMonths ? 'completed' : 'active'
+          return { ...l, payments, status }
         }
-        return loan
+        return l
       })
-
-      return {
-        ...client,
-        loans: updatedLoans
-      }
+      return { ...client, loans: updatedLoans }
     })
-
     setBancoClients(updatedClients)
     showToast('Pago de préstamo registrado correctamente')
+
+    if (!String(loanId).startsWith('local-')) {
+      try {
+        const { registerBancoPayment } = await import('../services/banco/bancoSupabaseService')
+        await registerBancoPayment({
+          loanId,
+          paymentNumber,
+          amountPaid: paymentData.amount,
+          previousBalance
+        })
+      } catch (error) {
+        console.warn('No se pudo registrar pago de préstamo en Supabase:', error?.message || error)
+      }
+    }
   }
 
   const handleDeleteClient = (clientId) => {
@@ -278,6 +316,14 @@ function BancoPage() {
       }
       showToast('Cliente eliminado correctamente')
     } else if (pendingAction?.type === 'deleteInsurance' && selectedClientId) {
+      if (!String(pendingAction.insuranceId).startsWith('local-')) {
+        try {
+          const { deleteBancoLoan } = await import('../services/banco/bancoSupabaseService')
+          await deleteBancoLoan(pendingAction.insuranceId)
+        } catch (error) {
+          console.warn('No se pudo eliminar seguro en Supabase:', error?.message || error)
+        }
+      }
       const updatedClients = bancoClients.map(client => {
         if (client.id !== selectedClientId) return client
         return {
@@ -292,6 +338,14 @@ function BancoPage() {
       }
       showToast('Seguro eliminado correctamente')
     } else if (pendingAction?.type === 'deleteLoan' && selectedClientId) {
+      if (!String(pendingAction.loanId).startsWith('local-')) {
+        try {
+          const { deleteBancoLoan } = await import('../services/banco/bancoSupabaseService')
+          await deleteBancoLoan(pendingAction.loanId)
+        } catch (error) {
+          console.warn('No se pudo eliminar préstamo en Supabase:', error?.message || error)
+        }
+      }
       const updatedClients = bancoClients.map(client => {
         if (client.id !== selectedClientId) return client
         return {

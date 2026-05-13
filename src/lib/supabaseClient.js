@@ -40,3 +40,17 @@ if (supabaseUrl && supabaseAnonKey) {
 
 export const supabase = _supabase
 export { isSupabaseConfigured }
+
+export async function ensureAnonAuth() {
+  if (!isSupabaseConfigured) return null
+  try {
+    const { data: { session } } = await _supabase.auth.getSession()
+    if (session) return session.user
+    const { data, error } = await _supabase.auth.signInAnonymously()
+    if (error) { console.warn('Sesión anónima fallida:', error.message); return null }
+    return data.user
+  } catch (e) {
+    console.warn('Error en auth anónima:', e)
+    return null
+  }
+}

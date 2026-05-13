@@ -93,11 +93,32 @@ function ValesPage() {
   }
 
   // Agregar nuevo préstamo (usando tabuladores)
-  const handleAddLoan = (loanData) => {
+  const handleAddLoan = async (loanData) => {
     if (!selectedClientId) return
 
+    let newLoanId = generateLocalId()
+
+    try {
+      const { createValesLoan } = await import('../services/valesSupabaseService')
+      const persisted = await createValesLoan({
+        clientId: selectedClientId,
+        folio: loanData.folio,
+        source: loanData.source,
+        amount: loanData.amount,
+        term: loanData.term,
+        basePayment: loanData.basePayment,
+        insurance: loanData.insurance || 0,
+        insuranceMode: loanData.insuranceMode || 'none',
+        finalPayment: loanData.finalPayment,
+        createdAtMx: new Date().toLocaleDateString('es-MX')
+      })
+      if (persisted) newLoanId = persisted.id
+    } catch (error) {
+      console.warn('No se pudo persistir préstamo en Supabase:', error?.message || error)
+    }
+
     const newLoan = {
-      id: Math.max(...valesClients.flatMap(c => c.loans).map(l => l.id), 0) + 1,
+      id: newLoanId,
       folio: loanData.folio,
       source: loanData.source,
       amount: loanData.amount,
@@ -108,16 +129,13 @@ function ValesPage() {
       currentPayment: 0,
       totalPayments: loanData.term,
       payments: [],
-      status: 'active', // 'active', 'completed'
+      status: 'active',
       createdAt: new Date().toLocaleDateString('es-MX')
     }
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        return {
-          ...client,
-          loans: [...client.loans, newLoan]
-        }
+        return { ...client, loans: [...client.loans, newLoan] }
       }
       return client
     })
@@ -175,18 +193,25 @@ function ValesPage() {
   }
 
   // Registrar pago
-  const handleRegisterPayment = (loanId) => {
+  const handleRegisterPayment = async (loanId) => {
     if (!selectedClient) return
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        const updatedLoans = registerPaymentForLoanId(client.loans, loanId)
-        return { ...client, loans: updatedLoans }
+        return { ...client, loans: registerPaymentForLoanId(client.loans, loanId) }
       }
       return client
     })
-
     setValesClients(updatedClients)
+
+    if (!String(loanId).startsWith('local-')) {
+      try {
+        const { registerNextQuincenaPayment } = await import('../services/valesSupabaseService')
+        await registerNextQuincenaPayment(loanId)
+      } catch (error) {
+        console.warn('No se pudo registrar pago en Supabase:', error?.message || error)
+      }
+    }
   }
 
   const handleRequestRegisterPayment = (loanId) => {
@@ -223,15 +248,21 @@ function ValesPage() {
     setIsConfirmModalOpen(true)
   }
 
-  const performDeleteLoan = (loanId) => {
+  const performDeleteLoan = async (loanId) => {
     if (!selectedClientId) return
+
+    if (!String(loanId).startsWith('local-')) {
+      try {
+        const { deleteValesLoan } = await import('../services/valesSupabaseService')
+        await deleteValesLoan(loanId)
+      } catch (error) {
+        console.warn('No se pudo eliminar préstamo en Supabase:', error?.message || error)
+      }
+    }
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        return {
-          ...client,
-          loans: client.loans.filter(l => l.id !== loanId)
-        }
+        return { ...client, loans: client.loans.filter(l => l.id !== loanId) }
       }
       return client
     })
@@ -253,33 +284,59 @@ function ValesPage() {
     return getSourceTotalRemaining(clientLoans, source)
   }
 
-  const handlePaySourceQuincena = (source, quincena) => {
+  const handlePaySourceQuincena = async (source, quincena) => {
     if (!selectedClient) return
+
+    const affectedIds = (selectedClient.loans || [])
+      .filter(l => l.source === source && l.currentPayment + 1 === quincena && l.status === 'active')
+      .map(l => l.id)
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        const updatedLoans = registerPaymentForSourceQuincena(client.loans, source, quincena)
-        return { ...client, loans: updatedLoans }
+        return { ...client, loans: registerPaymentForSourceQuincena(client.loans, source, quincena) }
       }
       return client
     })
-
     setValesClients(updatedClients)
+
+    try {
+      const { registerNextQuincenaPayment } = await import('../services/valesSupabaseService')
+      for (const loanId of affectedIds) {
+        if (!String(loanId).startsWith('local-')) {
+          await registerNextQuincenaPayment(loanId)
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo registrar pago de quincena en Supabase:', error?.message || error)
+    }
   }
 
   // Pagar todas las fuentes en sus respectivas quincenas
-  const handlePayAllSources = () => {
+  const handlePayAllSources = async () => {
     if (!selectedClient) return
+
+    const affectedIds = (selectedClient.loans || [])
+      .filter(l => l.status === 'active')
+      .map(l => l.id)
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        const updatedLoans = registerPaymentsForAllActiveLoans(client.loans)
-        return { ...client, loans: updatedLoans }
+        return { ...client, loans: registerPaymentsForAllActiveLoans(client.loans) }
       }
       return client
     })
-
     setValesClients(updatedClients)
+
+    try {
+      const { registerNextQuincenaPayment } = await import('../services/valesSupabaseService')
+      for (const loanId of affectedIds) {
+        if (!String(loanId).startsWith('local-')) {
+          await registerNextQuincenaPayment(loanId)
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo registrar pagos en Supabase:', error?.message || error)
+    }
   }
 
   const getTotalActivePayments = (clientLoans) => {
@@ -314,16 +371,16 @@ function ValesPage() {
       }
       showToast('Cliente eliminado correctamente')
     } else if (pendingPayment.type === 'deleteLoan') {
-      performDeleteLoan(pendingPayment.loanId)
+      await performDeleteLoan(pendingPayment.loanId)
       showToast('Préstamo eliminado correctamente')
     } else if (pendingPayment.type === 'registerLoanPayment') {
-      handleRegisterPayment(pendingPayment.loanId)
+      await handleRegisterPayment(pendingPayment.loanId)
       showToast('Pago registrado correctamente')
     } else if (pendingPayment.type === 'paySourceQuincena') {
-      handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
+      await handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
       showToast('Quincena pagada correctamente')
     } else if (pendingPayment.type === 'payAllSources') {
-      handlePayAllSources()
+      await handlePayAllSources()
       showToast('Se registraron los pagos de todas las fuentes')
     }
 

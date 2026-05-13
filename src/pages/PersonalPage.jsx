@@ -8,9 +8,21 @@ function PersonalPage() {
   const { personalServices, setPersonalServices } = useClients()
   const [showAddForm, setShowAddForm] = useState(false)
 
-  const handleAddService = (serviceData) => {
+  const generateLocalId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+  const handleAddService = async (serviceData) => {
+    let newId = generateLocalId()
+
+    try {
+      const { createPersonalService } = await import('../services/personalSupabaseService')
+      const persisted = await createPersonalService(serviceData)
+      if (persisted) newId = persisted.id
+    } catch (error) {
+      console.warn('No se pudo persistir servicio en Supabase:', error?.message || error)
+    }
+
     const newService = {
-      id: Math.max(...personalServices.map(s => s.id), 0) + 1,
+      id: newId,
       ...serviceData,
       lastPaymentDate: null,
       createdAt: new Date().toISOString()
@@ -19,33 +31,47 @@ function PersonalPage() {
     setShowAddForm(false)
   }
 
-  const handleUpdateServiceAmount = (serviceId, newAmount) => {
-    const updatedServices = personalServices.map(service => {
-      if (service.id === serviceId) {
-        return {
-          ...service,
-          amount: newAmount
-        }
-      }
-      return service
-    })
+  const handleUpdateServiceAmount = async (serviceId, newAmount) => {
+    const updatedServices = personalServices.map(service =>
+      service.id === serviceId ? { ...service, amount: newAmount } : service
+    )
     setPersonalServices(updatedServices)
+
+    if (!String(serviceId).startsWith('local-')) {
+      try {
+        const { updatePersonalServiceAmount } = await import('../services/personalSupabaseService')
+        await updatePersonalServiceAmount(serviceId, newAmount)
+      } catch (error) {
+        console.warn('No se pudo actualizar monto en Supabase:', error?.message || error)
+      }
+    }
   }
 
-  const handleRegisterPayment = (serviceId, paymentData) => {
-    const updatedServices = personalServices.map(service => {
-      if (service.id === serviceId) {
-        return {
-          ...service,
-          lastPaymentDate: paymentData.date
-        }
-      }
-      return service
-    })
+  const handleRegisterPayment = async (serviceId, paymentData) => {
+    const updatedServices = personalServices.map(service =>
+      service.id === serviceId ? { ...service, lastPaymentDate: paymentData.date } : service
+    )
     setPersonalServices(updatedServices)
+
+    if (!String(serviceId).startsWith('local-')) {
+      try {
+        const { updatePersonalServicePayment } = await import('../services/personalSupabaseService')
+        await updatePersonalServicePayment(serviceId, paymentData.date)
+      } catch (error) {
+        console.warn('No se pudo registrar pago de servicio en Supabase:', error?.message || error)
+      }
+    }
   }
 
-  const handleDeleteService = (serviceId) => {
+  const handleDeleteService = async (serviceId) => {
+    if (!String(serviceId).startsWith('local-')) {
+      try {
+        const { deletePersonalService } = await import('../services/personalSupabaseService')
+        await deletePersonalService(serviceId)
+      } catch (error) {
+        console.warn('No se pudo eliminar servicio en Supabase:', error?.message || error)
+      }
+    }
     setPersonalServices(personalServices.filter(s => s.id !== serviceId))
   }
 
