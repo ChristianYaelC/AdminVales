@@ -2,9 +2,8 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Runs every 48 hours (Sun, Tue, Thu, Sat at 06:00 UTC)
     - cron: '0 6 */2 * *'
-  workflow_dispatch: # allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   ping:
@@ -12,17 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Health check
+        env:
+          SUPABASE_URL: ${{ secrets.KEEP_ALIVE }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.VITE_SUPABASE_ANON_KEY }}")
-
-          echo "Supabase responded with HTTP $STATUS"
-
-          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 500 ]; then
-            echo "Unexpected status — project may be paused or unreachable."
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "ERROR: Secret KEEP_ALIVE no configurado. Agrega la URL de Supabase como valor."
             exit 1
           fi
 
-          echo "Project is alive."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SUPABASE_URL}/rest/v1/")
+
+          echo "Supabase respondio con HTTP $STATUS"
+
+          if [ "$STATUS" = "000" ] || [ "$STATUS" -ge 500 ]; then
+            echo "El proyecto puede estar pausado o no disponible."
+            exit 1
+          fi
+
+          echo "Proyecto activo (HTTP $STATUS)."
