@@ -81,6 +81,14 @@ export const registerPaymentForLoanId = (loans, loanId, date = new Date().toLoca
   return loans.map((loan) => (loan.id === loanId ? registerNextPayment(loan, date) : loan))
 }
 
+export const registerMultiplePaymentsForLoanId = (loans, loanId, count, date = new Date().toLocaleDateString('es-MX')) => {
+  let result = loans
+  for (let i = 0; i < count; i++) {
+    result = registerPaymentForLoanId(result, loanId, date)
+  }
+  return result
+}
+
 export const registerPaymentForSourceQuincena = (
   loans,
   source,

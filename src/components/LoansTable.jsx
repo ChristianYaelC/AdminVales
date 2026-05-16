@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Check, Trash2, Edit2, AlertCircle, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Check, Trash2, Edit2, AlertCircle, X, Minus, Plus } from 'lucide-react'
 import {
   isLoanCompleted,
   getRemainingPayments,
@@ -13,6 +13,9 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
   const [isEditingCreatedAt, setIsEditingCreatedAt] = useState(false)
   const [createdAtInput, setCreatedAtInput] = useState('')
   const [completionMessage, setCompletionMessage] = useState('')
+  const [quinceCount, setQuinceCount] = useState(1)
+
+  useEffect(() => { setQuinceCount(1) }, [loan.id])
 
   const isCompleted = isLoanCompleted(loan)
   const paymentHistory = loan.payments || []
@@ -66,7 +69,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       return
     }
 
-    onPaymentRegister()
+    onPaymentRegister(quinceCount)
   }
 
   const handleStartEditCreatedAt = () => {
@@ -107,6 +110,15 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
             <p className="text-xs text-gray-600 font-semibold">FOLIO</p>
             <p className="text-lg font-bold text-blue-600">{loan.folio}</p>
           </div>
+          {onDeleteLoan && (
+            <button
+              onClick={() => onDeleteLoan()}
+              className="flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+            >
+              <Trash2 size={16} />
+              Eliminar Préstamo
+            </button>
+          )}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
@@ -265,16 +277,46 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
       {/* Formulario para registrar nuevo pago */}
       {!isCompleted && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h4 className="font-bold text-gray-900 mb-2">Registrar Pago - Quincena {displayQuincena}</h4>
+          <h4 className="font-bold text-gray-900 mb-1">Registrar Pago</h4>
           <p className="text-sm text-gray-600 mb-4">
-            Monto fijo por quincena: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            Monto por quincena: ${loan.finalPayment.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
           </p>
+
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className="text-sm font-medium text-gray-700">Quincenas a registrar:</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setQuinceCount(c => Math.max(1, c - 1))}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition-colors"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="w-8 text-center font-bold text-gray-900">{quinceCount}</span>
+              <button
+                onClick={() => setQuinceCount(c => Math.min(remainingPayments, c + 1))}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition-colors"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+            <span className="text-xs text-gray-500">de {remainingPayments} restantes</span>
+          </div>
+
+          {quinceCount > 1 && (
+            <p className="text-sm font-semibold text-blue-700 mb-4">
+              Total: ${(quinceCount * loan.finalPayment).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+              {' '}(quincenas {displayQuincena} a {Math.min(displayQuincena + quinceCount - 1, loan.totalPayments)})
+            </p>
+          )}
+
           <button
             onClick={handlePaymentSubmit}
             className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
           >
             <Check size={18} />
-            Registrar
+            {quinceCount === 1
+              ? `Registrar Quincena ${displayQuincena}`
+              : `Registrar ${quinceCount} Quincenas`}
           </button>
         </div>
       )}

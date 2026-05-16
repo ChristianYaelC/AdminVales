@@ -13,7 +13,7 @@ import {
   getSourceTotalRemaining,
   getAllSourcesCurrentTotal,
   getAllSourcesRemainingTotal,
-  registerPaymentForLoanId,
+  registerMultiplePaymentsForLoanId,
   registerPaymentForSourceQuincena,
   registerPaymentsForAllActiveLoans
 } from '../domain/vales/loanCalculations'
@@ -193,12 +193,12 @@ function ValesPage() {
   }
 
   // Registrar pago
-  const handleRegisterPayment = async (loanId) => {
+  const handleRegisterPayment = async (loanId, count = 1) => {
     if (!selectedClient) return
 
     const updatedClients = valesClients.map(client => {
       if (client.id === selectedClientId) {
-        return { ...client, loans: registerPaymentForLoanId(client.loans, loanId) }
+        return { ...client, loans: registerMultiplePaymentsForLoanId(client.loans, loanId, count) }
       }
       return client
     })
@@ -207,27 +207,37 @@ function ValesPage() {
     if (!String(loanId).startsWith('local-')) {
       try {
         const { registerNextQuincenaPayment } = await import('../services/valesSupabaseService')
-        await registerNextQuincenaPayment(loanId)
+        for (let i = 0; i < count; i++) {
+          await registerNextQuincenaPayment(loanId)
+        }
       } catch (error) {
         console.warn('No se pudo registrar pago en Supabase:', error?.message || error)
       }
     }
   }
 
-  const handleRequestRegisterPayment = (loanId) => {
+  const handleRequestRegisterPayment = (loanId, count = 1) => {
     if (!selectedClient) return
 
     const loan = selectedClient.loans.find(l => l.id === loanId)
     if (!loan || loan.currentPayment >= loan.totalPayments) return
 
-    const displayQuincena = loan.currentPayment + 1
+    const fromQuincena = loan.currentPayment + 1
+    const remaining = loan.totalPayments - loan.currentPayment
+    const actualCount = Math.min(count, remaining)
+    const toQuincena = fromQuincena + actualCount - 1
+
+    const message = actualCount === 1
+      ? `¿Deseas registrar la quincena ${fromQuincena} del folio "${loan.folio}"?`
+      : `¿Deseas registrar las quincenas ${fromQuincena} a ${toQuincena} del folio "${loan.folio}"?`
 
     setPendingPayment({
       type: 'registerLoanPayment',
       loanId,
+      count: actualCount,
       title: 'Registrar Pago',
-      message: `¿Deseas registrar la quincena ${displayQuincena} del folio "${loan.folio}"?`,
-      amount: loan.finalPayment
+      message,
+      amount: actualCount * loan.finalPayment
     })
     setIsConfirmModalOpen(true)
   }
@@ -374,8 +384,8 @@ function ValesPage() {
       await performDeleteLoan(pendingPayment.loanId)
       showToast('Préstamo eliminado correctamente')
     } else if (pendingPayment.type === 'registerLoanPayment') {
-      await handleRegisterPayment(pendingPayment.loanId)
-      showToast('Pago registrado correctamente')
+      await handleRegisterPayment(pendingPayment.loanId, pendingPayment.count || 1)
+      showToast(pendingPayment.count > 1 ? `${pendingPayment.count} quincenas registradas` : 'Pago registrado correctamente')
     } else if (pendingPayment.type === 'paySourceQuincena') {
       await handlePaySourceQuincena(pendingPayment.source, pendingPayment.quincena)
       showToast('Quincena pagada correctamente')
@@ -775,7 +785,7 @@ function ValesPage() {
                               </button>
                               <LoansTable
                                 loan={selectedClient.loans.find(l => l.id === selectedLoanId)}
-                                onPaymentRegister={() => handleRequestRegisterPayment(selectedLoanId)}
+                                onPaymentRegister={(count) => handleRequestRegisterPayment(selectedLoanId, count)}
                                 onUpdateClient={(updatedLoan) => {
                                   const updatedLoans = selectedClient.loans.map(l =>
                                     l.id === selectedLoanId ? updatedLoan : l
