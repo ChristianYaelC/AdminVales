@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react'
-import { supabase, ensureAnonAuth, isSupabaseConfigured } from '../lib/supabaseClient'
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
 
 const ClientsContext = createContext()
 
@@ -116,7 +116,6 @@ export function ClientsProvider({ children }) {
     let cancelled = false
 
     const loadAll = async () => {
-      await ensureAnonAuth()
       if (cancelled) return
 
       const [valesRes, bancoRes, servicesRes] = await Promise.all([
