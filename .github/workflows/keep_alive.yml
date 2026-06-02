@@ -13,18 +13,21 @@ jobs:
       - name: Health check
         env:
           SUPABASE_URL: ${{ secrets.KEEP_ALIVE }}
+          # Es muy recomendable que guardes también tu anon_key en los secretos de GitHub
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }} 
         run: |
           if [ -z "$SUPABASE_URL" ]; then
             echo "ERROR: Secret KEEP_ALIVE no configurado. Agrega la URL de Supabase como valor."
             exit 1
           fi
 
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${SUPABASE_URL}/rest/v1/")
+          # Realizamos la petición incluyendo la apikey para evitar errores de autenticación
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "apikey: ${SUPABASE_ANON_KEY}" "${SUPABASE_URL}/rest/v1/")
 
           echo "Supabase respondio con HTTP $STATUS"
 
-          if [ "$STATUS" = "000" ] || [ "$STATUS" -ge 500 ]; then
-            echo "El proyecto puede estar pausado o no disponible."
+          if [ "$STATUS" = "000" ] || [ "$STATUS" -ge 400 ]; then
+            echo "El proyecto puede estar pausado, no disponible o hubo un error de configuracion."
             exit 1
           fi
 
