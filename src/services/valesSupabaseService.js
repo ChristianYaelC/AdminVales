@@ -1,4 +1,4 @@
-import { supabase, ensureSupabaseSession } from '../lib/supabaseClient'
+import { supabase, ensureSupabaseSession, getSupabaseUserId } from '../lib/supabaseClient'
 
 const parseMxDateToIso = (mxDate) => {
   if (!mxDate) return null
@@ -12,9 +12,11 @@ const parseMxDateToIso = (mxDate) => {
 
 export async function createValesClient({ name, phone, address }) {
   await ensureSupabaseSession()
+  const ownerId = await getSupabaseUserId()
   const { data, error } = await supabase
     .from('clients')
     .insert({
+      owner_id: ownerId,
       area: 'vales',
       name: name.trim(),
       phone: phone?.trim() || null,
@@ -65,9 +67,11 @@ export async function createValesLoan({
   createdAtMx
 }) {
   await ensureSupabaseSession()
+  const ownerId = await getSupabaseUserId()
   const { data, error } = await supabase
     .from('loans')
     .insert({
+      owner_id: ownerId,
       client_id: clientId,
       area: 'vales',
       folio,

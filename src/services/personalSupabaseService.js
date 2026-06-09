@@ -1,10 +1,11 @@
-import { supabase, ensureSupabaseSession } from '../lib/supabaseClient'
+import { supabase, ensureSupabaseSession, getSupabaseUserId } from '../lib/supabaseClient'
 
 export async function createPersonalService({ name, amount, dueDay, frequency, frequencyDays }) {
   await ensureSupabaseSession()
+  const ownerId = await getSupabaseUserId()
   const { data, error } = await supabase
     .from('personal_services')
-    .insert({ name: name.trim(), amount, due_day: dueDay, frequency, frequency_days: frequencyDays || null })
+    .insert({ owner_id: ownerId, name: name.trim(), amount, due_day: dueDay, frequency, frequency_days: frequencyDays || null })
     .select()
     .single()
   if (error) throw error

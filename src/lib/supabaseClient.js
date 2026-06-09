@@ -68,3 +68,15 @@ export async function ensureSupabaseSession() {
 
   return _sessionPromise
 }
+
+export async function getSupabaseUserId() {
+  await ensureSupabaseSession()
+  const { data, error } = await supabase.auth.getUser()
+
+  if (error) throw error
+  if (!data?.user?.id) {
+    throw new Error('No hay usuario Supabase activo')
+  }
+
+  return data.user.id
+}

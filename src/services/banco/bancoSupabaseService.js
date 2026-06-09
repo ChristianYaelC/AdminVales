@@ -1,10 +1,12 @@
-import { supabase, ensureSupabaseSession } from '../../lib/supabaseClient'
+import { supabase, ensureSupabaseSession, getSupabaseUserId } from '../../lib/supabaseClient'
 
 export async function createBancoLoan({ clientId, name, amount, termMonths, monthlyPayment, productType }) {
   await ensureSupabaseSession()
+  const ownerId = await getSupabaseUserId()
   const { data, error } = await supabase
     .from('loans')
     .insert({
+      owner_id: ownerId,
       client_id: clientId,
       area: 'banco',
       product_type: productType,

@@ -1,4 +1,4 @@
-import { supabase, ensureSupabaseSession } from '../lib/supabaseClient'
+import { supabase, ensureSupabaseSession, getSupabaseUserId } from '../lib/supabaseClient'
 
 function mapRecipe(recipeRow, ingredientRows = [], stepRows = []) {
   return {
@@ -36,6 +36,7 @@ function toRecipeRow(recipe) {
 
 function toIngredientRows(recipeId, ingredients) {
   return ingredients.map((ingredient, index) => ({
+    owner_id: null,
     recipe_id: recipeId,
     position: index + 1,
     name: ingredient.name.trim(),
@@ -48,6 +49,7 @@ function toIngredientRows(recipeId, ingredients) {
 
 function toStepRows(recipeId, steps) {
   return steps.map((step, index) => ({
+    owner_id: null,
     recipe_id: recipeId,
     position: index + 1,
     text: step.text.trim()
@@ -90,6 +92,7 @@ export async function loadRecipes() {
 
 export async function saveRecipe(recipe, recipeId = null) {
   await ensureSupabaseSession()
+  const ownerId = await getSupabaseUserId()
 
   if (recipeId) {
     const { error: updateError } = await supabase
@@ -105,13 +108,13 @@ export async function saveRecipe(recipe, recipeId = null) {
     const { error: deleteStepsError } = await supabase.from('recipe_steps').delete().eq('recipe_id', recipeId)
     if (deleteStepsError) throw deleteStepsError
 
-    const ingredientRows = toIngredientRows(recipeId, recipe.ingredients || [])
+    const ingredientRows = toIngredientRows(recipeId, recipe.ingredients || []).map((row) => ({ ...row, owner_id: ownerId }))
     if (ingredientRows.length) {
       const { error: ingredientsInsertError } = await supabase.from('recipe_ingredients').insert(ingredientRows)
       if (ingredientsInsertError) throw ingredientsInsertError
     }
 
-    const stepRows = toStepRows(recipeId, recipe.steps || [])
+    const stepRows = toStepRows(recipeId, recipe.steps || []).map((row) => ({ ...row, owner_id: ownerId }))
     if (stepRows.length) {
       const { error: stepsInsertError } = await supabase.from('recipe_steps').insert(stepRows)
       if (stepsInsertError) throw stepsInsertError
@@ -122,19 +125,19 @@ export async function saveRecipe(recipe, recipeId = null) {
 
   const { data: recipeRow, error: insertError } = await supabase
     .from('recipes')
-    .insert(toRecipeRow(recipe))
+    .insert({ owner_id: ownerId, ...toRecipeRow(recipe) })
     .select('id, title, category, cook_time_minutes, servings, notes, created_at')
     .single()
 
   if (insertError) throw insertError
 
-  const ingredientRows = toIngredientRows(recipeRow.id, recipe.ingredients || [])
+  const ingredientRows = toIngredientRows(recipeRow.id, recipe.ingredients || []).map((row) => ({ ...row, owner_id: ownerId }))
   if (ingredientRows.length) {
     const { error: ingredientsInsertError } = await supabase.from('recipe_ingredients').insert(ingredientRows)
     if (ingredientsInsertError) throw ingredientsInsertError
   }
 
-  const stepRows = toStepRows(recipeRow.id, recipe.steps || [])
+  const stepRows = toStepRows(recipeRow.id, recipe.steps || []).map((row) => ({ ...row, owner_id: ownerId }))
   if (stepRows.length) {
     const { error: stepsInsertError } = await supabase.from('recipe_steps').insert(stepRows)
     if (stepsInsertError) throw stepsInsertError
