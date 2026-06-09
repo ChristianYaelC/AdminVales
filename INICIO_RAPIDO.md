@@ -68,8 +68,8 @@ Abre `http://localhost:5173/`.
 
 Nota de datos actual:
 
-1. La app funciona sin Supabase en modo local.
-2. Si configuras variables Supabase, clientes en Vales/Banco ya pueden persistir (alta/edicion/eliminacion).
+1. La app inicia sesion anonima en Supabase al arrancar.
+2. Clientes, prestamos, pagos, servicios y recetas se guardan en Supabase.
 
 ## Documentacion recomendada
 

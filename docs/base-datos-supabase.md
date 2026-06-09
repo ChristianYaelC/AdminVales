@@ -6,10 +6,9 @@ La migracion a Supabase esta en estado parcial en runtime.
 
 Estado vigente:
 
-1. Clientes (Vales/Banco): alta, edicion y eliminacion ya intentan persistir en Supabase.
-2. Si Supabase no esta configurado o no responde, esos flujos conservan fallback local para pruebas.
-3. Prestamos/pagos y carga inicial completa aun no estan migrados al 100%.
-4. La logica de calculo de proxima fecha en Gestion Personal se centralizo en util compartida (`src/domain/personal/paymentDates.js`) para evitar divergencias entre vistas.
+1. Clientes (Vales/Banco), prestamos, pagos, servicios personales y recetas ya persisten en Supabase desde la UI.
+2. La app crea una sesion anonima para cumplir RLS sin pedir un login visible.
+3. La logica de calculo de proxima fecha en Gestion Personal se centralizo en util compartida (`src/domain/personal/paymentDates.js`) para evitar divergencias entre vistas.
 
 ## Inconsistencias detectadas originalmente
 
@@ -19,9 +18,8 @@ Estado vigente:
 4. Los IDs locales (`Math.max + 1`) no son seguros para concurrencia real ni multiples usuarios.
 5. En BANCO, ahora hay productos mensuales (prestamo/seguro) sin folio ni fuente, con pagos por mes en estado local; falta persistencia relacional y transaccional.
 6. En Gestion Personal, se requiere guardar fechas en formato ISO (`YYYY-MM-DD`) para evitar desfases por zona horaria en UI.
-7. El modulo Recetas sigue operando en `localStorage` en la UI actual, pero ya existe esquema Supabase preparado para migracion futura.
-8. La persistencia de Recetas debe esperar a la hidratacion inicial antes de escribir en `localStorage`, para no perder el contenido al recargar.
-9. Se agregaron constraints de validacion (`NOT VALID`) para reforzar integridad sin bloquear historicos: longitudes de cliente, formato de folio en Vales y limites de campos de Recetas.
+7. El modulo Recetas ya opera sobre las tablas `recipes`, `recipe_ingredients` y `recipe_steps`.
+8. Se agregaron constraints de validacion (`NOT VALID`) para reforzar integridad sin bloquear historicos: longitudes de cliente, formato de folio en Vales y limites de campos de Recetas.
 
 ## Estructura propuesta
 

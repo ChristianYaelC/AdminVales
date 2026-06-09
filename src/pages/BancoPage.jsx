@@ -37,6 +37,7 @@ function BancoPage() {
       insurance: [],
       loans: []
     }
+    let persistedToSupabase = false
 
     try {
       const { bancoService } = await import('../services/banco')
@@ -51,6 +52,7 @@ function BancoPage() {
           insurance: [],
           loans: []
         }
+        persistedToSupabase = true
       }
     } catch (error) {
       console.warn('No se pudo persistir cliente de Banco en Supabase:', error?.message || error)
@@ -59,13 +61,19 @@ function BancoPage() {
     setBancoClients([...bancoClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
-    showToast('Cliente guardado correctamente')
+    showToast(
+      persistedToSupabase
+        ? 'Cliente guardado correctamente'
+        : 'Cliente guardado solo en local. Supabase no respondió.',
+      persistedToSupabase ? 'success' : 'error'
+    )
   }
 
   const handleAddInsurance = async (insuranceData) => {
     if (!selectedClientId) return
 
     let newId = generateLocalId()
+    let persistedToSupabase = false
 
     try {
       const { createBancoLoan } = await import('../services/banco/bancoSupabaseService')
@@ -77,7 +85,10 @@ function BancoPage() {
         monthlyPayment: insuranceData.monthlyPayment,
         productType: 'insurance'
       })
-      if (persisted) newId = persisted.id
+      if (persisted) {
+        newId = persisted.id
+        persistedToSupabase = true
+      }
     } catch (error) {
       console.warn('No se pudo persistir seguro en Supabase:', error?.message || error)
     }
@@ -99,13 +110,19 @@ function BancoPage() {
 
     setBancoClients(updatedClients)
     setShowInsuranceForm(false)
-    showToast('Seguro creado correctamente')
+    showToast(
+      persistedToSupabase
+        ? 'Seguro creado correctamente'
+        : 'Seguro guardado solo en local. Supabase no respondió.',
+      persistedToSupabase ? 'success' : 'error'
+    )
   }
 
   const handleAddLoan = async (loanData) => {
     if (!selectedClientId) return
 
     let newId = generateLocalId()
+    let persistedToSupabase = false
 
     try {
       const { createBancoLoan } = await import('../services/banco/bancoSupabaseService')
@@ -117,7 +134,10 @@ function BancoPage() {
         monthlyPayment: loanData.monthlyPayment,
         productType: 'loan'
       })
-      if (persisted) newId = persisted.id
+      if (persisted) {
+        newId = persisted.id
+        persistedToSupabase = true
+      }
     } catch (error) {
       console.warn('No se pudo persistir préstamo en Supabase:', error?.message || error)
     }
@@ -139,7 +159,12 @@ function BancoPage() {
 
     setBancoClients(updatedClients)
     setShowLoanForm(false)
-    showToast('Préstamo creado correctamente')
+    showToast(
+      persistedToSupabase
+        ? 'Préstamo creado correctamente'
+        : 'Préstamo guardado solo en local. Supabase no respondió.',
+      persistedToSupabase ? 'success' : 'error'
+    )
   }
 
   const handleRegisterInsurancePayment = async (insuranceId, paymentData) => {

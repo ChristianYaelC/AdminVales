@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, Edit2, FileDown, FileText, Plus, Search, Trash2 } from 'lucide-react'
 import EmptyState from '../components/EmptyState'
 import ConfirmModal from '../components/ConfirmModal'
+import { useToast } from '../context/ToastContext'
+import { deleteRecipe, loadRecipes, saveRecipe } from '../services/recipesSupabaseService'
 import { exportCookbookPDF, exportCookbookWord, exportSingleRecipePDF, exportSingleRecipeWord } from '../recipeExport'
-
-const STORAGE_KEY = 'vales_recetas'
 
 const emptyRecipeForm = {
   title: '',
@@ -90,31 +90,23 @@ function RecetasPage() {
   const [formErrors, setFormErrors] = useState([])
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [recipeToDelete, setRecipeToDelete] = useState(null)
+  const { showToast } = useToast()
 
   useEffect(() => {
-    let parsedRecipes = []
-
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) {
-          parsedRecipes = parsed.map(normalizeRecipe)
-        }
-      }
-    } catch {
-      parsedRecipes = []
-    }
-
-    setRecipes(parsedRecipes)
-    setSelectedRecipeId(parsedRecipes[0]?.id || null)
-    setIsHydrated(true)
+    loadRecipes()
+      .then((loadedRecipes) => {
+        const normalized = Array.isArray(loadedRecipes) ? loadedRecipes.map(normalizeRecipe) : []
+        setRecipes(normalized)
+        setSelectedRecipeId(normalized[0]?.id || null)
+      })
+      .catch((error) => {
+        console.warn('Error cargando recetas desde Supabase:', error)
+        setRecipes([])
+        setSelectedRecipeId(null)
+        showToast('No se pudieron cargar las recetas desde Supabase', 'error')
+      })
+      .finally(() => setIsHydrated(true))
   }, [])
-
-  useEffect(() => {
-    if (!isHydrated) return
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes))
-  }, [recipes, isHydrated])
 
   const filteredRecipes = useMemo(() => {
     const term = normalizeText(searchTerm).toLowerCase()
@@ -280,18 +272,25 @@ function RecetasPage() {
       return
     }
 
-    setFormErrors([])
-
-    if (editingId) {
-      setRecipes((prev) => prev.map((recipe) => (recipe.id === editingId ? recipePayload : recipe)))
-      setSelectedRecipeId(editingId)
-    } else {
-      setRecipes((prev) => [recipePayload, ...prev])
-      setSelectedRecipeId(recipePayload.id)
-    }
-
-    setShowForm(false)
-    setEditingId(null)
+    saveRecipe(recipePayload, editingId)
+      .then((savedRecipe) => {
+        setFormErrors([])
+        setRecipes((prev) => {
+          const nextRecipes = editingId
+            ? prev.map((recipe) => (recipe.id === editingId ? normalizeRecipe(savedRecipe) : recipe))
+            : [normalizeRecipe(savedRecipe), ...prev]
+          return nextRecipes
+        })
+        setSelectedRecipeId(savedRecipe.id)
+        setShowForm(false)
+        setEditingId(null)
+        showToast(editingId ? 'Receta actualizada en Supabase' : 'Receta guardada en Supabase')
+      })
+      .catch((error) => {
+        console.warn('Error guardando receta en Supabase:', error)
+        setFormErrors([error?.message || 'No se pudo guardar la receta en Supabase'])
+        showToast('No se pudo guardar la receta en Supabase', 'error')
+      })
   }
 
   const requestDeleteRecipe = (recipe) => {
@@ -302,14 +301,23 @@ function RecetasPage() {
   const handleConfirmDeleteRecipe = () => {
     if (!recipeToDelete) return
 
-    const remaining = recipes.filter((recipe) => recipe.id !== recipeToDelete.id)
-    setRecipes(remaining)
-    if (selectedRecipeId === recipeToDelete.id) {
-      setSelectedRecipeId(remaining[0]?.id || null)
-    }
-
-    setIsConfirmModalOpen(false)
-    setRecipeToDelete(null)
+    deleteRecipe(recipeToDelete.id)
+      .then(() => {
+        const remaining = recipes.filter((recipe) => recipe.id !== recipeToDelete.id)
+        setRecipes(remaining)
+        if (selectedRecipeId === recipeToDelete.id) {
+          setSelectedRecipeId(remaining[0]?.id || null)
+        }
+        showToast('Receta eliminada de Supabase')
+      })
+      .catch((error) => {
+        console.warn('Error eliminando receta en Supabase:', error)
+        showToast('No se pudo eliminar la receta en Supabase', 'error')
+      })
+      .finally(() => {
+        setIsConfirmModalOpen(false)
+        setRecipeToDelete(null)
+      })
   }
 
   const handleDownloadRecipeWord = (recipe) => {
@@ -429,7 +437,7 @@ function RecetasPage() {
                   <div>
                     <p className="panel-title mb-1">Crear nueva</p>
                     <h2 className="text-xl font-bold text-gray-900 mt-1">{editingId ? 'Editar receta' : 'Nueva receta'}</h2>
-                    <p className="mt-3 text-sm text-gray-600">Los cambios se guardan localmente en este dispositivo.</p>
+                    <p className="mt-3 text-sm text-gray-600">Los cambios se guardan en Supabase.</p>
                   </div>
                   <button
                     onClick={() => {

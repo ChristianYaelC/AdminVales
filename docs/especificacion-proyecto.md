@@ -18,7 +18,7 @@ Sistema administrativo para:
 
 - Frontend: React 18 + Vite.
 - UI: Tailwind CSS + Lucide.
-- Estado actual: Context + persistencia parcial opcional a Supabase para clientes.
+- Estado actual: Context + persistencia activa en Supabase para clientes, prestamos, pagos, servicios y recetas.
 - Migracion objetivo: Supabase (Postgres + Auth + RLS).
 
 ## 3) Dominios y entidades
@@ -231,10 +231,10 @@ Detalle tecnico en:
 
 ### Fase 1.5 (estado actual)
 
-1. Alta/edicion/eliminacion de clientes en Vales y Banco ya intentan persistir en Supabase.
-2. Si Supabase no esta configurado o no responde, se mantiene fallback local para pruebas.
-3. No hay carga inicial completa desde Supabase en arranque (hidratacion pendiente).
-4. Recetas sigue siendo local en la UI, pero el SQL ya incluye tablas listas para migracion.
+1. La UI inicia sesion anonima en Supabase para trabajar con RLS sin un login visible.
+2. La carga inicial desde Supabase ya hidrata clientes, servicios y recetas.
+3. Recetas ya se guarda en las tablas del esquema y no en `localStorage`.
+4. La pantalla de Configuracion consume los totales desde Supabase.
 
 ### Fase 2 (migracion tecnica)
 

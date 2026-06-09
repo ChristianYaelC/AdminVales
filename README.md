@@ -128,12 +128,11 @@ Notas de estructura:
 
 ## Estado de datos
 
-- El proyecto funciona en modo local por defecto (sin bloquear UI si no hay variables Supabase).
-- Existe persistencia parcial opcional a Supabase para clientes (alta, edicion y eliminacion en Vales/Banco).
-- Si Supabase no esta configurado o falla, esos flujos mantienen fallback local para pruebas.
-- Aun no hay hidratacion inicial desde base de datos; por eso, los datos locales no persistidos se pierden al recargar.
-- Recetas sigue siendo un modulo local en `localStorage` y exporta a Word/PDF sin depender de Supabase, aunque ya existe esquema SQL preparado para migracion futura.
-- La hidratacion de Recetas primero intenta leer datos existentes y solo usa receta demo cuando no hay datos guardados (evita sobrescritura al recargar).
+- La app inicia una sesion anonima en Supabase para poder leer y escribir con RLS desde el navegador.
+- Clientes, prestamos, pagos, servicios personales y recetas se persisten en Supabase.
+- La configuracion operativa ya esta preparada para guardarse en Supabase.
+- No se usa `localStorage` como fuente persistente de datos de negocio.
+- Recetas se hidrata desde Supabase al abrir la pantalla y solo usa demo si la base esta vacia.
 
 ## Flujo actual Banco
 

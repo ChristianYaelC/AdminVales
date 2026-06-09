@@ -68,6 +68,7 @@ function ValesPage() {
       ...clientData,
       loans: []
     }
+    let persistedToSupabase = false
 
     try {
       const { createValesClient } = await import('../services/valesSupabaseService')
@@ -81,6 +82,7 @@ function ValesPage() {
           workAddress: persistedClient.work_address || '',
           loans: []
         }
+        persistedToSupabase = true
       }
     } catch (error) {
       console.warn('No se pudo persistir cliente de Vales en Supabase:', error?.message || error)
@@ -89,7 +91,12 @@ function ValesPage() {
     setValesClients([...valesClients, newClient])
     setShowAddForm(false)
     setSelectedClientId(newClient.id)
-    showToast('Cliente guardado correctamente')
+    showToast(
+      persistedToSupabase
+        ? 'Cliente guardado correctamente'
+        : 'Cliente guardado solo en local. Supabase no respondió.',
+      persistedToSupabase ? 'success' : 'error'
+    )
   }
 
   // Agregar nuevo préstamo (usando tabuladores)
@@ -97,6 +104,7 @@ function ValesPage() {
     if (!selectedClientId) return
 
     let newLoanId = generateLocalId()
+    let persistedToSupabase = false
 
     try {
       const { createValesLoan } = await import('../services/valesSupabaseService')
@@ -112,7 +120,10 @@ function ValesPage() {
         finalPayment: loanData.finalPayment,
         createdAtMx: new Date().toLocaleDateString('es-MX')
       })
-      if (persisted) newLoanId = persisted.id
+      if (persisted) {
+        newLoanId = persisted.id
+        persistedToSupabase = true
+      }
     } catch (error) {
       console.warn('No se pudo persistir préstamo en Supabase:', error?.message || error)
     }
@@ -142,7 +153,12 @@ function ValesPage() {
 
     setValesClients(updatedClients)
     setShowLoanForm(false)
-    showToast('Préstamo creado correctamente')
+    showToast(
+      persistedToSupabase
+        ? 'Préstamo creado correctamente'
+        : 'Préstamo guardado solo en local. Supabase no respondió.',
+      persistedToSupabase ? 'success' : 'error'
+    )
   }
 
   // Actualizar cliente

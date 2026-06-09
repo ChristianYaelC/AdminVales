@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabaseClient'
+import { supabase, ensureSupabaseSession } from '../lib/supabaseClient'
 
 const parseMxDateToIso = (mxDate) => {
   if (!mxDate) return null
@@ -11,6 +11,7 @@ const parseMxDateToIso = (mxDate) => {
 }
 
 export async function createValesClient({ name, phone, address }) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase
     .from('clients')
     .insert({
@@ -27,6 +28,7 @@ export async function createValesClient({ name, phone, address }) {
 }
 
 export async function updateClientProfile({ clientId, name, phone, address, workAddress }) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase.rpc('update_client_profile', {
     p_client_id: clientId,
     p_name: name?.trim() || '',
@@ -40,6 +42,7 @@ export async function updateClientProfile({ clientId, name, phone, address, work
 }
 
 export async function deleteClientById(clientId) {
+  await ensureSupabaseSession()
   const { error } = await supabase
     .from('clients')
     .delete()
@@ -61,6 +64,7 @@ export async function createValesLoan({
   finalPayment,
   createdAtMx
 }) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase
     .from('loans')
     .insert({
@@ -87,6 +91,7 @@ export async function createValesLoan({
 }
 
 export async function registerNextQuincenaPayment(loanId) {
+  await ensureSupabaseSession()
   const { data: loan, error: loanError } = await supabase
     .from('loans')
     .select('id, total_payments, current_payment_index, final_payment_amount, status')
@@ -145,6 +150,7 @@ export async function registerNextQuincenaPayment(loanId) {
 }
 
 export async function updateLoanCreatedAt(loanId, isoDate) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase
     .from('loans')
     .update({ loan_created_at: isoDate })
@@ -157,12 +163,14 @@ export async function updateLoanCreatedAt(loanId, isoDate) {
 }
 
 export async function deleteValesLoan(loanId) {
+  await ensureSupabaseSession()
   const { error } = await supabase.from('loans').delete().eq('id', loanId)
   if (error) throw error
   return true
 }
 
 export async function updatePaymentDate(paymentId, isoDate) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase
     .from('loan_payments')
     .update({ payment_date: isoDate })

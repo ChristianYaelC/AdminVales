@@ -1,6 +1,7 @@
-import { supabase } from '../../lib/supabaseClient'
+import { supabase, ensureSupabaseSession } from '../../lib/supabaseClient'
 
 export async function createBancoLoan({ clientId, name, amount, termMonths, monthlyPayment, productType }) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase
     .from('loans')
     .insert({
@@ -26,6 +27,7 @@ export async function createBancoLoan({ clientId, name, amount, termMonths, mont
 }
 
 export async function registerBancoPayment({ loanId, paymentNumber, amountPaid, previousBalance }) {
+  await ensureSupabaseSession()
   const newBalance = Number((previousBalance - amountPaid).toFixed(2))
 
   const { error: payError } = await supabase
@@ -56,6 +58,7 @@ export async function registerBancoPayment({ loanId, paymentNumber, amountPaid, 
 }
 
 export async function deleteBancoLoan(loanId) {
+  await ensureSupabaseSession()
   const { error } = await supabase.from('loans').delete().eq('id', loanId)
   if (error) throw error
 }

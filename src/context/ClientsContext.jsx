@@ -1,16 +1,7 @@
 import { createContext, useState, useContext, useEffect } from 'react'
-import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
+import { supabase, ensureSupabaseSession } from '../lib/supabaseClient'
 
 const ClientsContext = createContext()
-
-function loadFromStorage(key) {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
 
 function mapValesClient(client) {
   return {
@@ -93,30 +84,18 @@ function mapPersonalService(s) {
 }
 
 export function ClientsProvider({ children }) {
-  const [valesClients, setValesClients] = useState(() => loadFromStorage('vales_clients'))
-  const [bancoClients, setBancoClients] = useState(() => loadFromStorage('banco_clients'))
-  const [personalServices, setPersonalServices] = useState(() => loadFromStorage('personal_services'))
-
-  // Persist to localStorage as cache on every state change
-  useEffect(() => {
-    localStorage.setItem('vales_clients', JSON.stringify(valesClients))
-  }, [valesClients])
-
-  useEffect(() => {
-    localStorage.setItem('banco_clients', JSON.stringify(bancoClients))
-  }, [bancoClients])
-
-  useEffect(() => {
-    localStorage.setItem('personal_services', JSON.stringify(personalServices))
-  }, [personalServices])
+  const [valesClients, setValesClients] = useState([])
+  const [bancoClients, setBancoClients] = useState([])
+  const [personalServices, setPersonalServices] = useState([])
 
   // Load from Supabase on mount
   useEffect(() => {
-    if (!isSupabaseConfigured) return
     let cancelled = false
 
     const loadAll = async () => {
       if (cancelled) return
+
+      await ensureSupabaseSession()
 
       const [valesRes, bancoRes, servicesRes] = await Promise.all([
         supabase

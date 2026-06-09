@@ -1,22 +1,28 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useClients } from '../context/ClientsContext'
+import { useToast } from '../context/ToastContext'
 import PersonalServiceForm from '../components/PersonalServiceForm'
 import PersonalServiceTable from '../components/PersonalServiceTable'
 
 function PersonalPage() {
   const { personalServices, setPersonalServices } = useClients()
+  const { showToast } = useToast()
   const [showAddForm, setShowAddForm] = useState(false)
 
   const generateLocalId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
   const handleAddService = async (serviceData) => {
     let newId = generateLocalId()
+    let persistedToSupabase = false
 
     try {
       const { createPersonalService } = await import('../services/personalSupabaseService')
       const persisted = await createPersonalService(serviceData)
-      if (persisted) newId = persisted.id
+      if (persisted) {
+        newId = persisted.id
+        persistedToSupabase = true
+      }
     } catch (error) {
       console.warn('No se pudo persistir servicio en Supabase:', error?.message || error)
     }
@@ -29,6 +35,12 @@ function PersonalPage() {
     }
     setPersonalServices([...personalServices, newService])
     setShowAddForm(false)
+    showToast(
+      persistedToSupabase
+        ? 'Servicio creado correctamente'
+        : 'Servicio guardado solo en local. Supabase no respondió.',
+      persistedToSupabase ? 'success' : 'error'
+    )
   }
 
   const handleUpdateServiceAmount = async (serviceId, newAmount) => {

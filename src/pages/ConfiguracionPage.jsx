@@ -1,30 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useClients } from '../context/ClientsContext'
-
-const RECIPES_STORAGE_KEY = 'vales_recetas'
+import { loadRecipes } from '../services/recipesSupabaseService'
 
 function ConfiguracionPage() {
   const { valesClients, bancoClients, personalServices } = useClients()
   const [recipeSummary, setRecipeSummary] = useState({ totalRecipes: 0, totalCategories: 0 })
 
   useEffect(() => {
-    const raw = localStorage.getItem(RECIPES_STORAGE_KEY)
-    if (!raw) return
-
-    try {
-      const parsedRecipes = JSON.parse(raw)
-      const categories = new Set(
-        (Array.isArray(parsedRecipes) ? parsedRecipes : [])
-          .map((recipe) => recipe.category)
-          .filter(Boolean)
-      )
-      setRecipeSummary({
-        totalRecipes: Array.isArray(parsedRecipes) ? parsedRecipes.length : 0,
-        totalCategories: categories.size
+    loadRecipes()
+      .then((recipes) => {
+        const categories = new Set((recipes || []).map((recipe) => recipe.category).filter(Boolean))
+        setRecipeSummary({
+          totalRecipes: Array.isArray(recipes) ? recipes.length : 0,
+          totalCategories: categories.size
+        })
       })
-    } catch {
-      setRecipeSummary({ totalRecipes: 0, totalCategories: 0 })
-    }
+      .catch(() => setRecipeSummary({ totalRecipes: 0, totalCategories: 0 }))
   }, [])
 
   const operationalSummary = useMemo(() => {

@@ -24,6 +24,7 @@ const _shim = {
 
 let _supabase = _shim
 let isSupabaseConfigured = false
+let _sessionPromise = null
 
 if (supabaseUrl && supabaseAnonKey) {
   try {
@@ -40,3 +41,30 @@ if (supabaseUrl && supabaseAnonKey) {
 
 export const supabase = _supabase
 export { isSupabaseConfigured }
+
+export async function ensureSupabaseSession() {
+  if (!isSupabaseConfigured) {
+    throw notConfiguredError
+  }
+
+  const { data } = await supabase.auth.getSession()
+  if (data?.session?.user) {
+    return data.session
+  }
+
+  if (!_sessionPromise) {
+    _sessionPromise = supabase.auth.signInAnonymously().then(({ data: signInData, error }) => {
+      _sessionPromise = null
+      if (error) throw error
+      if (!signInData?.session?.user) {
+        throw new Error('No se pudo iniciar sesion en Supabase')
+      }
+      return signInData.session
+    }).catch((error) => {
+      _sessionPromise = null
+      throw error
+    })
+  }
+
+  return _sessionPromise
+}

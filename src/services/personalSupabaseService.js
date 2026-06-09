@@ -1,6 +1,7 @@
-import { supabase } from '../lib/supabaseClient'
+import { supabase, ensureSupabaseSession } from '../lib/supabaseClient'
 
 export async function createPersonalService({ name, amount, dueDay, frequency, frequencyDays }) {
+  await ensureSupabaseSession()
   const { data, error } = await supabase
     .from('personal_services')
     .insert({ name: name.trim(), amount, due_day: dueDay, frequency, frequency_days: frequencyDays || null })
@@ -11,6 +12,7 @@ export async function createPersonalService({ name, amount, dueDay, frequency, f
 }
 
 export async function updatePersonalServiceAmount(id, amount) {
+  await ensureSupabaseSession()
   const { error } = await supabase
     .from('personal_services')
     .update({ amount })
@@ -19,6 +21,7 @@ export async function updatePersonalServiceAmount(id, amount) {
 }
 
 export async function updatePersonalServicePayment(id, date) {
+  await ensureSupabaseSession()
   const { error } = await supabase
     .from('personal_services')
     .update({ last_payment_date: date || null })
@@ -27,6 +30,7 @@ export async function updatePersonalServicePayment(id, date) {
 }
 
 export async function deletePersonalService(id) {
+  await ensureSupabaseSession()
   const { error } = await supabase.from('personal_services').delete().eq('id', id)
   if (error) throw error
 }
