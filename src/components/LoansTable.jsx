@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Check, Trash2, Edit2, AlertCircle, X, Minus, Plus } from 'lucide-react'
 import {
   isLoanCompleted,
@@ -7,20 +7,30 @@ import {
   buildStatementRows
 } from '../domain/vales/loanCalculations'
 
-function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
+function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm, onRemoveLastPayments, onDeleteLoan }) {
   const [editingPaymentId, setEditingPaymentId] = useState(null)
   const [editingDate, setEditingDate] = useState('')
   const [isEditingCreatedAt, setIsEditingCreatedAt] = useState(false)
   const [createdAtInput, setCreatedAtInput] = useState('')
   const [completionMessage, setCompletionMessage] = useState('')
   const [quinceCount, setQuinceCount] = useState(1)
+  const [isEditingTerm, setIsEditingTerm] = useState(false)
+  const [termDraft, setTermDraft] = useState(String(loan.totalPayments || ''))
+  const [removeCount, setRemoveCount] = useState(1)
 
-  useEffect(() => { setQuinceCount(1) }, [loan.id])
+  useEffect(() => {
+    setQuinceCount(1)
+    setIsEditingTerm(false)
+    setTermDraft(String(loan.totalPayments || ''))
+    setRemoveCount(1)
+  }, [loan.id, loan.totalPayments])
 
   const isCompleted = isLoanCompleted(loan)
   const paymentHistory = loan.payments || []
   const remainingPayments = getRemainingPayments(loan)
   const displayQuincena = loan.currentPayment + 1
+  const paymentHistoryCount = paymentHistory.length
+  const maxRemovablePayments = useMemo(() => paymentHistoryCount, [paymentHistoryCount])
 
   // Calcular total restante a pagar
   const totalRemaining = getRemainingAmount(loan)
@@ -86,6 +96,19 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
     setIsEditingCreatedAt(false)
   }
 
+  const handleSaveTerm = () => {
+    const nextTotal = Number(termDraft)
+    if (!Number.isInteger(nextTotal) || nextTotal < 1) return
+    if (onUpdateLoanTerm) onUpdateLoanTerm(nextTotal)
+    setIsEditingTerm(false)
+  }
+
+  const handleRemovePayments = () => {
+    const nextCount = Math.max(1, Math.min(Number(removeCount) || 0, maxRemovablePayments))
+    if (!onRemoveLastPayments || nextCount <= 0) return
+    onRemoveLastPayments(nextCount)
+  }
+
   return (
     <div className="mb-8">
       {/* Notificación de préstamo completado */}
@@ -122,6 +145,103 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onDeleteLoan }) {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-lg border border-blue-200 bg-white p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Editar quincenas del préstamo</p>
+                  <p className="text-xs text-gray-500">Ajusta el plazo total sin crear uno nuevo.</p>
+                </div>
+                {!isEditingTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingTerm(true)}
+                    className="inline-flex items-center gap-1 rounded-lg border border-blue-200 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                  >
+                    <Edit2 size={14} />
+                    Editar
+                  </button>
+                )}
+              </div>
+
+              {isEditingTerm ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <input
+                    type="number"
+                    min={loan.currentPayment}
+                    value={termDraft}
+                    onChange={(e) => setTermDraft(e.target.value)}
+                    className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveTerm}
+                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTermDraft(String(loan.totalPayments || ''))
+                      setIsEditingTerm(false)
+                    }}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-gray-700">
+                  Total actual: <span className="font-semibold">{loan.totalPayments} quincenas</span>
+                </p>
+              )}
+
+              {Number(termDraft) < loan.currentPayment && (
+                <p className="mt-2 text-xs text-amber-700">
+                  No puedes bajar el total por debajo de las quincenas ya pagadas. Primero elimina las quincenas sobrantes.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-lg border border-red-200 bg-white p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Eliminar últimas quincenas</p>
+                  <p className="text-xs text-gray-500">Quita registros recientes y ajusta el avance del préstamo.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemovePayments}
+                  disabled={maxRemovablePayments === 0}
+                  className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 size={14} />
+                  Eliminar
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRemoveCount((count) => Math.max(1, count - 1))}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white hover:bg-gray-50"
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="w-10 text-center text-sm font-semibold text-gray-900">{removeCount}</span>
+                <button
+                  type="button"
+                  onClick={() => setRemoveCount((count) => Math.min(maxRemovablePayments, count + 1))}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 bg-white hover:bg-gray-50"
+                >
+                  <Plus size={14} />
+                </button>
+                <span className="text-xs text-gray-500">de {maxRemovablePayments} registradas</span>
+              </div>
+            </div>
+          </div>
             <p className="text-xs text-gray-600 font-medium">Monto Original</p>
             <p className="text-lg font-bold text-gray-900 mt-1">
               ${loan.amount.toLocaleString('es-MX')}

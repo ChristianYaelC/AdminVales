@@ -166,6 +166,85 @@ export async function updateLoanCreatedAt(loanId, isoDate) {
   return data
 }
 
+export async function updateLoanTermQuincenas(loanId, totalPayments) {
+  await ensureSupabaseSession()
+  const { data, error } = await supabase
+    .from('loans')
+    .select('current_payment_index')
+    .eq('id', loanId)
+    .single()
+
+  if (error) throw error
+
+  const nextStatus = Number(data?.current_payment_index || 0) >= Number(totalPayments || 0) ? 'completed' : 'active'
+
+  const { data: updatedLoan, error: updateError } = await supabase
+    .from('loans')
+    .update({
+      term_quincenas: totalPayments,
+      total_payments: totalPayments,
+      status: nextStatus,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', loanId)
+    .select('id, term_quincenas, total_payments, current_payment_index, status')
+    .single()
+
+  if (updateError) throw updateError
+  return updatedLoan
+}
+
+export async function deleteLastLoanPayments(loanId, count) {
+  await ensureSupabaseSession()
+
+  const { data: loan, error: loanError } = await supabase
+    .from('loans')
+    .select('id, total_payments, current_payment_index, status')
+    .eq('id', loanId)
+    .single()
+
+  if (loanError) throw loanError
+
+  const limit = Math.max(1, Number(count) || 0)
+  const { data: paymentRows, error: paymentRowsError } = await supabase
+    .from('loan_payments')
+    .select('id, payment_number')
+    .eq('loan_id', loanId)
+    .order('payment_number', { ascending: false })
+    .limit(limit)
+
+  if (paymentRowsError) throw paymentRowsError
+
+  const paymentIds = (paymentRows || []).map((row) => row.id)
+  if (paymentIds.length === 0) {
+    return loan
+  }
+
+  const { error: deleteError } = await supabase
+    .from('loan_payments')
+    .delete()
+    .in('id', paymentIds)
+
+  if (deleteError) throw deleteError
+
+  const nextPaymentIndex = Math.max(0, Number(loan.current_payment_index || 0) - paymentIds.length)
+  const nextStatus = nextPaymentIndex >= Number(loan.total_payments || 0) ? 'completed' : 'active'
+
+  const { data: updatedLoan, error: updateError } = await supabase
+    .from('loans')
+    .update({
+      current_payment_index: nextPaymentIndex,
+      status: nextStatus,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', loanId)
+    .select('id, total_payments, current_payment_index, status')
+    .single()
+
+  if (updateError) throw updateError
+  return updatedLoan
+}
+
 export async function deleteValesLoan(loanId) {
   await ensureSupabaseSession()
   const { error } = await supabase.from('loans').delete().eq('id', loanId)

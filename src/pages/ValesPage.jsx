@@ -15,7 +15,8 @@ import {
   getAllSourcesRemainingTotal,
   registerMultiplePaymentsForLoanId,
   registerPaymentForSourceQuincena,
-  registerPaymentsForAllActiveLoans
+  registerPaymentsForAllActiveLoans,
+  buildStatementRows
 } from '../domain/vales/loanCalculations'
 
 function ValesPage() {
@@ -164,6 +165,100 @@ function ValesPage() {
   // Actualizar cliente
   const handleUpdateClient = (id, updatedClient) => {
     setValesClients(valesClients.map(c => c.id === id ? { ...c, ...updatedClient } : c))
+  }
+
+  const handleUpdateLoanTerm = async (loanId, newTotalPayments) => {
+    if (!selectedClientId) return
+
+    const targetLoan = selectedClient?.loans?.find((loan) => loan.id === loanId)
+    if (!targetLoan) return
+
+    const normalizedTotal = Number(newTotalPayments)
+    if (!Number.isInteger(normalizedTotal) || normalizedTotal < 1) {
+      showToast('La cantidad de quincenas debe ser un número válido mayor a 0', 'error')
+      return
+    }
+
+    if (normalizedTotal < targetLoan.currentPayment) {
+      showToast('Primero elimina las quincenas sobrantes para poder bajar el plazo', 'error')
+      return
+    }
+
+    try {
+      if (!String(loanId).startsWith('local-')) {
+        const { updateLoanTermQuincenas } = await import('../services/valesSupabaseService')
+        await updateLoanTermQuincenas(loanId, normalizedTotal)
+      }
+
+      const updatedClients = valesClients.map(client => {
+        if (client.id !== selectedClientId) return client
+        return {
+          ...client,
+          loans: client.loans.map((loan) =>
+            loan.id === loanId
+              ? {
+                  ...loan,
+                  term: normalizedTotal,
+                  totalPayments: normalizedTotal,
+                  status: loan.currentPayment >= normalizedTotal ? 'completed' : 'active'
+                }
+              : loan
+          )
+        }
+      })
+
+      setValesClients(updatedClients)
+      showToast('Plazo del préstamo actualizado correctamente')
+    } catch (error) {
+      console.warn('No se pudo actualizar plazo en Supabase:', error?.message || error)
+      showToast('No se pudo actualizar el plazo del préstamo', 'error')
+    }
+  }
+
+  const handleRemoveLastLoanPayments = async (loanId, count) => {
+    if (!selectedClientId) return
+
+    const targetLoan = selectedClient?.loans?.find((loan) => loan.id === loanId)
+    if (!targetLoan) return
+
+    const removable = Math.max(0, Math.min(Number(count) || 0, targetLoan.payments.length))
+    if (removable === 0) {
+      showToast('No hay quincenas para eliminar', 'error')
+      return
+    }
+
+    try {
+      if (!String(loanId).startsWith('local-')) {
+        const { deleteLastLoanPayments } = await import('../services/valesSupabaseService')
+        await deleteLastLoanPayments(loanId, removable)
+      }
+
+      const updatedClients = valesClients.map(client => {
+        if (client.id !== selectedClientId) return client
+        return {
+          ...client,
+          loans: client.loans.map((loan) => {
+            if (loan.id !== loanId) return loan
+
+            const trimmedPayments = (loan.payments || []).slice(0, Math.max(0, loan.payments.length - removable))
+            const currentPayment = Math.max(0, loan.currentPayment - removable)
+
+            return {
+              ...loan,
+              payments: trimmedPayments,
+              currentPayment,
+              status: currentPayment >= loan.totalPayments ? 'completed' : 'active'
+            }
+          })
+        }
+      })
+
+      setValesClients(updatedClients)
+      showToast(removable === 1 ? 'Se eliminó 1 quincena' : `Se eliminaron ${removable} quincenas`)
+    } catch (error) {
+      console.warn('No se pudieron eliminar quincenas en Supabase:', error?.message || error)
+      showToast('No se pudieron eliminar las quincenas', 'error')
+    }
   }
 
   const handleUpdateSelectedClient = async (clientData) => {
@@ -808,6 +903,8 @@ function ValesPage() {
                                   )
                                   handleUpdateClient(selectedClientId, { loans: updatedLoans })
                                 }}
+                                onUpdateLoanTerm={(newTotalPayments) => handleUpdateLoanTerm(selectedLoanId, newTotalPayments)}
+                                onRemoveLastPayments={(count) => handleRemoveLastLoanPayments(selectedLoanId, count)}
                                 onDeleteLoan={() => handleDeleteLoan(selectedLoanId)}
                               />
                             </>
