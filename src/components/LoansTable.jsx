@@ -14,16 +14,12 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm,
   const [createdAtInput, setCreatedAtInput] = useState('')
   const [completionMessage, setCompletionMessage] = useState('')
   const [quinceCount, setQuinceCount] = useState(1)
-  const [isEditingTerm, setIsEditingTerm] = useState(false)
-  const [termDraft, setTermDraft] = useState(String(loan.totalPayments || ''))
   const [removeCount, setRemoveCount] = useState(1)
 
   useEffect(() => {
     setQuinceCount(1)
-    setIsEditingTerm(false)
-    setTermDraft(String(loan.totalPayments || ''))
     setRemoveCount(1)
-  }, [loan.id, loan.totalPayments])
+  }, [loan.id])
 
   const isCompleted = isLoanCompleted(loan)
   const paymentHistory = loan.payments || []
@@ -114,13 +110,6 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm,
       createdAt: formatDateForDisplay(createdAtInput)
     })
     setIsEditingCreatedAt(false)
-  }
-
-  const handleSaveTerm = () => {
-    const nextTotal = Number(termDraft)
-    if (!Number.isInteger(nextTotal) || nextTotal < 1) return
-    setIsEditingTerm(false)
-    if (onUpdateLoanTerm) onUpdateLoanTerm(nextTotal)
   }
 
   const handleRemovePayments = () => {
@@ -228,65 +217,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm,
           )}
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
-          <div className="rounded-lg border border-blue-200 bg-white p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Editar quincenas del préstamo</p>
-                <p className="text-xs text-gray-500">Ajusta el plazo total sin crear uno nuevo.</p>
-              </div>
-              {!isEditingTerm && (
-                <button
-                  type="button"
-                  onClick={() => setIsEditingTerm(true)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-blue-200 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50"
-                >
-                  <Edit2 size={14} />
-                  Editar
-                </button>
-              )}
-            </div>
-
-            {isEditingTerm ? (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  min={loan.currentPayment}
-                  value={termDraft}
-                  onChange={(e) => setTermDraft(e.target.value)}
-                  className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveTerm}
-                  className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  Guardar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTermDraft(String(loan.totalPayments || ''))
-                    setIsEditingTerm(false)
-                  }}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-              </div>
-            ) : (
-              <p className="mt-3 text-sm text-gray-700">
-                Total actual: <span className="font-semibold">{loan.totalPayments} quincenas</span>
-              </p>
-            )}
-
-            {Number(termDraft) < loan.currentPayment && (
-              <p className="mt-2 text-xs text-amber-700">
-                No puedes bajar el total por debajo de las quincenas ya pagadas. Primero elimina las quincenas sobrantes.
-              </p>
-            )}
-          </div>
-
+        <div className="mt-4">
           <div className="rounded-lg border border-red-200 bg-white p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>

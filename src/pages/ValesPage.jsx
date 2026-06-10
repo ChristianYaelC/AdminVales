@@ -167,78 +167,6 @@ function ValesPage() {
     setValesClients(valesClients.map(c => c.id === id ? { ...c, ...updatedClient } : c))
   }
 
-  const handleUpdateLoanTerm = async (loanId, newTotalPayments) => {
-    if (!selectedClientId) return
-
-    const targetLoan = selectedClient?.loans?.find((loan) => loan.id === loanId)
-    if (!targetLoan) return
-
-    const normalizedTotal = Number(newTotalPayments)
-    if (!Number.isInteger(normalizedTotal) || normalizedTotal < 1) {
-      showToast('La cantidad de quincenas debe ser un número válido mayor a 0', 'error')
-      return
-    }
-
-    if (normalizedTotal < targetLoan.currentPayment) {
-      showToast('Primero elimina las quincenas sobrantes para poder bajar el plazo', 'error')
-      return
-    }
-
-    try {
-      if (!String(loanId).startsWith('local-')) {
-        const { updateLoanTermQuincenas } = await import('../services/valesSupabaseService')
-        await updateLoanTermQuincenas(loanId, normalizedTotal)
-      }
-
-      const updatedClients = valesClients.map(client => {
-        if (client.id !== selectedClientId) return client
-        return {
-          ...client,
-          loans: client.loans.map((loan) =>
-            loan.id === loanId
-              ? {
-                  ...loan,
-                  term: normalizedTotal,
-                  totalPayments: normalizedTotal,
-                  status: loan.currentPayment >= normalizedTotal ? 'completed' : 'active'
-                }
-              : loan
-          )
-        }
-      })
-
-      setValesClients(updatedClients)
-      showToast('Plazo del préstamo actualizado correctamente')
-    } catch (error) {
-      console.warn('No se pudo actualizar plazo en Supabase:', error?.message || error)
-      showToast('No se pudo actualizar el plazo del préstamo', 'error')
-    }
-  }
-
-  const requestUpdateLoanTerm = (loanId, newTotalPayments) => {
-    const targetLoan = selectedClient?.loans?.find((loan) => loan.id === loanId)
-    if (!targetLoan) return
-
-    const normalizedTotal = Number(newTotalPayments)
-    if (!Number.isInteger(normalizedTotal) || normalizedTotal < 1) {
-      showToast('La cantidad de quincenas debe ser un número válido mayor a 0', 'error')
-      return
-    }
-
-    if (normalizedTotal < targetLoan.currentPayment) {
-      showToast('Primero elimina las quincenas sobrantes para poder bajar el plazo', 'error')
-      return
-    }
-
-    setPendingPayment({
-      type: 'updateLoanTerm',
-      loanId,
-      newTotalPayments: normalizedTotal,
-      title: 'Actualizar quincenas',
-      message: `¿Estás seguro de cambiar el plazo del préstamo de ${targetLoan.totalPayments} a ${normalizedTotal} quincenas?`
-    })
-    setIsConfirmModalOpen(true)
-  }
 
   const handleRemoveLastLoanPayments = async (loanId, count) => {
     if (!selectedClientId) return
@@ -548,8 +476,6 @@ function ValesPage() {
     } else if (pendingPayment.type === 'payAllSources') {
       await handlePayAllSources()
       showToast('Se registraron los pagos de todas las fuentes')
-    } else if (pendingPayment.type === 'updateLoanTerm') {
-      await handleUpdateLoanTerm(pendingPayment.loanId, pendingPayment.newTotalPayments)
     } else if (pendingPayment.type === 'removeLoanPayments') {
       await handleRemoveLastLoanPayments(pendingPayment.loanId, pendingPayment.count || 1)
     }
@@ -952,7 +878,6 @@ function ValesPage() {
                                   )
                                   handleUpdateClient(selectedClientId, { loans: updatedLoans })
                                 }}
-                                onUpdateLoanTerm={(newTotalPayments) => requestUpdateLoanTerm(selectedLoanId, newTotalPayments)}
                                 onRemoveLastPayments={(count) => requestRemoveLastLoanPayments(selectedLoanId, count)}
                                 onDeleteLoan={() => handleDeleteLoan(selectedLoanId)}
                               />
