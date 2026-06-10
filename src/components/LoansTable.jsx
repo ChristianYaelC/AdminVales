@@ -38,18 +38,38 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm,
 
   const formatDateForInput = (dateValue) => {
     if (!dateValue) return ''
-    if (dateValue.includes('-')) return dateValue
-    const [day, month, year] = dateValue.split('/')
-    if (!day || !month || !year) return ''
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    if (dateValue.includes('/')) {
+      const [day, month, year] = dateValue.split('/')
+      if (!day || !month || !year) return ''
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+    }
+
+    const parsedDate = new Date(dateValue)
+    if (Number.isNaN(parsedDate.getTime())) return ''
+
+    const year = parsedDate.getUTCFullYear()
+    const month = String(parsedDate.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(parsedDate.getUTCDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const formatDateForDisplay = (dateValue) => {
     if (!dateValue) return ''
     if (dateValue.includes('/')) return dateValue
-    const [year, month, day] = dateValue.split('-')
-    if (!day || !month || !year) return dateValue
-    return `${Number(day)}/${Number(month)}/${year}`
+
+    if (dateValue.includes('-') && !dateValue.includes('T')) {
+      const [year, month, day] = dateValue.split('-')
+      if (!day || !month || !year) return dateValue
+      return `${Number(day)}/${Number(month)}/${year}`
+    }
+
+    const parsedDate = new Date(dateValue)
+    if (Number.isNaN(parsedDate.getTime())) return dateValue
+
+    const day = String(parsedDate.getUTCDate()).padStart(2, '0')
+    const month = String(parsedDate.getUTCMonth() + 1).padStart(2, '0')
+    const year = parsedDate.getUTCFullYear()
+    return `${day}/${month}/${year}`
   }
 
   const handleEditDate = (payment, idx) => {
@@ -365,7 +385,7 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm,
                         </div>
                       ) : (
                         <div className="flex gap-2 items-center justify-center">
-                          <span>{payment.date || '—'}</span>
+                          <span>{formatDateForDisplay(payment.date) || '—'}</span>
                           <button
                             onClick={() => handleEditDate(payment, idx)}
                             className="text-blue-600 hover:text-blue-700 p-1"
