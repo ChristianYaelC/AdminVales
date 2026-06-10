@@ -99,8 +99,8 @@ function LoansTable({ loan, onPaymentRegister, onUpdateClient, onUpdateLoanTerm,
   const handleSaveTerm = () => {
     const nextTotal = Number(termDraft)
     if (!Number.isInteger(nextTotal) || nextTotal < 1) return
-    if (onUpdateLoanTerm) onUpdateLoanTerm(nextTotal)
     setIsEditingTerm(false)
+    if (onUpdateLoanTerm) onUpdateLoanTerm(nextTotal)
   }
 
   const handleRemovePayments = () => {

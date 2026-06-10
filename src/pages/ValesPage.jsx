@@ -215,6 +215,31 @@ function ValesPage() {
     }
   }
 
+  const requestUpdateLoanTerm = (loanId, newTotalPayments) => {
+    const targetLoan = selectedClient?.loans?.find((loan) => loan.id === loanId)
+    if (!targetLoan) return
+
+    const normalizedTotal = Number(newTotalPayments)
+    if (!Number.isInteger(normalizedTotal) || normalizedTotal < 1) {
+      showToast('La cantidad de quincenas debe ser un número válido mayor a 0', 'error')
+      return
+    }
+
+    if (normalizedTotal < targetLoan.currentPayment) {
+      showToast('Primero elimina las quincenas sobrantes para poder bajar el plazo', 'error')
+      return
+    }
+
+    setPendingPayment({
+      type: 'updateLoanTerm',
+      loanId,
+      newTotalPayments: normalizedTotal,
+      title: 'Actualizar quincenas',
+      message: `¿Estás seguro de cambiar el plazo del préstamo de ${targetLoan.totalPayments} a ${normalizedTotal} quincenas?`
+    })
+    setIsConfirmModalOpen(true)
+  }
+
   const handleRemoveLastLoanPayments = async (loanId, count) => {
     if (!selectedClientId) return
 
@@ -259,6 +284,26 @@ function ValesPage() {
       console.warn('No se pudieron eliminar quincenas en Supabase:', error?.message || error)
       showToast('No se pudieron eliminar las quincenas', 'error')
     }
+  }
+
+  const requestRemoveLastLoanPayments = (loanId, count) => {
+    const targetLoan = selectedClient?.loans?.find((loan) => loan.id === loanId)
+    if (!targetLoan) return
+
+    const removable = Math.max(0, Math.min(Number(count) || 0, targetLoan.payments.length))
+    if (removable === 0) {
+      showToast('No hay quincenas para eliminar', 'error')
+      return
+    }
+
+    setPendingPayment({
+      type: 'removeLoanPayments',
+      loanId,
+      count: removable,
+      title: 'Eliminar quincenas',
+      message: `¿Estás seguro de eliminar las últimas ${removable} quincena(s) registradas? Esta acción ajustará el avance del préstamo.`
+    })
+    setIsConfirmModalOpen(true)
   }
 
   const handleUpdateSelectedClient = async (clientData) => {
@@ -503,6 +548,10 @@ function ValesPage() {
     } else if (pendingPayment.type === 'payAllSources') {
       await handlePayAllSources()
       showToast('Se registraron los pagos de todas las fuentes')
+    } else if (pendingPayment.type === 'updateLoanTerm') {
+      await handleUpdateLoanTerm(pendingPayment.loanId, pendingPayment.newTotalPayments)
+    } else if (pendingPayment.type === 'removeLoanPayments') {
+      await handleRemoveLastLoanPayments(pendingPayment.loanId, pendingPayment.count || 1)
     }
 
     setIsConfirmModalOpen(false)
@@ -903,8 +952,8 @@ function ValesPage() {
                                   )
                                   handleUpdateClient(selectedClientId, { loans: updatedLoans })
                                 }}
-                                onUpdateLoanTerm={(newTotalPayments) => handleUpdateLoanTerm(selectedLoanId, newTotalPayments)}
-                                onRemoveLastPayments={(count) => handleRemoveLastLoanPayments(selectedLoanId, count)}
+                                onUpdateLoanTerm={(newTotalPayments) => requestUpdateLoanTerm(selectedLoanId, newTotalPayments)}
+                                onRemoveLastPayments={(count) => requestRemoveLastLoanPayments(selectedLoanId, count)}
                                 onDeleteLoan={() => handleDeleteLoan(selectedLoanId)}
                               />
                             </>

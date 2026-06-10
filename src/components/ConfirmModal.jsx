@@ -22,6 +22,12 @@ function ConfirmModal({ isOpen, title, message, amount, type, onConfirm, onCance
           color: 'bg-green-600 hover:bg-green-700',
           text: 'Registrar Pago'
         }
+      case 'updateLoanTerm':
+      case 'removeLoanPayments':
+        return {
+          color: 'bg-blue-600 hover:bg-blue-700',
+          text: 'Guardar cambios'
+        }
       default:
         return {
           color: 'bg-green-600 hover:bg-green-700',
